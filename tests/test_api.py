@@ -19,7 +19,8 @@ def test_create_ticket():
     assert ticket.description == desc
     assert ticket.subject == subj
     assert ticket.sid == sid
-    assert ticket.owner.user_id == cc.config.get()["user_ids"]["thomas-scholtz"]
+    assert ticket.owner.user_id == cc.config.get(
+    )["user_ids"]["thomas-scholtz"]
     assert ticket.status.status_id == cc.config.get()["ticket-status"]["new"]
     assert ticket.status.name == "New"
     assert ticket.priority == cc.config.get()["ticket-priority"]["very-low"]
@@ -29,14 +30,21 @@ def test_create_ticket():
 
 def test_comment():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
+    old_num_comments = len(ticket.comments)
+
     ticket.comment("<p>Test desc</p>")
+    new_num_comments = len(ticket.comments)
+
+    assert old_num_comments < new_num_comments
+    assert ticket.comments[0].description == "<p>Test desc</p>"
 
 
 def test_grab():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
     ticket.grab()
     assert ticket.assignee == cc.config.get()["user_ids"]["thomas-scholtz"]
-    assert ticket.status.status_id == cc.config.get()["ticket-status"]["in-progress"]
+    assert ticket.status.status_id == cc.config.get(
+    )["ticket-status"]["in-progress"]
     assert ticket.status.name == "In progress"
 
 
@@ -63,14 +71,16 @@ def test_decline_solution():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
     ticket.decline("<p>decline</p>")
 
-    assert ticket.status.status_id == cc.config.get()["ticket-status"]["in-progress"]
+    assert ticket.status.status_id == cc.config.get(
+    )["ticket-status"]["in-progress"]
 
 
 def test_cancel():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
     ticket.cancel_ticket("<p>close</p>")
 
-    assert ticket.status.status_id == cc.config.get()["ticket-status"]["cancelled"]
+    assert ticket.status.status_id == cc.config.get(
+    )["ticket-status"]["cancelled"]
 
 
 @pytest.fixture(scope="module")

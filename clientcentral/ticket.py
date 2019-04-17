@@ -2,12 +2,16 @@
 # -*- coding: utf-8 -*-
 
 import json
+from datetime import datetime
 from typing import List
+
 import requests
 
 from clientcentral.config import Config
-from model.User import User
+from model.Comment import Comment
 from model.Status import Status
+from model.User import User
+
 
 class Ticket:
     production: bool = False
@@ -22,8 +26,13 @@ class Ticket:
     owner = None
     description: str = None
 
+    created_at: datetime = None
+    updated_at: datetime = None
+
     user_watchers: List[User] = None
     # email_watchers = None
+
+    comments: List[Comment] = None
 
     status: Status = None
     assignee = None
@@ -40,6 +49,13 @@ class Ticket:
 
     def __init__(self, base_url, token, config: Config, ticket_id,
                  production: bool):
+
+        self.created_at = None
+        self.updated_at = None
+
+        self.comments = []
+        self.user_watchers = []
+
         self.production = production
         self.base_url = base_url
         self.token = token
@@ -49,7 +65,7 @@ class Ticket:
 
         self.button_ids = self.config.get()["button-ids"]
 
-        if ticket_id and not self.description and not self.subject and not self.priority and not self.user_watchers:
+        if ticket_id and not self.created_at:
             self._update()
 
     def refresh(self):
@@ -61,10 +77,20 @@ class Ticket:
         self.description = result["data"]["description"]
         self.subject = result["data"]["subject"]
 
-        self.status = Status(status_id=result["data"]["status"]["id"], name=result["data"]["status"]["name"])
+        self.status = Status(
+            status_id=result["data"]["status"]["id"],
+            name=result["data"]["status"]["name"])
 
         self.priority = result["data"]["priority"]["id"]
-        self.owner = User(user_id=result["data"]["created_by_user"]["id"], name=result["data"]["created_by_user"]["name"], email=result["data"]["created_by_user"]["email"])
+        self.owner = User(
+            user_id=result["data"]["created_by_user"]["id"],
+            name=result["data"]["created_by_user"]["name"],
+            email=result["data"]["created_by_user"]["email"])
+
+        self.created_at = datetime.strptime(result["data"]["created_at"],
+                                            "%Y-%m-%dT%H:%M:%S.%f%z")
+        self.updated_at = datetime.strptime(result["data"]["updated_at"],
+                                            "%Y-%m-%dT%H:%M:%S.%f%z")
 
         try:
             self.assignee = result["data"]["assignee"]["id"]
@@ -72,8 +98,29 @@ class Ticket:
             pass
 
         self.user_watchers = [
-            User(user_id=user["id"], name=user["name"], email=user["email"]) for user in result["data"]["user_watchers"]
+            User(user_id=user["id"], name=user["name"], email=user["email"])
+            for user in result["data"]["user_watchers"]
         ]
+
+        if not self.comments:
+            self.comments = []
+
+        for comment in result["data"]["events"]:
+            user = None
+
+            if comment["created_by_user"]:
+                user = User(
+                    user_id=comment["created_by_user"]["id"],
+                    name=comment["created_by_user"]["name"],
+                    email=comment["created_by_user"]["email"])
+            self.comments.append(
+                Comment(
+                    creator=user,
+                    description=comment["comment"],
+                    created_at=comment["created_at"]))
+            # Sort by datetime created.
+            self.comments = sorted(
+                self.comments, key=lambda x: x.created_at, reverse=True)
 
         if not self.user_watchers:
             self.user_watchers = []
@@ -149,13 +196,12 @@ class Ticket:
             }
 
         response = requests.post(url, json=params, headers=self.headers)
-        print(response.text)
         response.raise_for_status()
 
         result = json.loads(response.text)
 
         self.ticket_id = str(result["data"]["id"])
-        # print(result)
+        self._update()
         return self
 
     def add_user_watcher(self, user_id):
@@ -233,7 +279,7 @@ class Ticket:
 
     def get(self):
         url = self.base_url + "/api/v1/tickets/" + self.ticket_id + ".json?" + self.token
-        payload = "&select=created_by_user.email,created_by_user.name,subject,description,priority.name,events.comment,user_watchers.email,user_watchers.name,status.name,*"
+        payload = "&select=events.comment,events.created_by_user.email,events.created_by_user.name,events.created_at,created_by_user.email,created_by_user.name,subject,description,priority.name,events.comment,user_watchers.email,user_watchers.name,status.name,*"
         response = requests.get(url + payload)
         print(response.text)
 
