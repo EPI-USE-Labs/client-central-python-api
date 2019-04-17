@@ -3,11 +3,11 @@
 
 import json
 from typing import List
-from urllib.parse import quote
 import requests
 
 from clientcentral.config import Config
 from model.User import User
+from model.Status import Status
 
 class Ticket:
     production: bool = False
@@ -25,7 +25,7 @@ class Ticket:
     user_watchers: List[User] = None
     # email_watchers = None
 
-    status = None
+    status: Status = None
     assignee = None
 
     config: Config = None
@@ -61,7 +61,7 @@ class Ticket:
         self.description = result["data"]["description"]
         self.subject = result["data"]["subject"]
 
-        self.status = result["data"]["status"]["id"]
+        self.status = Status(status_id=result["data"]["status"]["id"], name=result["data"]["status"]["name"])
 
         self.priority = result["data"]["priority"]["id"]
         self.owner = User(user_id=result["data"]["created_by_user"]["id"], name=result["data"]["created_by_user"]["name"], email=result["data"]["created_by_user"]["email"])
@@ -233,7 +233,7 @@ class Ticket:
 
     def get(self):
         url = self.base_url + "/api/v1/tickets/" + self.ticket_id + ".json?" + self.token
-        payload = "&select=created_by_user.email,created_by_user.name,subject,description,priority.name,events.comment,user_watchers.email,user_watchers.name,*"
+        payload = "&select=created_by_user.email,created_by_user.name,subject,description,priority.name,events.comment,user_watchers.email,user_watchers.name,status.name,*"
         response = requests.get(url + payload)
         print(response.text)
 
