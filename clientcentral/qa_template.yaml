@@ -1,0 +1,27 @@
+base-url: "https://qa-cc.labs.epiuse.com"
+token: ""
+button-ids:
+  request-information: 139
+  cancel-ticket: 141
+  suggest-solution: 142
+  comment: 145
+  grab: 241
+  accept: 143
+  decline: 144
+  reassign-to-me: 166
+ticket-priority:
+  critical: 1
+  high: 2
+  medium: 3
+  low: 4
+  very-low: 33
+ticket-status:
+  in-progress: 2
+  new: 1
+  completed: 11
+  cancelled: 12
+ticket-workspace:
+  managed-services: 16
+user_ids:
+  tihan-pelser: 14015
+  thomas-scholtz: 14012

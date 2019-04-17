@@ -1,0 +1,38 @@
+# This file is a template, and might need editing before it works on your project.
+# Official docker image.
+image: docker:latest
+
+services:
+  - docker:dind
+
+stages:
+- release
+
+publish:
+  image: nikolaik/python-nodejs
+  stage: release
+  before_script:
+    - echo "nameserver 192.168.5.11" > /etc/resolv.conf
+    - apt-get install -y git openssh-client
+    - mkdir ~/.ssh
+    - ssh-keyscan -p 22 git.labs.epiuse.com > ~/.ssh/known_hosts
+    - eval `ssh-agent -s`
+    - ssh-add <(echo "$DEPLOY_KEY")
+
+  script:
+    - pip install bump2version
+    - npm install -g semantic-release
+    - npm install -g "@semantic-release/gitlab-config"
+    - npm install -g "@semantic-release/gitlab"
+    - npm install -g "@semantic-release/exec"
+    - npm install -g "@semantic-release/git"
+    - GL_URL=git.labs.epiuse.com GL_TOKEN=$GL_TOKEN npx semantic-release
+    - ssh -T git@git.labs.epiuse.com -p 22
+    - git remote set-url origin git@git.labs.epiuse.com:SWAT/clientcentral-api-python.git
+    - git config --global user.email "thomas@labs.epiuse.com"
+    - git config --global user.name "Thomas Scholtz"
+    - git pull origin master --tags
+    - git checkout master
+    - git merge $(cat release.txt)
+    - git push origin master
+

@@ -1,0 +1,29 @@
+{
+  "release": {
+    "branch": "master",
+    "plugins": [
+      "@semantic-release/commit-analyzer",
+      "@semantic-release/release-notes-generator",
+      "@semantic-release/git",
+      "@semantic-release/gitlab",
+      "@semantic-release/gitlab-config",
+      [
+        "@semantic-release/exec",
+        {
+          "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}",
+          "prepareCmd": "bump2version --new-version ${nextRelease.version} patch",
+          "successCmd": "echo \"v${nextRelease.version}\" > release.txt"
+        }
+      ]
+    ]
+  },
+  "devDependencies": {
+    "commitlint": "^7.5.2",
+    "cz-conventional-changelog": "^2.1.0"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  }
+}
