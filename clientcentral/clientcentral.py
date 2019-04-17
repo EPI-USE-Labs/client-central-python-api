@@ -3,7 +3,7 @@
 
 from clientcentral.config import Config
 from clientcentral.ticket import Ticket
-
+from clientcentral.query import QueryTickets
 
 class ClientCentral:
     production: bool = False
@@ -11,6 +11,8 @@ class ClientCentral:
     token: str = None
 
     config: Config = None
+
+    query = None
 
     def __init__(self, production, token=None):
         self.production = production
@@ -23,9 +25,9 @@ class ClientCentral:
 
         self.token = "token=" + str(self.config.get()["token"])
 
-    def get_all_tickets_by_creator(self, creator):
-
-        pass
+    def query_tickets(self) -> QueryTickets:
+        q = QueryTickets(self.base_url, self.token, self.config, self.production)
+        return q
 
     def get_ticket_by_id(self, ticket_id):
         return Ticket(

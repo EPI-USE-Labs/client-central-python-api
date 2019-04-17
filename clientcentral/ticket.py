@@ -14,11 +14,10 @@ from model.User import User
 
 
 class Ticket:
-    production: bool = False
+    _production: bool = False
 
-    base_url = None
-    token = None
-    production = False
+    _base_url = None
+    _token = None
 
     subject: str = None
     priority: int = None
@@ -56,9 +55,9 @@ class Ticket:
         self.comments = []
         self.user_watchers = []
 
-        self.production = production
-        self.base_url = base_url
-        self.token = token
+        self._production = production
+        self._base_url = base_url
+        self._token = token
         self.ticket_id = ticket_id
 
         self.config = config
@@ -115,7 +114,7 @@ class Ticket:
                     email=comment["created_by_user"]["email"])
             self.comments.append(
                 Comment(
-                    creator=user,
+                    created_by_user=user,
                     description=comment["comment"],
                     created_at=comment["created_at"]))
             # Sort by datetime created.
@@ -136,7 +135,7 @@ class Ticket:
         if self.ticket_id:
             return
 
-        url = self.base_url + "/api/v1/tickets.json?" + self.token
+        url = self._base_url + "/api/v1/tickets.json?" + self._token
 
         if not self.priority:
             self.priority = self.config.get()["ticket-priority"]["very-low"]
@@ -179,7 +178,7 @@ class Ticket:
             }
         }
 
-        if self.production:
+        if self._production:
             params["ticket"]["custom_fields_attributes"] = {
                 "0": {
                     "values": 0,
@@ -211,7 +210,7 @@ class Ticket:
         if not comment:
             raise Exception
 
-        url = self.base_url + "/api/v1/tickets/" + self.ticket_id + ".json?" + self.token
+        url = self._base_url + "/api/v1/tickets/" + self.ticket_id + ".json?" + self._token
 
         payload = {
             "ticket": {
@@ -225,7 +224,7 @@ class Ticket:
             }
         }
 
-        if self.production:
+        if self._production:
             payload["ticket"]["custom_fields_attributes"] = {
                 "0": {
                     "values": 0,
@@ -245,7 +244,7 @@ class Ticket:
         response.raise_for_status()
 
     def update(self):
-        url = self.base_url + "/api/v1/tickets/" + self.ticket_id + ".json?" + self.token
+        url = self._base_url + "/api/v1/tickets/" + self.ticket_id + ".json?" + self._token
 
         payload = {
             "ticket": {
@@ -258,7 +257,7 @@ class Ticket:
                 "comment": None
             }
         }
-        if self.production:
+        if self._production:
             payload["ticket"]["custom_fields_attributes"] = {
                 "0": {
                     "values": 0,
@@ -278,7 +277,7 @@ class Ticket:
         response.raise_for_status()
 
     def get(self):
-        url = self.base_url + "/api/v1/tickets/" + self.ticket_id + ".json?" + self.token
+        url = self._base_url + "/api/v1/tickets/" + self.ticket_id + ".json?" + self._token
         payload = "&select=events.comment,events.created_by_user.email,events.created_by_user.name,events.created_at,created_by_user.email,created_by_user.name,subject,description,priority.name,events.comment,user_watchers.email,user_watchers.name,status.name,*"
         response = requests.get(url + payload)
         print(response.text)
@@ -287,8 +286,8 @@ class Ticket:
         return json.loads(response.text)
 
     def comment(self, description):
-        url = self.base_url + "/api/v1/tickets/" + self.ticket_id + "/buttons/" + str(
-            self.button_ids["comment"]) + ".json?" + self.token
+        url = self._base_url + "/api/v1/tickets/" + self.ticket_id + "/buttons/" + str(
+            self.button_ids["comment"]) + ".json?" + self._token
 
         params = {
             'comment': str(description),
@@ -360,6 +359,6 @@ class Ticket:
         self._update()
 
     def _build_url(self, button):
-        url = self.base_url + "/api/v1/tickets/" + self.ticket_id + "/buttons/" + str(
-            button) + ".json?" + self.token
+        url = self._base_url + "/api/v1/tickets/" + self.ticket_id + "/buttons/" + str(
+            button) + ".json?" + self._token
         return url

@@ -23,6 +23,7 @@ print("Ticket creator: " + ticket.owner.name)
 print("Ticket status:" + ticket.status.name)
 
 for comment in ticket.comments:
-    print("Comment from: " + comment.creator.name + " says: " + comment.description)
+    if comment.created_by_user:
+        print("Comment from: " + comment.created_by_user.name + " says: " + comment.description)
 
 ```
