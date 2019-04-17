@@ -38,7 +38,8 @@ class Config:
             else:
                 if os.path.exists(os.path.dirname(path) + "/prod.yaml"):
                     # Open project specific config
-                    with open(os.path.dirname(path) + "/prod.yaml", 'r') as stream:
+                    with open(os.path.dirname(path) + "/prod.yaml",
+                              'r') as stream:
                         config = yaml.safe_load(stream)
 
             # Merge configs
@@ -68,7 +69,8 @@ class Config:
             else:
                 if os.path.exists(os.path.dirname(path) + "/qa.yaml"):
                     # Open project specific config
-                    with open(os.path.dirname(path) + "/qa.yaml", 'r') as stream:
+                    with open(os.path.dirname(path) + "/qa.yaml",
+                              'r') as stream:
                         config = yaml.safe_load(stream)
 
             # Merge configs

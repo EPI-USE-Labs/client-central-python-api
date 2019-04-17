@@ -30,6 +30,7 @@ def test_comment():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
     ticket.comment("<p>Test desc</p>")
 
+
 def test_grab():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
     ticket.grab()
@@ -41,10 +42,12 @@ def test_suggest_solution():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
     ticket.suggest_solution("<p>sol</p>")
 
+
 def test_comment_and_update():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
     ticket.description = "<p>update desc</p>"
     ticket.comment_and_update("comment and update")
+
 
 def test_suggest_solution_then_grab():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)

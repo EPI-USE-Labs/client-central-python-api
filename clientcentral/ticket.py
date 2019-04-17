@@ -38,7 +38,8 @@ class Ticket:
         'Accept': 'application/json'
     }
 
-    def __init__(self, base_url, token, config: Config, ticket_id, production: bool):
+    def __init__(self, base_url, token, config: Config, ticket_id,
+                 production: bool):
         self.production = production
         self.base_url = base_url
         self.token = token
