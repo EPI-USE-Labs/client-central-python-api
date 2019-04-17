@@ -3,11 +3,11 @@
 
 import json
 from typing import List
-
+from urllib.parse import quote
 import requests
 
 from clientcentral.config import Config
-
+from model.User import User
 
 class Ticket:
     production: bool = False
@@ -22,7 +22,7 @@ class Ticket:
     owner = None
     description: str = None
 
-    user_watchers: List[int] = None
+    user_watchers: List[User] = None
     # email_watchers = None
 
     status = None
@@ -64,7 +64,7 @@ class Ticket:
         self.status = result["data"]["status"]["id"]
 
         self.priority = result["data"]["priority"]["id"]
-        self.owner = result["data"]["created_by_user"]["id"]
+        self.owner = User(user_id=result["data"]["created_by_user"]["id"], name=result["data"]["created_by_user"]["name"], email=result["data"]["created_by_user"]["email"])
 
         try:
             self.assignee = result["data"]["assignee"]["id"]
@@ -72,8 +72,11 @@ class Ticket:
             pass
 
         self.user_watchers = [
-            user["id"] for user in result["data"]["user_watchers"]
+            User(user_id=user["id"], name=user["name"], email=user["email"]) for user in result["data"]["user_watchers"]
         ]
+
+        if not self.user_watchers:
+            self.user_watchers = []
 
         try:
             self.sid = result["data"]["sap_sid"]
@@ -90,6 +93,9 @@ class Ticket:
 
         if not self.priority:
             self.priority = self.config.get()["ticket-priority"]["very-low"]
+
+        if not self.user_watchers:
+            self.user_watchers = []
 
         params = {
             "ticket": {
@@ -115,8 +121,7 @@ class Ticket:
                 # Prod
                 # Tiaan S, Jaco K, Thomas S, Tihan P, Marin P
                 # "user_watchers": [6, 52, 14012, 14015, 11122]
-                "user_watchers":
-                self.user_watchers,
+                "user_watchers": [user.user_id for user in self.user_watchers],
 
                 # Not supported yet
                 # "email_watcher_emails": self.email_watchers,
@@ -167,7 +172,7 @@ class Ticket:
                 "subject": str(self.subject),
                 "description": str(self.description),
                 "priority_id": self.priority,
-                "user_watchers": self.user_watchers
+                "user_watchers": [user.user_id for user in self.user_watchers]
             },
             "ticket_event": {
                 "comment": str(comment)
@@ -201,7 +206,7 @@ class Ticket:
                 "subject": str(self.subject),
                 "description": str(self.description),
                 "priority_id": self.priority,
-                "user_watchers": self.user_watchers
+                "user_watchers": [user.user_id for user in self.user_watchers]
             },
             "ticket_event": {
                 "comment": None
@@ -228,8 +233,10 @@ class Ticket:
 
     def get(self):
         url = self.base_url + "/api/v1/tickets/" + self.ticket_id + ".json?" + self.token
+        payload = "&select=created_by_user.email,created_by_user.name,subject,description,priority.name,events.comment,user_watchers.email,user_watchers.name,*"
+        response = requests.get(url + payload)
+        print(response.text)
 
-        response = requests.get(url)
         response.raise_for_status()
         return json.loads(response.text)
 

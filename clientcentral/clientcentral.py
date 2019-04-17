@@ -23,6 +23,10 @@ class ClientCentral:
 
         self.token = "token=" + str(self.config.get()["token"])
 
+    def get_all_tickets_by_creator(self, creator):
+        
+        pass
+
     def get_ticket_by_id(self, ticket_id):
         return Ticket(
             base_url=self.base_url,

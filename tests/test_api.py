@@ -19,7 +19,7 @@ def test_create_ticket():
     assert ticket.description == desc
     assert ticket.subject == subj
     assert ticket.sid == sid
-    assert ticket.owner == cc.config.get()["user_ids"]["thomas-scholtz"]
+    assert ticket.owner.user_id == cc.config.get()["user_ids"]["thomas-scholtz"]
     assert ticket.status == cc.config.get()["ticket-status"]["new"]
     assert ticket.priority == cc.config.get()["ticket-priority"]["very-low"]
 
