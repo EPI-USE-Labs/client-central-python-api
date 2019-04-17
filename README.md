@@ -8,10 +8,21 @@ pip install --user git+https://git.labs.epiuse.com/SWAT/clientcentral-api-python
 
 # Example usage:
 ```python
+import clientcentral.ticketformatting as tf
 from clientcentral.clientcentral import ClientCentral
 
 cc = ClientCentral(production=True)
 
 ticket = cc.create_ticket(subject="New awesome subject" , description="this is an awesome ticket")
+ticket.comment("<p>" + tf.bold("I am BOLD") + "</p>")
+
+# Get the ticket creator
+print("Ticket creator: " + ticket.owner.name)
+
+# Get the ticket status
+print("Ticket status:" + ticket.status.name)
+
+for comment in ticket.comments:
+    print("Comment from: " + comment.creator.name + " says: " + comment.description)
 
 ```
