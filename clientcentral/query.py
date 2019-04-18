@@ -1,7 +1,10 @@
 # query().filter_by(Comparison("created_by_user.name", "=", "name"))
-import requests
 import json
+
+import requests
+
 from clientcentral.ticket import Ticket
+
 
 class QueryTickets:
     _query = None
@@ -20,7 +23,7 @@ class QueryTickets:
         self.production = production
 
     def filter_by(self, arg):
-        self._query ="&filter=" + str(arg)
+        self._query = "&filter=" + str(arg)
         return self
 
     def all(self):

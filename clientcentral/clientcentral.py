@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 
 from clientcentral.config import Config
-from clientcentral.ticket import Ticket
 from clientcentral.query import QueryTickets
+from clientcentral.ticket import Ticket
+
 
 class ClientCentral:
     production: bool = False
@@ -26,7 +27,8 @@ class ClientCentral:
         self.token = "token=" + str(self.config.get()["token"])
 
     def query_tickets(self) -> QueryTickets:
-        q = QueryTickets(self.base_url, self.token, self.config, self.production)
+        q = QueryTickets(self.base_url, self.token, self.config,
+                         self.production)
         return q
 
     def get_ticket_by_id(self, ticket_id):

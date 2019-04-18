@@ -8,8 +8,11 @@ from typing import List
 import requests
 
 from clientcentral.config import Config
+from model.Change import Change
+from model.ChangeEvent import ChangeEvent
 from model.Comment import Comment
 from model.Status import Status
+from model.TicketEvent import TicketEvent
 from model.User import User
 
 
@@ -32,6 +35,8 @@ class Ticket:
     # email_watchers = None
 
     comments: List[Comment] = None
+    events: List[TicketEvent] = None
+    change_events: List[ChangeEvent] = None
 
     status: Status = None
     assignee = None
@@ -103,23 +108,50 @@ class Ticket:
 
         if not self.comments:
             self.comments = []
+        if not self.events:
+            self.events = []
+        if not self.change_events:
+            self.change_events = []
 
-        for comment in result["data"]["events"]:
+        for event in result["data"]["events"]:
             user = None
+            event_created_at = event["created_at"]
 
-            if comment["created_by_user"]:
+            if event["created_by_user"]:
                 user = User(
-                    user_id=comment["created_by_user"]["id"],
-                    name=comment["created_by_user"]["name"],
-                    email=comment["created_by_user"]["email"])
-            self.comments.append(
-                Comment(
+                    user_id=event["created_by_user"]["id"],
+                    name=event["created_by_user"]["name"],
+                    email=event["created_by_user"]["email"])
+
+            if event["event_changes"]:
+                changes = []
+                for change in event["event_changes"]:
+                    changes.append(
+                        Change(
+                            from_value=change["from_value"],
+                            to_value=change["to_value"],
+                            name=change["name"]))
+                change_event = ChangeEvent(
                     created_by_user=user,
-                    description=comment["comment"],
-                    created_at=comment["created_at"]))
-            # Sort by datetime created.
-            self.comments = sorted(
-                self.comments, key=lambda x: x.created_at, reverse=True)
+                    created_at=event_created_at,
+                    changes=changes)
+                self.change_events.append(change_event)
+                self.events.append(change_event)
+            else:
+                comment_event = Comment(
+                    created_by_user=user,
+                    description=event["comment"],
+                    created_at=event_created_at)
+                self.comments.append(comment_event)
+                self.events.append(comment_event)
+
+        # Sort by datetime created.
+        self.events = sorted(
+            self.events, key=lambda x: x.created_at, reverse=True)
+        self.change_events = sorted(
+            self.change_events, key=lambda x: x.created_at, reverse=True)
+        self.comments = sorted(
+            self.comments, key=lambda x: x.created_at, reverse=True)
 
         if not self.user_watchers:
             self.user_watchers = []
@@ -278,7 +310,7 @@ class Ticket:
 
     def get(self):
         url = self._base_url + "/api/v1/tickets/" + self.ticket_id + ".json?" + self._token
-        payload = "&select=events.comment,events.created_by_user.email,events.created_by_user.name,events.created_at,created_by_user.email,created_by_user.name,subject,description,priority.name,events.comment,user_watchers.email,user_watchers.name,status.name,*"
+        payload = "&select=events.comment,events.created_by_user.email,events.created_by_user.name,events.created_at,created_by_user.email,created_by_user.name,subject,description,priority.name,events.comment,user_watchers.email,user_watchers.name,status.name,events.event_changes.change_type,events.event_changes.to_value,events.event_changes.from_value,events.event_changes.name,*"
         response = requests.get(url + payload)
         print(response.text)
 
