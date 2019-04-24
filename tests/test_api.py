@@ -12,7 +12,7 @@ def test_create_ticket():
     desc = "<h1>This is a test ticket. Please ignore</h1>"
     sid = "ZZZ"
 
-    ticket = cc.create_ticket(subject=subj, description=desc, sid=sid)
+    ticket = cc.create_ticket(subject=subj, description=desc, sid=sid, workspace_id=cc.config.get()["ticket-workspace"]["managed-services"])
 
     ticket.refresh()
 

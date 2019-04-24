@@ -28,6 +28,9 @@ class Ticket:
     owner = None
     description: str = None
 
+    workspace_id: int = None
+    project_id: int = None
+
     created_at: datetime = None
     updated_at: datetime = None
 
@@ -52,7 +55,7 @@ class Ticket:
     }
 
     def __init__(self, base_url, token, config: Config, ticket_id,
-                 production: bool):
+                 production: bool, workspace_id: int, project_id: int):
 
         self.created_at = None
         self.updated_at = None
@@ -64,6 +67,9 @@ class Ticket:
         self._base_url = base_url
         self._token = token
         self.ticket_id = ticket_id
+
+        self.workspace_id = workspace_id
+        self.project_id = project_id
 
         self.config = config
 
@@ -95,6 +101,9 @@ class Ticket:
                                             "%Y-%m-%dT%H:%M:%S.%f%z")
         self.updated_at = datetime.strptime(result["data"]["updated_at"],
                                             "%Y-%m-%dT%H:%M:%S.%f%z")
+
+        self.project_id = result["data"]["project"]["id"]
+        self.workspace_id = result["data"]["workspace"]["id"]
 
         try:
             self.assignee = result["data"]["assignee"]["id"]
@@ -182,11 +191,11 @@ class Ticket:
         params = {
             "ticket": {
                 "project_id":
-                8,
+                self.project_id,
                 "type_id":
                 8,
                 "workspace_id":
-                self.config.get()["ticket-workspace"]["managed-services"],
+                self.workspace_id,
                 "account_vp":
                 1,
                 "subject":

@@ -24,7 +24,10 @@ ticket-status:
   completed: 11
   cancelled: 12
 ticket-workspace:
+  internal-IT-and-HR: 87
   managed-services: 25
+ticket-project:
+  EPI-USE-Labs-Internal-IT: 43
 user_ids:
   tihan-pelser: 14015
   thomas-scholtz: 14012

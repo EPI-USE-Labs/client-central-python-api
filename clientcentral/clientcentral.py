@@ -37,15 +37,19 @@ class ClientCentral:
             token=self.token,
             ticket_id=str(ticket_id),
             config=self.config,
-            production=self.production)
+            production=self.production,
+            workspace_id=None,
+            project_id=None)
 
-    def create_ticket(self, subject, description, sid, priority=None):
+    def create_ticket(self, subject, description, sid, workspace_id, priority=None, project_id=8):
         ticket = Ticket(
             base_url=self.base_url,
             token=self.token,
             ticket_id=None,
             config=self.config,
-            production=self.production)
+            production=self.production,
+            workspace_id=workspace_id,
+            project_id=project_id)
 
         ticket.subject = str(subject)
         ticket.description = str(description)
