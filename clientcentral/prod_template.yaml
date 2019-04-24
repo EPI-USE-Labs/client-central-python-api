@@ -25,7 +25,15 @@ ticket-status:
   cancelled: 12
 ticket-workspace:
   internal-IT-and-HR: 87
-  managed-services: 25
+  managed-services:
+    id: 25
+    custom-fields:
+      sid:
+        id: 144
+      security-related:
+        id: 17
+      category:
+        id: 75
 ticket-project:
   EPI-USE-Labs-Internal-IT: 43
 user_ids:

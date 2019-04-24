@@ -16,11 +16,23 @@ cc = ClientCentral(production=True)
 ticket = cc.create_ticket(subject="New awesome subject" , description="this is an awesome ticket")
 ticket.comment("<p>" + tf.bold("I am BOLD") + "</p>")
 
-# Get the ticket creator
+# Get the ticket's creator
 print("Ticket creator: " + ticket.owner.name)
 
-# Get the ticket status
+# Get the ticket's status
 print("Ticket status:" + ticket.status.name)
+
+# Print the ticket's description
+print("Ticket description: " + ticket.description)
+
+# Add a user to watchers
+ticket.add_user_watcher(14012) # 14012 refers to the user id in this case its "Thomas Scholtz"
+
+# Change the description of the ticket
+ticket.description = "New and improved ticket description"
+
+# Finally after making all changes commit them.
+ticket.update()
 
 for comment in ticket.comments:
     if comment.created_by_user:

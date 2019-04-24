@@ -28,6 +28,8 @@ class Ticket:
     owner = None
     description: str = None
 
+    type_id: int = None
+
     workspace_id: int = None
     project_id: int = None
 
@@ -36,6 +38,8 @@ class Ticket:
 
     user_watchers: List[User] = None
     # email_watchers = None
+
+    custom_fields_attributes: List[dict] = None
 
     comments: List[Comment] = None
     events: List[TicketEvent] = None
@@ -55,18 +59,21 @@ class Ticket:
     }
 
     def __init__(self, base_url, token, config: Config, ticket_id,
-                 production: bool, workspace_id: int, project_id: int):
+                 production: bool, workspace_id: int, project_id: int, type_id: int = 8):
 
         self.created_at = None
         self.updated_at = None
 
         self.comments = []
         self.user_watchers = []
+        self.custom_fields_attributes = []
 
         self._production = production
         self._base_url = base_url
         self._token = token
         self.ticket_id = ticket_id
+
+        self.type_id = type_id
 
         self.workspace_id = workspace_id
         self.project_id = project_id
@@ -104,6 +111,11 @@ class Ticket:
 
         self.project_id = result["data"]["project"]["id"]
         self.workspace_id = result["data"]["workspace"]["id"]
+
+        self.type_id = result["data"]["type"]["id"]
+
+        # Will hopefully get updated in future CC builds
+        self.custom_fields_attributes = []
 
         try:
             self.assignee = result["data"]["assignee"]["id"]
@@ -190,29 +202,20 @@ class Ticket:
 
         params = {
             "ticket": {
-                "project_id":
-                self.project_id,
-                "type_id":
-                8,
-                "workspace_id":
-                self.workspace_id,
-                "account_vp":
-                1,
-                "subject":
-                str(self.subject),
-                "description":
-                str(self.description),
-                "visible_to_customer":
-                True,
-                "priority_id":
-                self.priority,
-                "assignee":
-                str(self.assignee),
-
-                # Prod
-                # Tiaan S, Jaco K, Thomas S, Tihan P, Marin P
-                # "user_watchers": [6, 52, 14012, 14015, 11122]
+                "project_id": self.project_id,
+                "type_id": self.type_id,
+                "workspace_id": self.workspace_id,
+                "account_vp": 1,
+                "subject": str(self.subject),
+                "description": str(self.description),
+                "visible_to_customer": True,
+                "priority_id": self.priority,
+                "assignee": str(self.assignee),
                 "user_watchers": [user.user_id for user in self.user_watchers],
+                "custom_fields_attributes": {
+                    str(key): value
+                    for key, value in enumerate(self.custom_fields_attributes)
+                }
 
                 # Not supported yet
                 # "email_watcher_emails": self.email_watchers,
@@ -223,23 +226,8 @@ class Ticket:
             }
         }
 
-        if self._production:
-            params["ticket"]["custom_fields_attributes"] = {
-                "0": {
-                    "values": 0,
-                    "id": 17
-                },
-                "1": {
-                    "values": str(self.sid),
-                    "id": 144
-                },
-                "2": {
-                    "values": 363,
-                    "id": 75
-                }
-            }
-
         response = requests.post(url, json=params, headers=self.headers)
+        # print(response.text)
         response.raise_for_status()
 
         result = json.loads(response.text)
@@ -262,28 +250,16 @@ class Ticket:
                 "subject": str(self.subject),
                 "description": str(self.description),
                 "priority_id": self.priority,
-                "user_watchers": [user.user_id for user in self.user_watchers]
+                "user_watchers": [user.user_id for user in self.user_watchers],
+                "custom_fields_attributes": {
+                    str(key): value
+                    for key, value in enumerate(self.custom_fields_attributes)
+                }
             },
             "ticket_event": {
                 "comment": str(comment)
             }
         }
-
-        if self._production:
-            payload["ticket"]["custom_fields_attributes"] = {
-                "0": {
-                    "values": 0,
-                    "id": 17
-                },
-                "1": {
-                    "values": str(self.sid),
-                    "id": 144
-                },
-                "2": {
-                    "values": 363,
-                    "id": 75
-                }
-            }
 
         response = requests.patch(url, json=payload)
         response.raise_for_status()
@@ -296,27 +272,16 @@ class Ticket:
                 "subject": str(self.subject),
                 "description": str(self.description),
                 "priority_id": self.priority,
-                "user_watchers": [user.user_id for user in self.user_watchers]
+                "user_watchers": [user.user_id for user in self.user_watchers],
+                "custom_fields_attributes": {
+                    str(key): value
+                    for key, value in enumerate(self.custom_fields_attributes)
+                }
             },
             "ticket_event": {
                 "comment": None
             }
         }
-        if self._production:
-            payload["ticket"]["custom_fields_attributes"] = {
-                "0": {
-                    "values": 0,
-                    "id": 17
-                },
-                "1": {
-                    "values": str(self.sid),
-                    "id": 144
-                },
-                "2": {
-                    "values": 363,
-                    "id": 75
-                }
-            }
 
         response = requests.patch(url, json=payload)
         response.raise_for_status()

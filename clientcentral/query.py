@@ -5,7 +5,6 @@ import requests
 
 from clientcentral.ticket import Ticket
 
-
 class QueryTickets:
     _query = None
 
@@ -42,7 +41,9 @@ class QueryTickets:
                 token=self.token,
                 ticket_id=str(ticket_in_data["id"]),
                 config=self.config,
-                production=self.production)
+                production=self.production,
+                workspace_id=None,
+                project_id=None)
             tickets.append(ticket)
 
         return tickets

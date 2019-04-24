@@ -23,8 +23,11 @@ class ChangeEvent(TicketEvent):
     changes: List[Change] = None
     comment: str = None
 
-    def __init__(self, created_by_user: User, created_at: str,
-                 changes: List[Change], comment=None):
+    def __init__(self,
+                 created_by_user: User,
+                 created_at: str,
+                 changes: List[Change],
+                 comment=None):
         super().__init__(created_by_user, created_at)
         self.changes = changes
         self.comment = comment

@@ -12,7 +12,8 @@ def test_create_ticket():
     desc = "<h1>This is a test ticket. Please ignore</h1>"
     sid = "ZZZ"
 
-    ticket = cc.create_ticket(subject=subj, description=desc, sid=sid, workspace_id=cc.config.get()["ticket-workspace"]["managed-services"])
+    ticket = cc.create_ticket(
+        subject=subj, description=desc, sid=sid, project_id=8)
 
     ticket.refresh()
 
@@ -86,6 +87,27 @@ def test_cancel():
 
     assert ticket.status.status_id == cc.config.get(
     )["ticket-status"]["cancelled"]
+
+
+# def test_create_ticket_on_different_workspace():
+#     subj = "[Test-Ticket]"
+#     desc = "<h1>This is a test ticket. Please ignore</h1>"
+#     sid = "ZZZ"
+#
+#     ticket = cc.create_ticket(subject=subj, description=desc, sid=sid, project_id=cc.config.get()["ticket-workspace"]["client-central"]["projects"]["general-administration"])
+#
+#     ticket.refresh()
+#
+#     assert ticket.description == desc
+#     assert ticket.subject == subj
+#     assert ticket.sid == sid
+#     assert ticket.owner.user_id == cc.config.get(
+#     )["user_ids"]["thomas-scholtz"]
+#     assert ticket.status.status_id == cc.config.get()["ticket-status"]["new"]
+#     assert ticket.status.name == "New"
+#     assert ticket.priority == cc.config.get()["ticket-priority"]["very-low"]
+#
+#     pytest.ticket_id = ticket.ticket_id
 
 
 @pytest.fixture(scope="module")
