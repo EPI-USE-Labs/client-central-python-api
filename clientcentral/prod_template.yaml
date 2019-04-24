@@ -24,7 +24,18 @@ ticket-status:
   completed: 11
   cancelled: 12
 ticket-workspace:
-  managed-services: 25
+  internal-IT-and-HR: 87
+  managed-services:
+    id: 25
+    custom-fields:
+      sid:
+        id: 144
+      security-related:
+        id: 17
+      category:
+        id: 75
+ticket-project:
+  EPI-USE-Labs-Internal-IT: 43
 user_ids:
   tihan-pelser: 14015
   thomas-scholtz: 14012

@@ -21,7 +21,17 @@ ticket-status:
   completed: 11
   cancelled: 12
 ticket-workspace:
-  managed-services: 16
+  managed-services:
+    id: 16
+    custom-fields:
+      sid:
+        id: 144
+      security-related:
+        id: 17
+  client-central:
+    id: 4
+    projects:
+      general-administration: 7
 user_ids:
   tihan-pelser: 14015
   thomas-scholtz: 14012

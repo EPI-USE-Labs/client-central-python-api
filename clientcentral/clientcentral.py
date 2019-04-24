@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from clientcentral.config import Config
+from clientcentral.query import QueryTickets
 from clientcentral.ticket import Ticket
 
 
@@ -11,6 +12,8 @@ class ClientCentral:
     token: str = None
 
     config: Config = None
+
+    query = None
 
     def __init__(self, production, token=None):
         self.production = production
@@ -23,21 +26,38 @@ class ClientCentral:
 
         self.token = "token=" + str(self.config.get()["token"])
 
+    def query_tickets(self) -> QueryTickets:
+        q = QueryTickets(self.base_url, self.token, self.config,
+                         self.production)
+        return q
+
     def get_ticket_by_id(self, ticket_id):
         return Ticket(
             base_url=self.base_url,
             token=self.token,
             ticket_id=str(ticket_id),
             config=self.config,
-            production=self.production)
+            production=self.production,
+            project_id=None,
+            workspace_id=None)
 
-    def create_ticket(self, subject, description, sid, priority=None):
+    def create_ticket(self,
+                      subject,
+                      description,
+                      sid,
+                      project_id,
+                      workspace_id=None,
+                      priority=None,
+                      type_id=8):
         ticket = Ticket(
             base_url=self.base_url,
             token=self.token,
             ticket_id=None,
             config=self.config,
-            production=self.production)
+            production=self.production,
+            workspace_id=workspace_id,
+            project_id=project_id,
+            type_id=type_id)
 
         ticket.subject = str(subject)
         ticket.description = str(description)

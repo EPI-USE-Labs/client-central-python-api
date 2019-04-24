@@ -9,18 +9,21 @@ pytest.ticket_id = None
 
 def test_create_ticket():
     subj = "[Test-Ticket]"
-    desc = "<p>This is a test ticket. Please ignore</p>"
+    desc = "<h1>This is a test ticket. Please ignore</h1>"
     sid = "ZZZ"
 
-    ticket = cc.create_ticket(subject=subj, description=desc, sid=sid)
+    ticket = cc.create_ticket(
+        subject=subj, description=desc, sid=sid, project_id=8)
 
     ticket.refresh()
 
     assert ticket.description == desc
     assert ticket.subject == subj
     assert ticket.sid == sid
-    assert ticket.owner == cc.config.get()["user_ids"]["thomas-scholtz"]
-    assert ticket.status == cc.config.get()["ticket-status"]["new"]
+    assert ticket.owner.user_id == cc.config.get(
+    )["user_ids"]["thomas-scholtz"]
+    assert ticket.status.status_id == cc.config.get()["ticket-status"]["new"]
+    assert ticket.status.name == "New"
     assert ticket.priority == cc.config.get()["ticket-priority"]["very-low"]
 
     pytest.ticket_id = ticket.ticket_id
@@ -28,14 +31,27 @@ def test_create_ticket():
 
 def test_comment():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
+    old_num_comments = len(ticket.comments)
+    old_num_change_eventes = len(ticket.change_events)
+
     ticket.comment("<p>Test desc</p>")
+    new_num_comments = len(ticket.comments)
+    new_num_change_events = len(ticket.change_events)
+
+    assert (old_num_comments + 1) == new_num_comments
+    assert ticket.comments[0].comment == "<p>Test desc</p>"
+
+    # nothing else should have changed unless someone edited the ticket.
+    assert (old_num_change_eventes + 1) == new_num_change_events
 
 
 def test_grab():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
     ticket.grab()
     assert ticket.assignee == cc.config.get()["user_ids"]["thomas-scholtz"]
-    assert ticket.status == cc.config.get()["ticket-status"]["in-progress"]
+    assert ticket.status.status_id == cc.config.get(
+    )["ticket-status"]["in-progress"]
+    assert ticket.status.name == "In progress"
 
 
 def test_suggest_solution():
@@ -61,14 +77,37 @@ def test_decline_solution():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
     ticket.decline("<p>decline</p>")
 
-    assert ticket.status == cc.config.get()["ticket-status"]["in-progress"]
+    assert ticket.status.status_id == cc.config.get(
+    )["ticket-status"]["in-progress"]
 
 
 def test_cancel():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
     ticket.cancel_ticket("<p>close</p>")
 
-    assert ticket.status == cc.config.get()["ticket-status"]["cancelled"]
+    assert ticket.status.status_id == cc.config.get(
+    )["ticket-status"]["cancelled"]
+
+
+# def test_create_ticket_on_different_workspace():
+#     subj = "[Test-Ticket]"
+#     desc = "<h1>This is a test ticket. Please ignore</h1>"
+#     sid = "ZZZ"
+#
+#     ticket = cc.create_ticket(subject=subj, description=desc, sid=sid, project_id=cc.config.get()["ticket-workspace"]["client-central"]["projects"]["general-administration"])
+#
+#     ticket.refresh()
+#
+#     assert ticket.description == desc
+#     assert ticket.subject == subj
+#     assert ticket.sid == sid
+#     assert ticket.owner.user_id == cc.config.get(
+#     )["user_ids"]["thomas-scholtz"]
+#     assert ticket.status.status_id == cc.config.get()["ticket-status"]["new"]
+#     assert ticket.status.name == "New"
+#     assert ticket.priority == cc.config.get()["ticket-priority"]["very-low"]
+#
+#     pytest.ticket_id = ticket.ticket_id
 
 
 @pytest.fixture(scope="module")
