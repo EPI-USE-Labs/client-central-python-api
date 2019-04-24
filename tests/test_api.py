@@ -9,7 +9,7 @@ pytest.ticket_id = None
 
 def test_create_ticket():
     subj = "[Test-Ticket]"
-    desc = "<p>This is a test ticket. Please ignore</p>"
+    desc = "<h1>This is a test ticket. Please ignore</h1>"
     sid = "ZZZ"
 
     ticket = cc.create_ticket(subject=subj, description=desc, sid=sid)
@@ -31,12 +31,17 @@ def test_create_ticket():
 def test_comment():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
     old_num_comments = len(ticket.comments)
+    old_num_change_eventes = len(ticket.change_events)
 
     ticket.comment("<p>Test desc</p>")
     new_num_comments = len(ticket.comments)
+    new_num_change_events = len(ticket.change_events)
 
-    assert old_num_comments < new_num_comments
-    assert ticket.comments[0].description == "<p>Test desc</p>"
+    assert (old_num_comments + 1) == new_num_comments
+    assert ticket.comments[0].comment == "<p>Test desc</p>"
+
+    # nothing else should have changed unless someone edited the ticket.
+    assert (old_num_change_eventes + 1) == new_num_change_events
 
 
 def test_grab():

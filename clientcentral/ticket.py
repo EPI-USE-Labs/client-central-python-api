@@ -69,7 +69,7 @@ class Ticket:
 
         self.button_ids = self.config.get()["button-ids"]
 
-        if ticket_id and not self.created_at:
+        if ticket_id and not self.created_at and not self.updated_at:
             self._update()
 
     def refresh(self):
@@ -78,8 +78,8 @@ class Ticket:
     def _update(self):
         result = self.get()
 
-        self.description = result["data"]["description"]
-        self.subject = result["data"]["subject"]
+        self.description = str(result["data"]["description"]).strip()
+        self.subject = str(result["data"]["subject"]).strip()
 
         self.status = Status(
             status_id=result["data"]["status"]["id"],
@@ -134,13 +134,17 @@ class Ticket:
                 change_event = ChangeEvent(
                     created_by_user=user,
                     created_at=event_created_at,
-                    changes=changes)
+                    changes=changes,
+                    comment=event["comment"])
                 self.change_events.append(change_event)
                 self.events.append(change_event)
+
+                if event["comment"] and event["comment"] != "":
+                    self.comments.append(change_event)
             else:
                 comment_event = Comment(
                     created_by_user=user,
-                    description=event["comment"],
+                    comment=event["comment"],
                     created_at=event_created_at)
                 self.comments.append(comment_event)
                 self.events.append(comment_event)
@@ -310,7 +314,7 @@ class Ticket:
 
     def get(self):
         url = self._base_url + "/api/v1/tickets/" + self.ticket_id + ".json?" + self._token
-        payload = "&select=events.comment,events.created_by_user.email,events.created_by_user.name,events.created_at,created_by_user.email,created_by_user.name,subject,description,priority.name,events.comment,user_watchers.email,user_watchers.name,status.name,events.event_changes.change_type,events.event_changes.to_value,events.event_changes.from_value,events.event_changes.name,*"
+        payload = "&select=events.comment,events.created_by_user.email,events.created_by_user.name,events.created_at,created_by_user.email,created_by_user.name,subject,description,priority.name,events.comment,user_watchers.email,user_watchers.name,status.name,events.event_changes.to_value,events.event_changes.from_value,events.event_changes.name,*"
         response = requests.get(url + payload)
         print(response.text)
 

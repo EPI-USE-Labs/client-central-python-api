@@ -3,9 +3,9 @@ from model.User import User
 
 
 class Comment(TicketEvent):
-    description: str = None
+    comment: str = None
 
-    def __init__(self, created_by_user: User, description: str,
+    def __init__(self, created_by_user: User, comment: str,
                  created_at: str):
         super().__init__(created_by_user, created_at)
-        self.description = description
+        self.comment = comment
