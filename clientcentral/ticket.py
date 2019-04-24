@@ -316,7 +316,7 @@ class Ticket:
         url = self._base_url + "/api/v1/tickets/" + self.ticket_id + ".json?" + self._token
         payload = "&select=events.comment,events.created_by_user.email,events.created_by_user.name,events.created_at,created_by_user.email,created_by_user.name,subject,description,priority.name,events.comment,user_watchers.email,user_watchers.name,status.name,events.event_changes.to_value,events.event_changes.from_value,events.event_changes.name,*"
         response = requests.get(url + payload)
-        print(response.text)
+        # print(response.text)
 
         response.raise_for_status()
         return json.loads(response.text)
