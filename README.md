@@ -1,5 +1,5 @@
 # clientcentral-api-python
-![version](https://img.shields.io/badge/version-1.0.0-green.svg?style=for-the-badge)
+![version](https://img.shields.io/badge/version-1.1.0-green.svg?style=for-the-badge)
 
 # Install
 ```
