@@ -6,7 +6,15 @@ services:
   - docker:dind
 
 stages:
+- static_analysis
 - release
+
+analysis:
+  image: nikolaik/python-nodejs
+  stage: static_analysis
+  script:
+    - pip install bandit
+    - bandit -r .
 
 publish:
   image: nikolaik/python-nodejs
