@@ -86,10 +86,19 @@ import clientcentral.query as operators
 
 # Production 'false' will run on qa.cc
 cc = ClientCentral(production=True)
+
+# This will return a list of all tickets that are:
+# open,
+# in workspace with id 87,
+# created by the user with the email 'thomas@labs.epiuse.com',
+# has not been updated since 2019-02-20,
+# subject contains 'New awesome subject'
 tickets = cc.query_tickets().filter_by(
             operators.and_( operators.statement("status.open"),
                             operators.comparison("workspace_id", "=", "87"),
-                            operators.comparison("created_by_user.email", "=", "'thomas@labs.epiuse.com'"))
+                            operators.comparison("created_by_user.email", "=", "'thomas@labs.epiuse.com'"),
+                            operators.comparison("updated_at", "<", "'2019-02-20'"),
+                            operators.comparison("subject", "CONTAINS", "'New awesome subject'"))
                            ).all()
 
 for ticket in tickets:
