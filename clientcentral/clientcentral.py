@@ -8,6 +8,7 @@ from clientcentral.query import QueryTickets
 from clientcentral.ticket import Ticket
 from model.TicketType import TicketType
 
+
 class ClientCentral:
     production: bool = False
     base_url: str = None

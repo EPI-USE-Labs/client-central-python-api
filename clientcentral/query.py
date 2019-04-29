@@ -4,8 +4,8 @@ from datetime import datetime
 
 import requests
 
-from clientcentral.ticket import Ticket
 from clientcentral.Exceptions import HTTPError
+from clientcentral.ticket import Ticket
 from model.Status import Status
 from model.TicketType import TicketType
 from model.User import User
