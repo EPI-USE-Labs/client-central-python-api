@@ -48,9 +48,9 @@ class Ticket:
 
     custom_fields_attributes: List[dict] = None
 
-    comments: List[Comment] = None
-    events: List[TicketEvent] = None
-    change_events: List[ChangeEvent] = None
+    # comments: List[Comment] = None
+    # events: List[TicketEvent] = None
+    # change_events: List[ChangeEvent] = None
 
     status: Status = None
     assignee = None
@@ -91,9 +91,9 @@ class Ticket:
         self.created_at = created_at
         self.updated_at = updated_at
 
-        self.events = []
-        self.change_events = []
-        self.comments = []
+        # self.events = []
+        # self.change_events = []
+        # self.comments = []
         self.user_watchers = user_watchers
         self.custom_fields_attributes = custom_fields_attributes
 
@@ -128,7 +128,7 @@ class Ticket:
         self._update()
 
     def _update(self):
-        print("UPDATED!!!")
+        # print("UPDATED!!!")
 
         result = self.get()
 
@@ -186,12 +186,12 @@ class Ticket:
             for user in result["data"]["user_watchers"]
         ]
 
-        if not self.comments:
-            self.comments = []
-        if not self.events:
-            self.events = []
-        if not self.change_events:
-            self.change_events = []
+        if not hasattr(self, "_change_events"):
+            setattr(self, "_change_events", [])
+        if not hasattr(self, "_comments"):
+            setattr(self, "_comments", [])
+        if not hasattr(self, "_events"):
+            setattr(self, "_events", [])
 
         for event in result["data"]["events"]:
             user = None
@@ -216,26 +216,26 @@ class Ticket:
                     created_at=event_created_at,
                     changes=changes,
                     comment=event["comment"])
-                self.change_events.append(change_event)
-                self.events.append(change_event)
+                self._change_events.append(change_event)
+                self._events.append(change_event)
 
                 if event["comment"] and event["comment"] != "":
-                    self.comments.append(change_event)
+                    self._comments.append(change_event)
             else:
                 comment_event = Comment(
                     created_by_user=user,
                     comment=event["comment"],
                     created_at=event_created_at)
-                self.comments.append(comment_event)
-                self.events.append(comment_event)
+                self._comments.append(comment_event)
+                self._events.append(comment_event)
 
         # Sort by datetime created.
-        self.events = sorted(
-            self.events, key=lambda x: x.created_at, reverse=True)
-        self.change_events = sorted(
-            self.change_events, key=lambda x: x.created_at, reverse=True)
-        self.comments = sorted(
-            self.comments, key=lambda x: x.created_at, reverse=True)
+        self._events = sorted(
+            self._events, key=lambda x: x.created_at, reverse=True)
+        self._change_events = sorted(
+            self._change_events, key=lambda x: x.created_at, reverse=True)
+        self._comments = sorted(
+            self._comments, key=lambda x: x.created_at, reverse=True)
 
         if not self.user_watchers:
             self.user_watchers = []
@@ -295,6 +295,30 @@ class Ticket:
         self.ticket_id = str(result["data"]["id"])
         self._update()
         return self
+
+    @property
+    def comments(self):
+        if not hasattr(self, "_comments"):
+            setattr(self, "_comments", [])
+            self._update()
+
+        return self._comments
+
+    @property
+    def change_events(self):
+        if not hasattr(self, "_change_events"):
+            setattr(self, "_change_events", [])
+            self._update()
+
+        return self._change_events
+
+    @property
+    def events(self):
+        if not hasattr(self, "_events"):
+            setattr(self, "_events", [])
+            self._update()
+
+        return self._events
 
     def add_user_watcher(self, user_id):
         self.user_watchers.append(user_id)

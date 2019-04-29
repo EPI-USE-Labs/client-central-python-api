@@ -14,9 +14,7 @@ if __name__ == "__main__":
     # operators.comparison("created_by_user.email", "=",
     #                      "'thomas@labs.epiuse.com'")
     tickets = cc.query_tickets().filter_by(
-        operators.and_(
-            operators.comparison("status.closed", "=", "true"),
-            operators.comparison("workspace_id", "=", "87"))).all()
+        operators.and_(operators.comparison("created_by_user.email", "=", "'thomas@labs.epiuse.com'"))).all()
 
     for ticket in tickets:
         print(ticket.__dict__)

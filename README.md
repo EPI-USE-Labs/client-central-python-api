@@ -6,6 +6,11 @@
 pip install --user git+https://git.labs.epiuse.com/SWAT/clientcentral-api-python.git
 ```
 
+# Features
+- Object Oriented API
+- Querying
+- Lazy loading (Events)
+
 # Config
 The token that will be used can either be sent as an environement variable:
 ```bash
@@ -62,6 +67,7 @@ for comment in ticket.comments:
     if comment.created_by_user:
         print("Comment from: " + comment.created_by_user.name + " says: " + comment.comment)
 
+# Ticket events, change_events and comments are lazy loaded.
 for change_event in ticket.change_events:
     if change_event.created_by_user:
         print("Change by: " + str(change_event.created_by_user.name))
@@ -92,6 +98,7 @@ for ticket in tickets:
     # Print the ticket's description
     print("Ticket description: " + ticket.description)
 
+    # Ticket events, change_events and comments are lazy loaded.
     for comment in ticket.comments:
         if comment.created_by_user:
             print("Comment from: " + comment.created_by_user.name +
