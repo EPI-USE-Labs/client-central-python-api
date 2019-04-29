@@ -21,7 +21,7 @@ Or the token can be set in the corresponding config file:
 prod.yaml
 qa.yaml
 ```
-The token field should just be set example: (prod.yaml)
+The token field should just be set, for example in `prod.yaml`:
 ```yaml
 base-url: "https://clientcentral.io"
 token: "<MYSECRETETOKEN>"
