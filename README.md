@@ -33,6 +33,10 @@ The `prod.yaml` and `qa.yaml` files override the `prod_template.yaml` and `qa_te
 The previous example will override the `base-url`, you can use this if you want to run your own Client Central Instance.
 This example also overrides the `button-ids`:`reassign-to-self` to `187`
 
+You can view the template files here:
+- [qa_template.yaml](clientcentral/qa_template.yaml)
+- [prod_template.yaml](clientcentral/prod_template.yaml)
+
 # Example usage:
 
 ```python
