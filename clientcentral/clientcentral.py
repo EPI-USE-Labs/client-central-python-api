@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from typing import List
+
 from clientcentral.config import Config
 from clientcentral.query import QueryTickets
 from clientcentral.ticket import Ticket
+from model.TicketType import TicketType
 
 
 class ClientCentral:
@@ -44,24 +47,30 @@ class ClientCentral:
     def create_ticket(self,
                       subject,
                       description,
-                      sid,
                       project_id,
+                      custom_fields_attributes: List[dict] = [],
                       workspace_id=None,
                       priority=None,
-                      type_id=8):
+                      type_id=None):
+
+        if not type_id:
+            ticket_type = TicketType(type_id=8)
+        else:
+            ticket_type = TicketType(type_id=type_id)
+
         ticket = Ticket(
             base_url=self.base_url,
             token=self.token,
             ticket_id=None,
             config=self.config,
             production=self.production,
+            custom_fields_attributes=custom_fields_attributes,
             workspace_id=workspace_id,
             project_id=project_id,
-            type_id=type_id)
+            ticket_type=ticket_type)
 
         ticket.subject = str(subject)
         ticket.description = str(description)
-        ticket.sid = str(sid)
         ticket.priority = priority
         ticket.create()
 

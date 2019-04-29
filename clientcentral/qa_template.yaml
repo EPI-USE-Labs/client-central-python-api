@@ -20,6 +20,7 @@ ticket-status:
   new: 1
   completed: 11
   cancelled: 12
+  suggest-solution: 8
 ticket-workspace:
   managed-services:
     id: 16

@@ -8,11 +8,13 @@ from typing import List
 import requests
 
 from clientcentral.config import Config
+from clientcentral.Exceptions import HTTPError
 from model.Change import Change
 from model.ChangeEvent import ChangeEvent
 from model.Comment import Comment
 from model.Status import Status
 from model.TicketEvent import TicketEvent
+from model.TicketType import TicketType
 from model.User import User
 
 
@@ -25,10 +27,10 @@ class Ticket:
     subject: str = None
     priority: int = None
     ticket_id: str = None
-    owner = None
+    owner: User = None
     description: str = None
 
-    type_id: int = None
+    type: TicketType = None
 
     workspace_id: int = None
     project_id: int = None
@@ -39,11 +41,16 @@ class Ticket:
     user_watchers: List[User] = None
     # email_watchers = None
 
+    # Custom
+    internal_it_category = None
+    sap_sid = None
+    ms_category = None
+
     custom_fields_attributes: List[dict] = None
 
-    comments: List[Comment] = None
-    events: List[TicketEvent] = None
-    change_events: List[ChangeEvent] = None
+    # comments: List[Comment] = None
+    # events: List[TicketEvent] = None
+    # change_events: List[ChangeEvent] = None
 
     status: Status = None
     assignee = None
@@ -58,27 +65,59 @@ class Ticket:
         'Accept': 'application/json'
     }
 
-    def __init__(self, base_url, token, config: Config, ticket_id,
-                 production: bool, workspace_id: int, project_id: int, type_id: int = 8):
+    def __init__(self,
+                 base_url,
+                 token,
+                 config: Config,
+                 ticket_id,
+                 production: bool,
+                 workspace_id: int,
+                 project_id: int,
+                 custom_fields_attributes: List[dict] = [],
+                 ticket_type: TicketType = None,
+                 created_at: datetime = None,
+                 updated_at: datetime = None,
+                 status: Status = None,
+                 description: str = None,
+                 subject: str = None,
+                 owner: User = None,
+                 user_watchers: List[User] = [],
+                 priority=None,
+                 assignee=None):
 
-        self.created_at = None
-        self.updated_at = None
+        self.description = description
+        self.subject = subject
 
-        self.comments = []
-        self.user_watchers = []
-        self.custom_fields_attributes = []
+        self.created_at = created_at
+        self.updated_at = updated_at
+
+        # self.events = []
+        # self.change_events = []
+        # self.comments = []
+        self.user_watchers = user_watchers
+        self.custom_fields_attributes = custom_fields_attributes
+
+        self.owner = owner
+        self.assignee = assignee
 
         self._production = production
         self._base_url = base_url
         self._token = token
         self.ticket_id = ticket_id
 
-        self.type_id = type_id
+        self.status = status
+
+        self.type = ticket_type
 
         self.workspace_id = workspace_id
         self.project_id = project_id
 
         self.config = config
+
+        self.priority = priority
+
+        if not self.priority:
+            self.priority = self.config.get()["ticket-priority"]["very-low"]
 
         self.button_ids = self.config.get()["button-ids"]
 
@@ -89,6 +128,8 @@ class Ticket:
         self._update()
 
     def _update(self):
+        # print("UPDATED!!!")
+
         result = self.get()
 
         self.description = str(result["data"]["description"]).strip()
@@ -112,7 +153,9 @@ class Ticket:
         self.project_id = result["data"]["project"]["id"]
         self.workspace_id = result["data"]["workspace"]["id"]
 
-        self.type_id = result["data"]["type"]["id"]
+        self.type = TicketType(
+            type_id=result["data"]["type"]["id"],
+            name=result["data"]["type"]["name"])
 
         # Will hopefully get updated in future CC builds
         self.custom_fields_attributes = []
@@ -122,17 +165,33 @@ class Ticket:
         except TypeError:
             pass
 
+        try:
+            self.sap_sid = result["data"]["sap_sid"]
+        except KeyError:
+            pass
+
+        try:
+            self.internal_it_category = result["data"]["internal_it_category"][
+                "id"]
+        except TypeError:
+            pass
+
+        try:
+            self.ms_category = result["data"]["ms_category"]["id"]
+        except TypeError:
+            pass
+
         self.user_watchers = [
             User(user_id=user["id"], name=user["name"], email=user["email"])
             for user in result["data"]["user_watchers"]
         ]
 
-        if not self.comments:
-            self.comments = []
-        if not self.events:
-            self.events = []
-        if not self.change_events:
-            self.change_events = []
+        if not hasattr(self, "_change_events"):
+            setattr(self, "_change_events", [])
+        if not hasattr(self, "_comments"):
+            setattr(self, "_comments", [])
+        if not hasattr(self, "_events"):
+            setattr(self, "_events", [])
 
         for event in result["data"]["events"]:
             user = None
@@ -157,26 +216,26 @@ class Ticket:
                     created_at=event_created_at,
                     changes=changes,
                     comment=event["comment"])
-                self.change_events.append(change_event)
-                self.events.append(change_event)
+                self._change_events.append(change_event)
+                self._events.append(change_event)
 
                 if event["comment"] and event["comment"] != "":
-                    self.comments.append(change_event)
+                    self._comments.append(change_event)
             else:
                 comment_event = Comment(
                     created_by_user=user,
                     comment=event["comment"],
                     created_at=event_created_at)
-                self.comments.append(comment_event)
-                self.events.append(comment_event)
+                self._comments.append(comment_event)
+                self._events.append(comment_event)
 
         # Sort by datetime created.
-        self.events = sorted(
-            self.events, key=lambda x: x.created_at, reverse=True)
-        self.change_events = sorted(
-            self.change_events, key=lambda x: x.created_at, reverse=True)
-        self.comments = sorted(
-            self.comments, key=lambda x: x.created_at, reverse=True)
+        self._events = sorted(
+            self._events, key=lambda x: x.created_at, reverse=True)
+        self._change_events = sorted(
+            self._change_events, key=lambda x: x.created_at, reverse=True)
+        self._comments = sorted(
+            self._comments, key=lambda x: x.created_at, reverse=True)
 
         if not self.user_watchers:
             self.user_watchers = []
@@ -203,7 +262,7 @@ class Ticket:
         params = {
             "ticket": {
                 "project_id": self.project_id,
-                "type_id": self.type_id,
+                "type_id": self.type.type_id,
                 "workspace_id": self.workspace_id,
                 "account_vp": 1,
                 "subject": str(self.subject),
@@ -216,7 +275,6 @@ class Ticket:
                     str(key): value
                     for key, value in enumerate(self.custom_fields_attributes)
                 }
-
                 # Not supported yet
                 # "email_watcher_emails": self.email_watchers,
 
@@ -228,6 +286,8 @@ class Ticket:
 
         response = requests.post(url, json=params, headers=self.headers)
         # print(response.text)
+        if response.status_code != 200:
+            raise HTTPError(response.text)
         response.raise_for_status()
 
         result = json.loads(response.text)
@@ -235,6 +295,30 @@ class Ticket:
         self.ticket_id = str(result["data"]["id"])
         self._update()
         return self
+
+    @property
+    def comments(self):
+        if not hasattr(self, "_comments"):
+            setattr(self, "_comments", [])
+            self._update()
+
+        return self._comments
+
+    @property
+    def change_events(self):
+        if not hasattr(self, "_change_events"):
+            setattr(self, "_change_events", [])
+            self._update()
+
+        return self._change_events
+
+    @property
+    def events(self):
+        if not hasattr(self, "_events"):
+            setattr(self, "_events", [])
+            self._update()
+
+        return self._events
 
     def add_user_watcher(self, user_id):
         self.user_watchers.append(user_id)
@@ -254,7 +338,10 @@ class Ticket:
                 "custom_fields_attributes": {
                     str(key): value
                     for key, value in enumerate(self.custom_fields_attributes)
-                }
+                },
+                "status_id": self.status.status_id,
+                "workspace_id": self.workspace_id,
+                "project_id": self.project_id
             },
             "ticket_event": {
                 "comment": str(comment)
@@ -262,6 +349,8 @@ class Ticket:
         }
 
         response = requests.patch(url, json=payload)
+        if response.status_code != 200:
+            raise HTTPError(response.text)
         response.raise_for_status()
 
     def update(self):
@@ -276,7 +365,10 @@ class Ticket:
                 "custom_fields_attributes": {
                     str(key): value
                     for key, value in enumerate(self.custom_fields_attributes)
-                }
+                },
+                "status_id": self.status.status_id,
+                "workspace_id": self.workspace_id,
+                "project_id": self.project_id
             },
             "ticket_event": {
                 "comment": None
@@ -284,14 +376,18 @@ class Ticket:
         }
 
         response = requests.patch(url, json=payload)
+        if response.status_code != 200:
+            raise HTTPError(response.text)
         response.raise_for_status()
 
     def get(self):
         url = self._base_url + "/api/v1/tickets/" + self.ticket_id + ".json?" + self._token
-        payload = "&select=events.comment,events.created_by_user.email,events.created_by_user.name,events.created_at,created_by_user.email,created_by_user.name,subject,description,priority.name,events.comment,user_watchers.email,user_watchers.name,status.name,events.event_changes.to_value,events.event_changes.from_value,events.event_changes.name,*"
+        payload = "&select=type.*,events.comment,events.created_by_user.email,events.created_by_user.name,events.created_at,created_by_user.email,created_by_user.name,subject,description,priority.name,events.comment,user_watchers.email,user_watchers.name,status.name,events.event_changes.to_value,events.event_changes.from_value,events.event_changes.name,*"
         response = requests.get(url + payload)
         # print(response.text)
 
+        if response.status_code != 200:
+            raise HTTPError(response.text)
         response.raise_for_status()
         return json.loads(response.text)
 
@@ -304,6 +400,8 @@ class Ticket:
         }
 
         response = requests.post(url, params)
+        if response.status_code != 200:
+            raise HTTPError(response.text)
         response.raise_for_status()
         self._update()
 
@@ -311,6 +409,8 @@ class Ticket:
         url = self._build_url(self.button_ids["grab"])
         params = {}
         response = requests.post(url, params)
+        if response.status_code != 200:
+            raise HTTPError(response.text)
         response.raise_for_status()
         self._update()
 
@@ -320,6 +420,8 @@ class Ticket:
             'comment': str(description),
         }
         response = requests.post(url, params)
+        if response.status_code != 200:
+            raise HTTPError(response.text)
         response.raise_for_status()
         self._update()
 
@@ -329,6 +431,8 @@ class Ticket:
             'comment': str(description),
         }
         response = requests.post(url, params)
+        if response.status_code != 200:
+            raise HTTPError(response.text)
         response.raise_for_status()
         self._update()
 
@@ -338,6 +442,8 @@ class Ticket:
             'comment': str(description),
         }
         response = requests.post(url, params)
+        if response.status_code != 200:
+            raise HTTPError(response.text)
         response.raise_for_status()
         self._update()
 
@@ -347,6 +453,8 @@ class Ticket:
             'comment': str(description),
         }
         response = requests.post(url, params)
+        if response.status_code != 200:
+            raise HTTPError(response.text)
         response.raise_for_status()
         self._update()
 
@@ -356,6 +464,8 @@ class Ticket:
             'comment': str(description),
         }
         response = requests.post(url, params)
+        if response.status_code != 200:
+            raise HTTPError(response.text)
         response.raise_for_status()
         self._update()
 
@@ -365,6 +475,8 @@ class Ticket:
             'comment': str(description),
         }
         response = requests.post(url, params)
+        if response.status_code != 200:
+            raise HTTPError(response.text)
         response.raise_for_status()
         self._update()
 
