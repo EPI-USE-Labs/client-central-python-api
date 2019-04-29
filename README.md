@@ -46,7 +46,21 @@ from clientcentral.clientcentral import ClientCentral
 # Production 'false' will run on qa.cc
 cc = ClientCentral(production=True)
 
-ticket = cc.create_ticket(subject="New awesome subject" , description="this is an awesome ticket")
+# This will create a ticket in the Managed Services workspace. 
+# In this example custom_fields {"id": 17, "values": 0} refer to "Security related" -> "No"
+# Theses values can be found by following the following instructions: https://clientcentral.io/support/cc/kb/articles/1661-tickets-api-creating-tickets
+ticket = cc.create_ticket(subject="New awesome subject" ,
+                          description="this is an awesome ticket",
+                          project_id=8,
+                          workspace_id=16,
+                          custom_fields_attributes=[{
+                              "id": 17,
+                              "values": 0
+                          }, {
+                              "id": 75,
+                              "values": 363
+                          }])
+
 ticket.comment("<p>" + tf.bold("I am BOLD") + "</p>")
 
 # Get the ticket's creator
