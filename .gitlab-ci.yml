@@ -14,7 +14,7 @@ analysis:
   stage: static_analysis
   script:
     - pip install bandit
-    - bandit -r .
+    - bandit -r clientcentral/
 
 publish:
   image: nikolaik/python-nodejs
