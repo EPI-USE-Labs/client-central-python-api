@@ -2,8 +2,12 @@
 ![version](https://img.shields.io/badge/version-2.0.0-green.svg?style=for-the-badge)
 
 # Install
-```
+```bash
 pip install --user git+https://git.labs.epiuse.com/SWAT/clientcentral-api-python.git
+```
+# Upgrading
+```bash
+pip install --user --upgrade git+https://git.labs.epiuse.com/SWAT/clientcentral-api-python.git
 ```
 
 # Features
