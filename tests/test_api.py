@@ -1,6 +1,6 @@
 import pytest
-from requests.exceptions import HTTPError
 
+from clientcentral.Exceptions import HTTPError
 from clientcentral.clientcentral import ClientCentral
 
 cc = ClientCentral(production=False)
@@ -10,16 +10,23 @@ pytest.ticket_id = None
 def test_create_ticket():
     subj = "[Test-Ticket]"
     desc = "<h1>This is a test ticket. Please ignore</h1>"
-    sid = "ZZZ"
+    # sid = "ZZZ"
 
     ticket = cc.create_ticket(
-        subject=subj, description=desc, sid=sid, project_id=8)
-
+        subject=subj, description=desc, project_id=8, workspace_id=16, custom_fields_attributes=[{"id": 17, "values": 0}, {"id": 75, "values": 363}])
     ticket.refresh()
+
+    # 0 -> Security related
+    # 1 -> SAP SID
+    # 2 -> Category [363 -> Other]
+
+    assert ticket.workspace_id == 16
+    assert ticket.project_id == 8
 
     assert ticket.description == desc
     assert ticket.subject == subj
-    assert ticket.sid == sid
+    # assert ticket.sid == sid
+    assert ticket.ms_category == 363
     assert ticket.owner.user_id == cc.config.get(
     )["user_ids"]["thomas-scholtz"]
     assert ticket.status.status_id == cc.config.get()["ticket-status"]["new"]
@@ -57,6 +64,8 @@ def test_grab():
 def test_suggest_solution():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
     ticket.suggest_solution("<p>sol</p>")
+    assert ticket.status.status_id == cc.config.get(
+    )["ticket-status"]["suggest-solution"]
 
 
 def test_comment_and_update():
@@ -89,25 +98,26 @@ def test_cancel():
     )["ticket-status"]["cancelled"]
 
 
-# def test_create_ticket_on_different_workspace():
-#     subj = "[Test-Ticket]"
-#     desc = "<h1>This is a test ticket. Please ignore</h1>"
-#     sid = "ZZZ"
-#
-#     ticket = cc.create_ticket(subject=subj, description=desc, sid=sid, project_id=cc.config.get()["ticket-workspace"]["client-central"]["projects"]["general-administration"])
-#
-#     ticket.refresh()
-#
-#     assert ticket.description == desc
-#     assert ticket.subject == subj
-#     assert ticket.sid == sid
-#     assert ticket.owner.user_id == cc.config.get(
-#     )["user_ids"]["thomas-scholtz"]
-#     assert ticket.status.status_id == cc.config.get()["ticket-status"]["new"]
-#     assert ticket.status.name == "New"
-#     assert ticket.priority == cc.config.get()["ticket-priority"]["very-low"]
-#
-#     pytest.ticket_id = ticket.ticket_id
+def test_create_ticket_on_different_workspace():
+    subj = "[Test-Ticket]"
+    desc = "<h1>This is a test ticket. Please ignore</h1>"
+
+    ticket = cc.create_ticket(subject=subj, type_id=1, description=desc, project_id=cc.config.get()["ticket-workspace"]["client-central"]["projects"]["general-administration"])
+
+    ticket.refresh()
+
+    assert ticket.description == desc
+    assert ticket.subject == subj
+    assert ticket.owner.user_id == cc.config.get()["user_ids"]["thomas-scholtz"]
+    assert ticket.status.status_id == cc.config.get()["ticket-status"]["new"]
+    assert ticket.status.name == "New"
+    assert ticket.priority == cc.config.get()["ticket-priority"]["very-low"]
+
+    # pytest.ticket_id = ticket.ticket_id
+    ticket.status = cc.config.get()["ticket-status"]["cancelled"]
+    ticket.update()
+
+    assert ticket.status == cc.config.get()["ticket-status"]["cancelled"]
 
 
 @pytest.fixture(scope="module")
