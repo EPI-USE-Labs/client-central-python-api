@@ -1,9 +1,15 @@
 # query().filter_by(Comparison("created_by_user.name", "=", "name"))
 import json
+from datetime import datetime
 
 import requests
 
 from clientcentral.ticket import Ticket
+from clientcentral.Exceptions import HTTPError
+from model.Status import Status
+from model.TicketType import TicketType
+from model.User import User
+
 
 class QueryTickets:
     _query = None
@@ -23,28 +29,64 @@ class QueryTickets:
 
     def filter_by(self, arg):
         self._query = "&filter=" + str(arg)
+        # print(self._query)
         return self
 
     def all(self):
         url = self.base_url + "/api/v1/tickets.json?" + self.token
-        payload = self._query + "&select=created_at,updated_at,id"
+        payload = self._query + "&select=type.*,events.comment,events.created_by_user.email,events.created_by_user.name,events.created_at,created_by_user.email,created_by_user.name,subject,description,priority.name,user_watchers.email,user_watchers.name,status.name,*"
         response = requests.get(url + payload)
-        print(response.text)
-
+        # print(response.text)
+        if response.status_code != 200:
+            raise HTTPError(response.text)
         response.raise_for_status()
-
         result = json.loads(response.text)
         tickets = []
-        for ticket_in_data in result["data"]:
-            ticket = Ticket(
-                base_url=self.base_url,
-                token=self.token,
-                ticket_id=str(ticket_in_data["id"]),
-                config=self.config,
-                production=self.production,
-                workspace_id=None,
-                project_id=None)
-            tickets.append(ticket)
+
+        for page in range(1, (result["total_pages"] + 1)):
+            for ticket_in_data in result["data"]:
+                ticket = Ticket(
+                    base_url=self.base_url,
+                    token=self.token,
+                    ticket_id=str(ticket_in_data["id"]),
+                    config=self.config,
+                    production=self.production,
+                    workspace_id=ticket_in_data["workspace"]["id"],
+                    project_id=ticket_in_data["project"]["id"],
+                    status=Status(
+                        status_id=ticket_in_data["status"]["id"],
+                        name=ticket_in_data["status"]["id"]),
+                    created_at=datetime.strptime(ticket_in_data["created_at"],
+                                                 "%Y-%m-%dT%H:%M:%S.%f%z"),
+                    updated_at=datetime.strptime(ticket_in_data["updated_at"],
+                                                 "%Y-%m-%dT%H:%M:%S.%f%z"),
+                    description=ticket_in_data["description"],
+                    subject=ticket_in_data["subject"],
+                    owner=User(
+                        user_id=ticket_in_data["created_by_user"]["id"],
+                        name=ticket_in_data["created_by_user"]["name"],
+                        email=ticket_in_data["created_by_user"]["email"]),
+                    ticket_type=TicketType(
+                        type_id=ticket_in_data["type"]["id"],
+                        name=ticket_in_data["type"]["name"]),
+                    user_watchers=[
+                        User(
+                            user_id=user["id"],
+                            name=user["name"],
+                            email=user["email"])
+                        for user in ticket_in_data["user_watchers"]
+                    ],
+                    priority=ticket_in_data["priority"]["id"])
+                if ticket_in_data["assignee"]:
+                    ticket.assignee = ticket_in_data["assignee"]["id"]
+                tickets.append(ticket)
+
+            # print("PAGE: " + str(page + 1))
+            response = requests.get(url + "&page=" + str(page + 1) + payload)
+            if response.status_code != 200:
+                raise HTTPError(response.text)
+            response.raise_for_status()
+            result = json.loads(response.text)
 
         return tickets
 
@@ -62,6 +104,10 @@ def and_(*argv: str):
 
 def not_(arg: str):
     return "NOT " + str(arg)
+
+
+def statement(left):
+    return str(left)
 
 
 def comparison(left, operator, right):

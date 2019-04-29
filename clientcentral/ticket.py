@@ -7,15 +7,15 @@ from typing import List
 
 import requests
 
-from clientcentral.Exceptions import HTTPError
 from clientcentral.config import Config
+from clientcentral.Exceptions import HTTPError
 from model.Change import Change
 from model.ChangeEvent import ChangeEvent
 from model.Comment import Comment
 from model.Status import Status
 from model.TicketEvent import TicketEvent
-from model.User import User
 from model.TicketType import TicketType
+from model.User import User
 
 
 class Ticket:
@@ -27,10 +27,9 @@ class Ticket:
     subject: str = None
     priority: int = None
     ticket_id: str = None
-    owner = None
+    owner: User = None
     description: str = None
 
-    type_id: int = None
     type: TicketType = None
 
     workspace_id: int = None
@@ -66,27 +65,59 @@ class Ticket:
         'Accept': 'application/json'
     }
 
-    def __init__(self, base_url, token, config: Config, ticket_id,
-                 production: bool, workspace_id: int, project_id: int, custom_fields_attributes: List[dict] = [], type_id: int = 8):
+    def __init__(self,
+                 base_url,
+                 token,
+                 config: Config,
+                 ticket_id,
+                 production: bool,
+                 workspace_id: int,
+                 project_id: int,
+                 custom_fields_attributes: List[dict] = [],
+                 ticket_type: TicketType = None,
+                 created_at: datetime = None,
+                 updated_at: datetime = None,
+                 status: Status = None,
+                 description: str = None,
+                 subject: str = None,
+                 owner: User = None,
+                 user_watchers: List[User] = [],
+                 priority=None,
+                 assignee=None):
 
-        self.created_at = None
-        self.updated_at = None
+        self.description = description
+        self.subject = subject
 
+        self.created_at = created_at
+        self.updated_at = updated_at
+
+        self.events = []
+        self.change_events = []
         self.comments = []
-        self.user_watchers = []
+        self.user_watchers = user_watchers
         self.custom_fields_attributes = custom_fields_attributes
+
+        self.owner = owner
+        self.assignee = assignee
 
         self._production = production
         self._base_url = base_url
         self._token = token
         self.ticket_id = ticket_id
 
-        self.type = TicketType(type_id=type_id, name=None)
+        self.status = status
+
+        self.type = ticket_type
 
         self.workspace_id = workspace_id
         self.project_id = project_id
 
         self.config = config
+
+        self.priority = priority
+
+        if not self.priority:
+            self.priority = self.config.get()["ticket-priority"]["very-low"]
 
         self.button_ids = self.config.get()["button-ids"]
 
@@ -97,6 +128,8 @@ class Ticket:
         self._update()
 
     def _update(self):
+        print("UPDATED!!!")
+
         result = self.get()
 
         self.description = str(result["data"]["description"]).strip()
@@ -120,7 +153,9 @@ class Ticket:
         self.project_id = result["data"]["project"]["id"]
         self.workspace_id = result["data"]["workspace"]["id"]
 
-        self.type = TicketType(type_id=result["data"]["type"]["id"], name=result["data"]["type"]["name"])
+        self.type = TicketType(
+            type_id=result["data"]["type"]["id"],
+            name=result["data"]["type"]["name"])
 
         # Will hopefully get updated in future CC builds
         self.custom_fields_attributes = []
@@ -136,7 +171,8 @@ class Ticket:
             pass
 
         try:
-            self.internal_it_category = result["data"]["internal_it_category"]["id"]
+            self.internal_it_category = result["data"]["internal_it_category"][
+                "id"]
         except TypeError:
             pass
 
@@ -239,7 +275,6 @@ class Ticket:
                     str(key): value
                     for key, value in enumerate(self.custom_fields_attributes)
                 }
-
                 # Not supported yet
                 # "email_watcher_emails": self.email_watchers,
 
@@ -279,7 +314,10 @@ class Ticket:
                 "custom_fields_attributes": {
                     str(key): value
                     for key, value in enumerate(self.custom_fields_attributes)
-                }
+                },
+                "status_id": self.status.status_id,
+                "workspace_id": self.workspace_id,
+                "project_id": self.project_id
             },
             "ticket_event": {
                 "comment": str(comment)
@@ -303,7 +341,10 @@ class Ticket:
                 "custom_fields_attributes": {
                     str(key): value
                     for key, value in enumerate(self.custom_fields_attributes)
-                }
+                },
+                "status_id": self.status.status_id,
+                "workspace_id": self.workspace_id,
+                "project_id": self.project_id
             },
             "ticket_event": {
                 "comment": None

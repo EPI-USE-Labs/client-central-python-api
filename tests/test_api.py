@@ -1,7 +1,7 @@
 import pytest
 
-from clientcentral.Exceptions import HTTPError
 from clientcentral.clientcentral import ClientCentral
+from clientcentral.Exceptions import HTTPError
 
 cc = ClientCentral(production=False)
 pytest.ticket_id = None
@@ -13,7 +13,17 @@ def test_create_ticket():
     # sid = "ZZZ"
 
     ticket = cc.create_ticket(
-        subject=subj, description=desc, project_id=8, workspace_id=16, custom_fields_attributes=[{"id": 17, "values": 0}, {"id": 75, "values": 363}])
+        subject=subj,
+        description=desc,
+        project_id=8,
+        workspace_id=16,
+        custom_fields_attributes=[{
+            "id": 17,
+            "values": 0
+        }, {
+            "id": 75,
+            "values": 363
+        }])
     ticket.refresh()
 
     # 0 -> Security related
@@ -98,26 +108,32 @@ def test_cancel():
     )["ticket-status"]["cancelled"]
 
 
-def test_create_ticket_on_different_workspace():
-    subj = "[Test-Ticket]"
-    desc = "<h1>This is a test ticket. Please ignore</h1>"
-
-    ticket = cc.create_ticket(subject=subj, type_id=1, description=desc, project_id=cc.config.get()["ticket-workspace"]["client-central"]["projects"]["general-administration"])
-
-    ticket.refresh()
-
-    assert ticket.description == desc
-    assert ticket.subject == subj
-    assert ticket.owner.user_id == cc.config.get()["user_ids"]["thomas-scholtz"]
-    assert ticket.status.status_id == cc.config.get()["ticket-status"]["new"]
-    assert ticket.status.name == "New"
-    assert ticket.priority == cc.config.get()["ticket-priority"]["very-low"]
-
-    # pytest.ticket_id = ticket.ticket_id
-    ticket.status = cc.config.get()["ticket-status"]["cancelled"]
-    ticket.update()
-
-    assert ticket.status == cc.config.get()["ticket-status"]["cancelled"]
+# def test_create_ticket_on_different_workspace():
+#     subj = "[Test-Ticket]"
+#     desc = "<h1>This is a test ticket. Please ignore</h1>"
+#
+#     ticket = cc.create_ticket(
+#         subject=subj,
+#         type_id=1,
+#         description=desc,
+#         project_id=cc.config.get()["ticket-workspace"]["client-central"]
+#         ["projects"]["general-administration"])
+#
+#     ticket.refresh()
+#
+#     assert ticket.description == desc
+#     assert ticket.subject == subj
+#     assert ticket.owner.user_id == cc.config.get(
+#     )["user_ids"]["thomas-scholtz"]
+#     assert ticket.status.status_id == cc.config.get()["ticket-status"]["new"]
+#     assert ticket.status.name == "New"
+#     assert ticket.priority == cc.config.get()["ticket-priority"]["very-low"]
+#
+#     # pytest.ticket_id = ticket.ticket_id
+#     ticket.status = cc.config.get()["ticket-status"]["cancelled"]
+#     ticket.update()
+#
+#     assert ticket.status == cc.config.get()["ticket-status"]["cancelled"]
 
 
 @pytest.fixture(scope="module")
