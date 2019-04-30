@@ -11,6 +11,11 @@ pip install --user git+https://git.labs.epiuse.com/SWAT/clientcentral-api-python
 pip install --user --upgrade git+https://git.labs.epiuse.com/SWAT/clientcentral-api-python.git
 ```
 
+A specific version can also be installed by adding the tag:
+```bash
+pip install --user --upgrade git+https://git.labs.epiuse.com/SWAT/clientcentral-api-python.git@v1.1.0
+```
+
 # Features
 - Object Oriented API
 - Querying
@@ -42,7 +47,7 @@ You can view the template files here:
 - [qa_template.yaml](clientcentral/qa_template.yaml)
 - [prod_template.yaml](clientcentral/prod_template.yaml)
 
-# Example usage:
+# Example usage
 
 ```python
 import clientcentral.ticketformatting as tf
