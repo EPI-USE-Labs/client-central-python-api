@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from model.User import User
+from clientcentral.model.User import User
 
 
 class TicketEvent:

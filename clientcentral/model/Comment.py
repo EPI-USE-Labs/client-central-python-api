@@ -1,5 +1,5 @@
-from model.TicketEvent import TicketEvent
-from model.User import User
+from clientcentral.model import TicketEvent
+from clientcentral.model.User import User
 
 
 class Comment(TicketEvent):

@@ -6,7 +6,7 @@ from typing import List
 from clientcentral.config import Config
 from clientcentral.query import QueryTickets
 from clientcentral.ticket import Ticket
-from model.TicketType import TicketType
+from clientcentral.model.TicketType import TicketType
 
 
 class ClientCentral:

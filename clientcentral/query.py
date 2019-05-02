@@ -6,9 +6,9 @@ import requests
 
 from clientcentral.Exceptions import HTTPError
 from clientcentral.ticket import Ticket
-from model.Status import Status
-from model.TicketType import TicketType
-from model.User import User
+from clientcentral.model import Status
+from clientcentral.model.TicketType import TicketType
+from clientcentral.model.User import User
 
 
 class QueryTickets:
@@ -92,18 +92,29 @@ class QueryTickets:
 
 
 def and_(*argv: str):
-    result = ""
+    result = "("
     for i, arg in enumerate(argv):
         if i < len(argv) - 1:
             result += str(arg) + "%20AND%20"
         else:
             result += str(arg)
-
+    result += ")"
     return result
 
 
 def not_(arg: str):
-    return "NOT " + str(arg)
+    return "NOT%20" + str(arg)
+
+def or_(*argv: str):
+    result = "("
+    for i, arg in enumerate(argv):
+        if i < len(argv) - 1:
+            result += str(arg) + "%20OR%20"
+        else:
+            result += str(arg)
+
+    result += ")"
+    return result
 
 
 def statement(left):

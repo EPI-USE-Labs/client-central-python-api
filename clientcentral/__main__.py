@@ -2,9 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import clientcentral.query as operators
-import clientcentral.ticketformatting as tf
 from clientcentral.clientcentral import ClientCentral
-from model.Status import Status
 
 if __name__ == "__main__":
     cc = ClientCentral(production=True)
@@ -14,10 +12,9 @@ if __name__ == "__main__":
     # operators.comparison("created_by_user.email", "=",
     #                      "'thomas@labs.epiuse.com'")
     tickets = cc.query_tickets().filter_by(
-        operators.and_(operators.statement("status.open"),
-                            operators.comparison("workspace_id", "=", "87"),
-                            operators.comparison("updated_at", "<", "'2019-02-20'"))
-                           ).all()
+        operators.and_( operators.comparison("workspace_id", "=", "87"),
+
+                       )).all()
 
 
     for ticket in tickets:
