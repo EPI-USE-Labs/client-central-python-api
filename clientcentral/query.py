@@ -6,7 +6,7 @@ import requests
 
 from clientcentral.Exceptions import HTTPError
 from clientcentral.ticket import Ticket
-from clientcentral.model import Status
+from clientcentral.model.Status import Status
 from clientcentral.model.TicketType import TicketType
 from clientcentral.model.User import User
 
