@@ -14,8 +14,8 @@
 
 from typing import List
 
-from clientcentral.model import Change
-from clientcentral.model import TicketEvent
+from clientcentral.model.Change import Change
+from clientcentral.model.TicketEvent import TicketEvent
 from clientcentral.model.User import User
 
 

@@ -1,4 +1,4 @@
-from clientcentral.model import TicketEvent
+from clientcentral.model.TicketEvent import TicketEvent
 from clientcentral.model.User import User
 
 

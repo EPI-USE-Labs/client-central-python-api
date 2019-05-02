@@ -9,10 +9,10 @@ import requests
 
 from clientcentral.config import Config
 from clientcentral.Exceptions import HTTPError
-from clientcentral.model import Change
-from clientcentral.model import ChangeEvent
-from clientcentral.model import Comment
-from clientcentral.model import Status
+from clientcentral.model.Change import Change
+from clientcentral.model.ChangeEvent import ChangeEvent
+from clientcentral.model.Comment import Comment
+from clientcentral.model.Status import Status
 from clientcentral.model.TicketType import TicketType
 from clientcentral.model.User import User
 
