@@ -1,3 +1,6 @@
+from typing import List
+
+
 def bold(val: str) -> str:
     val = "<strong>" + val + "</strong>"
     return val
@@ -13,7 +16,7 @@ def italics(val: str) -> str:
     return val
 
 
-def list(vals: list, ordered: bool = False) -> str:
+def list(vals: List[str], ordered: bool = False) -> str:
     """
     :param vals: list values
     :param ordered: true = return ordered list, false = return unordered list

@@ -12,7 +12,7 @@
 #                   "name":"watchers"
 #                }
 
-from typing import List
+from typing import List, Optional
 
 from clientcentral.model.Change import Change
 from clientcentral.model.TicketEvent import TicketEvent
@@ -20,14 +20,14 @@ from clientcentral.model.User import User
 
 
 class ChangeEvent(TicketEvent):
-    changes: List[Change] = None
-    comment: str = None
+    changes: List[Change]
+    comment: Optional[str] = None
 
     def __init__(self,
-                 created_by_user: User,
+                 created_by_user: Optional[User],
                  created_at: str,
                  changes: List[Change],
-                 comment=None):
+                 comment: Optional[str] = None):
         super().__init__(created_by_user, created_at)
         self.changes = changes
         self.comment = comment

@@ -1,5 +1,6 @@
 import os
 import sys
+from typing import Any, Dict
 
 import yaml
 
@@ -9,12 +10,12 @@ path = os.path.abspath(__file__)
 
 class Config:
 
-    production: bool = None
+    production: bool = False
 
-    def __init__(self, production):
+    def __init__(self, production: bool) -> None:
         self.production = production
 
-    def get(self) -> dict:
+    def get(self) -> Dict[str, Any]:
         environ_token = None
         try:
             environ_token = os.environ['CC_TOKEN']
@@ -22,14 +23,14 @@ class Config:
             pass
 
         if self.production:
-            base_config = {}
+            base_config: Dict[str, object] = {}
             if os.path.exists(os.path.dirname(path) + "/prod_template.yaml"):
                 # Open base template
                 with open(os.path.dirname(path) + "/prod_template.yaml",
                           'r') as stream:
                     base_config = yaml.safe_load(stream)
 
-            config = {}
+            config: Dict[str, object] = {}
             if os.path.exists(dirname + "/../clientcentral/prod.yaml"):
                 # Open project specific config
                 with open(dirname + "/../clientcentral/prod.yaml",

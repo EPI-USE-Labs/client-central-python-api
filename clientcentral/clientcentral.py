@@ -1,24 +1,24 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from typing import List
+from typing import List, Optional, Dict
 
 from clientcentral.config import Config
+from clientcentral.model.TicketType import TicketType
 from clientcentral.query import QueryTickets
 from clientcentral.ticket import Ticket
-from clientcentral.model.TicketType import TicketType
 
 
 class ClientCentral:
     production: bool = False
-    base_url: str = None
-    token: str = None
+    base_url: str
+    token: Optional[str] = None
 
     config: Config = None
 
     query = None
 
-    def __init__(self, production, token=None):
+    def __init__(self, production: bool, token: Optional[str] = None) -> None:
         self.production = production
 
         if token:
@@ -34,7 +34,7 @@ class ClientCentral:
                          self.production)
         return q
 
-    def get_ticket_by_id(self, ticket_id):
+    def get_ticket_by_id(self, ticket_id: str) -> Ticket:
         return Ticket(
             base_url=self.base_url,
             token=self.token,
@@ -45,13 +45,13 @@ class ClientCentral:
             workspace_id=None)
 
     def create_ticket(self,
-                      subject,
-                      description,
+                      subject: str,
+                      description: str,
                       project_id,
-                      custom_fields_attributes: List[dict] = [],
+                      custom_fields_attributes: List[Dict[str, int]] = [],
                       workspace_id=None,
                       priority=None,
-                      type_id=None):
+                      type_id: Optional[int] = None):
 
         if not type_id:
             ticket_type = TicketType(type_id=8)

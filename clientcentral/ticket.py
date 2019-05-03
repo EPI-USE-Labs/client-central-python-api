@@ -3,7 +3,7 @@
 
 import json
 from datetime import datetime
-from typing import List
+from typing import Any, Dict, List, Optional
 
 import requests
 
@@ -13,6 +13,7 @@ from clientcentral.model.Change import Change
 from clientcentral.model.ChangeEvent import ChangeEvent
 from clientcentral.model.Comment import Comment
 from clientcentral.model.Status import Status
+from clientcentral.model.TicketEvent import TicketEvent
 from clientcentral.model.TicketType import TicketType
 from clientcentral.model.User import User
 
@@ -20,24 +21,24 @@ from clientcentral.model.User import User
 class Ticket:
     _production: bool = False
 
-    _base_url = None
-    _token = None
+    _base_url: str
+    _token: str
 
-    subject: str = None
-    priority: int = None
-    ticket_id: str = None
-    owner: User = None
-    description: str = None
+    subject: Optional[str]
+    priority: Optional[int]
+    ticket_id: str
+    owner: Optional[User]
+    description: Optional[str]
 
-    type: TicketType = None
+    type: Optional[TicketType]
 
-    workspace_id: int = None
-    project_id: int = None
+    workspace_id: int
+    project_id: int
 
-    created_at: datetime = None
-    updated_at: datetime = None
+    created_at: Optional[datetime]
+    updated_at: Optional[datetime]
 
-    user_watchers: List[User] = None
+    user_watchers: List[User]
     # email_watchers = None
 
     # Custom
@@ -45,16 +46,16 @@ class Ticket:
     sap_sid = None
     ms_category = None
 
-    custom_fields_attributes: List[dict] = None
+    custom_fields_attributes: List[Dict[str, int]]
 
     # comments: List[Comment] = None
     # events: List[TicketEvent] = None
     # change_events: List[ChangeEvent] = None
 
-    status: Status = None
+    status: Optional[Status]
     assignee = None
 
-    config: Config = None
+    config: Config
     button_ids = None
 
     sid = None
@@ -65,24 +66,24 @@ class Ticket:
     }
 
     def __init__(self,
-                 base_url,
-                 token,
+                 base_url: str,
+                 token: str,
                  config: Config,
-                 ticket_id,
+                 ticket_id: str,
                  production: bool,
                  workspace_id: int,
                  project_id: int,
-                 custom_fields_attributes: List[dict] = [],
-                 ticket_type: TicketType = None,
-                 created_at: datetime = None,
-                 updated_at: datetime = None,
-                 status: Status = None,
-                 description: str = None,
-                 subject: str = None,
-                 owner: User = None,
+                 custom_fields_attributes: List[Dict[str, int]] = [],
+                 ticket_type: Optional[TicketType] = None,
+                 created_at: Optional[datetime] = None,
+                 updated_at: Optional[datetime] = None,
+                 status: Optional[Status] = None,
+                 description: Optional[str] = None,
+                 subject: Optional[str] = None,
+                 owner: Optional[User] = None,
                  user_watchers: List[User] = [],
-                 priority=None,
-                 assignee=None):
+                 priority: Optional[int] = None,
+                 assignee: Optional[int] = None) -> None:
 
         self.description = description
         self.subject = subject
@@ -123,13 +124,13 @@ class Ticket:
         if ticket_id and not self.created_at and not self.updated_at:
             self._update()
 
-    def refresh(self):
+    def refresh(self) -> None:
         self._update()
 
-    def _update(self):
+    def _update(self) -> None:
         # print("UPDATED!!!")
 
-        result = self.get()
+        result: Dict[str, Any] = self.get()
 
         self.description = str(result["data"]["description"]).strip()
         self.subject = str(result["data"]["subject"]).strip()
@@ -186,11 +187,15 @@ class Ticket:
         ]
 
         if not hasattr(self, "_change_events"):
-            setattr(self, "_change_events", [])
+            setattr(self, "_change_events", List[ChangeEvent])
+            self._change_events: List[ChangeEvent] = list()
         if not hasattr(self, "_comments"):
-            setattr(self, "_comments", [])
+            setattr(self, "_comments", List[Comment])
+            self._comments: List[Comment] = list()
+
         if not hasattr(self, "_events"):
-            setattr(self, "_events", [])
+            setattr(self, "_events", List[TicketEvent])
+            self._events: List[TicketEvent] = list()
 
         for event in result["data"]["events"]:
             user = None
@@ -214,7 +219,7 @@ class Ticket:
                     created_by_user=user,
                     created_at=event_created_at,
                     changes=changes,
-                    comment=event["comment"])
+                    comment=str(event["comment"]))
                 self._change_events.append(change_event)
                 self._events.append(change_event)
 
@@ -245,10 +250,11 @@ class Ticket:
             pass
         # self.email_watchers = [email for email in result["data"]["email_watcher_emails"]]
 
-    def create(self):
+    def create(self) -> "Ticket":
         # If the ticket already exists just return.
         if self.ticket_id:
-            return
+            self._update()
+            return self
 
         url = self._base_url + "/api/v1/tickets.json?" + self._token
 
@@ -298,7 +304,7 @@ class Ticket:
     @property
     def comments(self):
         if not hasattr(self, "_comments"):
-            setattr(self, "_comments", [])
+            setattr(self, "_comments", List[Comment])
             self._update()
 
         return self._comments
@@ -306,7 +312,7 @@ class Ticket:
     @property
     def change_events(self):
         if not hasattr(self, "_change_events"):
-            setattr(self, "_change_events", [])
+            setattr(self, "_change_events", List[ChangeEvent])
             self._update()
 
         return self._change_events
@@ -314,12 +320,12 @@ class Ticket:
     @property
     def events(self):
         if not hasattr(self, "_events"):
-            setattr(self, "_events", [])
+            setattr(self, "_events", List[TicketEvent])
             self._update()
 
         return self._events
 
-    def add_user_watcher(self, user_id):
+    def add_user_watcher(self, user_id: int) -> None:
         self.user_watchers.append(user_id)
 
     def comment_and_update(self, comment: str):
@@ -379,7 +385,7 @@ class Ticket:
             raise HTTPError(response.text)
         response.raise_for_status()
 
-    def get(self):
+    def get(self) -> Dict[str, object]:
         url = self._base_url + "/api/v1/tickets/" + self.ticket_id + ".json?" + self._token
         payload = "&select=type.*,events.comment,events.created_by_user.email,events.created_by_user.name,events.created_at,created_by_user.email,created_by_user.name,subject,description,priority.name,events.comment,user_watchers.email,user_watchers.name,status.name,events.event_changes.to_value,events.event_changes.from_value,events.event_changes.name,*"
         response = requests.get(url + payload)
@@ -390,7 +396,7 @@ class Ticket:
         response.raise_for_status()
         return json.loads(response.text)
 
-    def comment(self, description):
+    def comment(self, description: str) -> None:
         url = self._base_url + "/api/v1/tickets/" + self.ticket_id + "/buttons/" + str(
             self.button_ids["comment"]) + ".json?" + self._token
 
@@ -404,7 +410,7 @@ class Ticket:
         response.raise_for_status()
         self._update()
 
-    def grab(self):
+    def grab(self) -> None:
         url = self._build_url(self.button_ids["grab"])
         params = {}
         response = requests.post(url, params)

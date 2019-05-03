@@ -1,3 +1,6 @@
+.idea/
+package-lock.json
+
 clientcentral/qa.yaml
 clientcentral/prod.yaml
 
