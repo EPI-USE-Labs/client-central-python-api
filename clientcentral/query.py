@@ -4,35 +4,37 @@ from datetime import datetime
 
 import requests
 
+from typing import List
+
 from clientcentral.Exceptions import HTTPError
 from clientcentral.model.Status import Status
 from clientcentral.model.TicketType import TicketType
 from clientcentral.model.User import User
 from clientcentral.ticket import Ticket
-
+from clientcentral.config import Config
 
 class QueryTickets:
-    _query = None
+    _query: str
 
-    base_url = None
-    token = None
+    base_url: str
+    token: str
 
-    config = None
-    production = None
+    config: Config
+    production: bool = False
 
-    def __init__(self, base_url, token, config, production):
+    def __init__(self, base_url: str, token: str, config: Config, production: bool) -> None:
         self._query = ""
         self.base_url = base_url
         self.token = token
         self.config = config
         self.production = production
 
-    def filter_by(self, arg):
+    def filter_by(self, arg: str) -> "QueryTickets":
         self._query = "&filter=" + str(arg)
         # print(self._query)
         return self
 
-    def all(self):
+    def all(self) -> List[Ticket]:
         url = self.base_url + "/api/v1/tickets.json?" + self.token
         payload = self._query + "&select=type.*,events.comment,events.created_by_user.email,events.created_by_user.name,events.created_at,created_by_user.email,created_by_user.name,subject,description,priority.name,user_watchers.email,user_watchers.name,status.name,*"
         response = requests.get(url + payload)
@@ -91,7 +93,7 @@ class QueryTickets:
         return tickets
 
 
-def and_(*argv: str):
+def and_(*argv: str) -> str:
     result = "("
     for i, arg in enumerate(argv):
         if i < len(argv) - 1:
@@ -102,11 +104,11 @@ def and_(*argv: str):
     return result
 
 
-def not_(arg: str):
+def not_(arg: str) -> str:
     return "NOT%20" + str(arg)
 
 
-def or_(*argv: str):
+def or_(*argv: str) -> str:
     result = "("
     for i, arg in enumerate(argv):
         if i < len(argv) - 1:
@@ -118,9 +120,9 @@ def or_(*argv: str):
     return result
 
 
-def statement(left):
+def statement(left: str) -> str:
     return str(left)
 
 
-def comparison(left, operator, right):
+def comparison(left: str, operator: str, right: str) -> str:
     return str(left) + "%20" + str(operator) + "%20" + str(right)

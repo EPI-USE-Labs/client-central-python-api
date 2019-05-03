@@ -16,6 +16,11 @@ A specific version can also be installed by adding the tag:
 pip install --user --upgrade git+https://git.labs.epiuse.com/SWAT/clientcentral-api-python.git@v1.1.0
 ```
 
+# Requirements
+This library was built and tested on `Python 3.7.3` a minimal Python version of `Python 3.6.x` is required.
+
+`Python 2` is not supported.
+
 # Features
 - Object Oriented API
 - Querying
@@ -38,7 +43,7 @@ token: "<MYSECRETETOKEN>"
 button-ids:
   reassign-to-self: 187
 ```
-The `prod.yaml` and `qa.yaml` files override the `prod_template.yaml` and `qa_template.yaml` configuration files. 
+The `prod.yaml` and `qa.yaml` files override the `prod_template.yaml` and `qa_template.yaml` configuration files.
 
 The previous example will override the `base-url`, you can use this if you want to run your own Client Central Instance.
 This example also overrides the `button-ids`:`reassign-to-self` to `187`
@@ -56,7 +61,7 @@ from clientcentral.clientcentral import ClientCentral
 # Production 'false' will run on qa.cc
 cc = ClientCentral(production=True)
 
-# This will create a ticket in the Managed Services workspace. 
+# This will create a ticket in the Managed Services workspace.
 # In this example custom_fields {"id": 17, "values": 0} refer to "Security related" -> "No"
 # Theses values can be found by following the following instructions: https://clientcentral.io/support/cc/kb/articles/1661-tickets-api-creating-tickets
 ticket = cc.create_ticket(subject="New awesome subject" ,
@@ -128,10 +133,10 @@ tickets = cc.query_tickets().filter_by(
 for ticket in tickets:
     # Get the ticket's creator
     print("Ticket creator: " + ticket.owner.name)
-    
+
     # Get the ticket's status
     print("Ticket status:" + ticket.status.name)
-    
+
     # Print the ticket's description
     print("Ticket description: " + ticket.description)
 
