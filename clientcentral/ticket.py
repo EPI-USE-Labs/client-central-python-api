@@ -188,17 +188,22 @@ class Ticket:
 
         if not hasattr(self, "_change_events"):
             setattr(self, "_change_events", List[ChangeEvent])
-            self._change_events: List[ChangeEvent] = list()
+        self._change_events: List[ChangeEvent] = list()
         if not hasattr(self, "_comments"):
             setattr(self, "_comments", List[Comment])
-            self._comments: List[Comment] = list()
+        self._comments: List[Comment] = list()
 
         if not hasattr(self, "_events"):
             setattr(self, "_events", List[TicketEvent])
-            self._events: List[TicketEvent] = list()
+        self._events: List[TicketEvent] = list()
 
         for event in result["data"]["events"]:
             user = None
+
+            comment_event = None
+            change_event = None
+            changes = None
+
             event_created_at = event["created_at"]
 
             if event["created_by_user"]:
@@ -304,61 +309,25 @@ class Ticket:
     @property
     def comments(self):
         if not hasattr(self, "_comments"):
-            setattr(self, "_comments", List[Comment])
             self._update()
-
         return self._comments
 
     @property
     def change_events(self):
         if not hasattr(self, "_change_events"):
-            setattr(self, "_change_events", List[ChangeEvent])
             self._update()
-
         return self._change_events
 
     @property
     def events(self):
         if not hasattr(self, "_events"):
-            setattr(self, "_events", List[TicketEvent])
             self._update()
-
         return self._events
 
     def add_user_watcher(self, user_id: int) -> None:
         self.user_watchers.append(user_id)
 
-    def comment_and_update(self, comment: str):
-        if not comment:
-            raise Exception
-
-        url = self._base_url + "/api/v1/tickets/" + self.ticket_id + ".json?" + self._token
-
-        payload = {
-            "ticket": {
-                "subject": str(self.subject),
-                "description": str(self.description),
-                "priority_id": self.priority,
-                "user_watchers": [user.user_id for user in self.user_watchers],
-                "custom_fields_attributes": {
-                    str(key): value
-                    for key, value in enumerate(self.custom_fields_attributes)
-                },
-                "status_id": self.status.status_id,
-                "workspace_id": self.workspace_id,
-                "project_id": self.project_id
-            },
-            "ticket_event": {
-                "comment": str(comment)
-            }
-        }
-
-        response = requests.patch(url, json=payload)
-        if response.status_code != 200:
-            raise HTTPError(response.text)
-        response.raise_for_status()
-
-    def update(self):
+    def update(self, comment: Optional[str] = None):
         url = self._base_url + "/api/v1/tickets/" + self.ticket_id + ".json?" + self._token
 
         payload = {
@@ -379,6 +348,9 @@ class Ticket:
                 "comment": None
             }
         }
+
+        if comment:
+            payload["ticket_event"] = {"comment": str(comment)}
 
         response = requests.patch(url, json=payload)
         if response.status_code != 200:
