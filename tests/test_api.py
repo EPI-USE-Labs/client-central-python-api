@@ -147,6 +147,8 @@ def test_lazy_load():
 
     ticket.comments
     assert hasattr(ticket, "_comments") == True
+    assert hasattr(ticket, "_change_events") == True
+    assert hasattr(ticket, "_events") == True
 
 def test_cancel():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
