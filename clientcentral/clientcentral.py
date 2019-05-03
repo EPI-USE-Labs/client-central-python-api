@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from typing import List, Optional, Dict
+from typing import Dict, List, Optional
 
 from clientcentral.config import Config
 from clientcentral.model.TicketType import TicketType

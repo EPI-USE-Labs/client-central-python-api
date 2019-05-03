@@ -1,5 +1,6 @@
 import os
 import sys
+from pathlib import Path
 from typing import Any, Dict
 
 import yaml
@@ -24,23 +25,27 @@ class Config:
 
         if self.production:
             base_config: Dict[str, object] = {}
-            if os.path.exists(os.path.dirname(path) + "/prod_template.yaml"):
+            prod_template_file = Path(
+                os.path.dirname(path) + "/prod_template.yaml")
+
+            if prod_template_file.exists():
                 # Open base template
-                with open(os.path.dirname(path) + "/prod_template.yaml",
-                          'r') as stream:
+                with open(prod_template_file, 'r') as stream:
                     base_config = yaml.safe_load(stream)
 
             config: Dict[str, object] = {}
-            if os.path.exists(dirname + "/../clientcentral/prod.yaml"):
+
+            prod_file = Path(dirname + "/../clientcentral/prod.yaml")
+            if prod_file.exists():
                 # Open project specific config
-                with open(dirname + "/../clientcentral/prod.yaml",
-                          'r') as stream:
+                with open(prod_file, 'r') as stream:
                     config = yaml.safe_load(stream)
             else:
-                if os.path.exists(os.path.dirname(path) + "/prod.yaml"):
+                prod_file = Path(os.path.dirname(path) + "/prod.yaml")
+
+                if prod_file.exists():
                     # Open project specific config
-                    with open(os.path.dirname(path) + "/prod.yaml",
-                              'r') as stream:
+                    with open(prod_file, 'r') as stream:
                         config = yaml.safe_load(stream)
 
             # Merge configs
@@ -55,23 +60,25 @@ class Config:
             return merged
         else:
             base_config = {}
-            if os.path.exists(os.path.dirname(path) + "/qa_template.yaml"):
+
+            qa_template_file = Path(
+                os.path.dirname(path) + "/qa_template.yaml")
+            if qa_template_file.exists():
                 # Open base template
-                with open(os.path.dirname(path) + "/qa_template.yaml",
-                          'r') as stream:
+                with open(qa_template_file, 'r') as stream:
                     base_config = yaml.safe_load(stream)
 
             config = {}
-            if os.path.exists(dirname + "/../clientcentral/qa.yaml"):
+            qa_file = Path(dirname + "/../clientcentral/qa.yaml")
+            if qa_file.exists():
                 # Open project specific config
-                with open(dirname + "/../clientcentral/qa.yaml",
-                          'r') as stream:
+                with open(qa_file, 'r') as stream:
                     config = yaml.safe_load(stream)
             else:
-                if os.path.exists(os.path.dirname(path) + "/qa.yaml"):
+                qa_file = Path(os.path.dirname(path) + "/qa.yaml")
+                if qa_file.exists():
                     # Open project specific config
-                    with open(os.path.dirname(path) + "/qa.yaml",
-                              'r') as stream:
+                    with open(qa_file, 'r') as stream:
                         config = yaml.safe_load(stream)
 
             # Merge configs
