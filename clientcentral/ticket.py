@@ -27,7 +27,10 @@ class Ticket:
     subject: Optional[str]
     priority: Optional[int]
     ticket_id: str
+
+    creator: Optional[User]
     owner: Optional[User]
+
     description: Optional[str]
 
     type: Optional[TicketType]
@@ -81,6 +84,7 @@ class Ticket:
                  description: Optional[str] = None,
                  subject: Optional[str] = None,
                  owner: Optional[User] = None,
+                 creator: Optional[User] = None,
                  user_watchers: List[User] = [],
                  priority: Optional[int] = None,
                  assignee: Optional[int] = None) -> None:
@@ -97,7 +101,9 @@ class Ticket:
         self.user_watchers = user_watchers
         self.custom_fields_attributes = custom_fields_attributes
 
+        self.creator = creator
         self.owner = owner
+
         self.assignee = assignee
 
         self._production = production
@@ -140,10 +146,17 @@ class Ticket:
             name=result["data"]["status"]["name"])
 
         self.priority = result["data"]["priority"]["id"]
-        self.owner = User(
+
+        self.creator = User(
             user_id=result["data"]["created_by_user"]["id"],
             name=result["data"]["created_by_user"]["name"],
             email=result["data"]["created_by_user"]["email"])
+
+        self.owner = User(
+            user_id=result["data"]["customer_user"]["id"],
+            name=result["data"]["customer_user"]["first_name"] + " " +
+            result["data"]["customer_user"]["last_name"],
+            email=result["data"]["customer_user"]["email"])
 
         self.created_at = datetime.strptime(result["data"]["created_at"],
                                             "%Y-%m-%dT%H:%M:%S.%f%z")
@@ -359,7 +372,7 @@ class Ticket:
 
     def get(self) -> Dict[str, object]:
         url = self._base_url + "/api/v1/tickets/" + self.ticket_id + ".json?" + self._token
-        payload = "&select=type.*,events.comment,events.created_by_user.email,events.created_by_user.name,events.created_at,created_by_user.email,created_by_user.name,subject,description,priority.name,events.comment,user_watchers.email,user_watchers.name,status.name,events.event_changes.to_value,events.event_changes.from_value,events.event_changes.name,*"
+        payload = "&select=type.*,events.comment,events.created_by_user.email,events.created_by_user.name,events.created_at,created_by_user.email,created_by_user.name,subject,description,priority.name,events.comment,user_watchers.email,user_watchers.name,status.name,events.event_changes.to_value,events.event_changes.from_value,events.event_changes.name,customer_user.*,*"
         response = requests.get(url + payload)
         # print(response.text)
 

@@ -39,6 +39,8 @@ def test_create_ticket():
     assert ticket.ms_category == 363
     assert ticket.owner.user_id == cc.config.get(
     )["user_ids"]["thomas-scholtz"]
+    assert ticket.creator.user_id == cc.config.get(
+    )["user_ids"]["thomas-scholtz"]
     assert ticket.status.status_id == cc.config.get()["ticket-status"]["new"]
     assert ticket.status.name == "New"
     assert ticket.priority == cc.config.get()["ticket-priority"]["very-low"]
@@ -51,6 +53,7 @@ def test_update_ticket():
     ticket.description = "<p>update desc</p>"
     ticket.update()
     assert ticket.description == "<p>update desc</p>"
+
 
 def test_comment():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
@@ -66,7 +69,9 @@ def test_comment():
 
     for change_event in ticket.change_events:
         for change in change_event.changes:
-            print("Changed: " + change.name + " from: " + change.from_value + " to: " + change.to_value + " at: " + change_event.created_at.strftime("%B %d, %Y %M %F %s"))
+            print("Changed: " + change.name + " from: " + change.from_value +
+                  " to: " + change.to_value + " at: " +
+                  change_event.created_at.strftime("%B %d, %Y %M %F %s"))
 
     new_num_comments = len(ticket.comments)
     new_num_change_events = len(ticket.change_events)
@@ -86,7 +91,8 @@ def test_grab():
     )["ticket-status"]["in-progress"]
     assert ticket.status.name == "In progress"
     assert ticket.change_events[0].changes[1].name == "status"
-    assert ticket.change_events[0].changes[1].to_value == str(cc.config.get()["ticket-status"]["in-progress"])
+    assert ticket.change_events[0].changes[1].to_value == str(
+        cc.config.get()["ticket-status"]["in-progress"])
 
 
 def test_suggest_solution():
@@ -96,7 +102,9 @@ def test_suggest_solution():
     )["ticket-status"]["suggest-solution"]
 
     assert ticket.change_events[0].changes[0].name == "status"
-    assert ticket.change_events[0].changes[0].to_value == str(cc.config.get()["ticket-status"]["suggest-solution"])
+    assert ticket.change_events[0].changes[0].to_value == str(
+        cc.config.get()["ticket-status"]["suggest-solution"])
+
 
 def test_comment_and_update():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
@@ -107,6 +115,7 @@ def test_comment_and_update():
 
     last_comment = ticket.comments[0].comment
     assert last_comment == "comment and update"
+
 
 def test_suggest_solution_then_grab():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
@@ -123,8 +132,11 @@ def test_decline_solution():
     assert ticket.status.status_id == cc.config.get(
     )["ticket-status"]["in-progress"]
     assert ticket.change_events[0].changes[0].name == "status"
-    assert ticket.change_events[0].changes[0].from_value == str(cc.config.get()["ticket-status"]["suggest-solution"])
-    assert ticket.change_events[0].changes[0].to_value == str(cc.config.get()["ticket-status"]["in-progress"])
+    assert ticket.change_events[0].changes[0].from_value == str(
+        cc.config.get()["ticket-status"]["suggest-solution"])
+    assert ticket.change_events[0].changes[0].to_value == str(
+        cc.config.get()["ticket-status"]["in-progress"])
+
 
 def test_lazy_load_get_by_id():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
@@ -135,10 +147,15 @@ def test_lazy_load_get_by_id():
     assert hasattr(ticket, "_change_events") == True
     assert hasattr(ticket, "_events") == True
 
+
 def test_lazy_load():
     import clientcentral.query as operators
 
-    ticket = cc.query_tickets().filter_by(operators.and_(operators.comparison("created_by_user.email", "=", "'thomas@labs.epiuse.com'"),operators.comparison("id", "=", str(pytest.ticket_id)))).all()[0]
+    ticket = cc.query_tickets().filter_by(
+        operators.and_(
+            operators.comparison("created_by_user.email", "=",
+                                 "'thomas@labs.epiuse.com'"),
+            operators.comparison("id", "=", str(pytest.ticket_id)))).all()[0]
     assert ticket is not None
 
     assert hasattr(ticket, "_comments") == False
@@ -149,6 +166,7 @@ def test_lazy_load():
     assert hasattr(ticket, "_comments") == True
     assert hasattr(ticket, "_change_events") == True
     assert hasattr(ticket, "_events") == True
+
 
 def test_cancel():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)

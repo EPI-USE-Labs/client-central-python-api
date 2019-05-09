@@ -1,17 +1,17 @@
 # query().filter_by(Comparison("created_by_user.name", "=", "name"))
 import json
 from datetime import datetime
+from typing import List
 
 import requests
 
-from typing import List
-
+from clientcentral.config import Config
 from clientcentral.Exceptions import HTTPError
 from clientcentral.model.Status import Status
 from clientcentral.model.TicketType import TicketType
 from clientcentral.model.User import User
 from clientcentral.ticket import Ticket
-from clientcentral.config import Config
+
 
 class QueryTickets:
     _query: str
@@ -22,7 +22,8 @@ class QueryTickets:
     config: Config
     production: bool = False
 
-    def __init__(self, base_url: str, token: str, config: Config, production: bool) -> None:
+    def __init__(self, base_url: str, token: str, config: Config,
+                 production: bool) -> None:
         self._query = ""
         self.base_url = base_url
         self.token = token
@@ -36,7 +37,7 @@ class QueryTickets:
 
     def all(self) -> List[Ticket]:
         url = self.base_url + "/api/v1/tickets.json?" + self.token
-        payload = self._query + "&select=type.*,events.comment,events.created_by_user.email,events.created_by_user.name,events.created_at,created_by_user.email,created_by_user.name,subject,description,priority.name,user_watchers.email,user_watchers.name,status.name,*"
+        payload = self._query + "&select=type.*,events.comment,events.created_by_user.email,events.created_by_user.name,events.created_at,created_by_user.email,created_by_user.name,subject,description,priority.name,user_watchers.email,user_watchers.name,status.name,customer_user.*,*"
         response = requests.get(url + payload)
         # print(response.text)
         if response.status_code != 200:
@@ -64,10 +65,15 @@ class QueryTickets:
                                                  "%Y-%m-%dT%H:%M:%S.%f%z"),
                     description=ticket_in_data["description"],
                     subject=ticket_in_data["subject"],
-                    owner=User(
+                    creator=User(
                         user_id=ticket_in_data["created_by_user"]["id"],
                         name=ticket_in_data["created_by_user"]["name"],
                         email=ticket_in_data["created_by_user"]["email"]),
+                    owner=User(
+                        user_id=ticket_in_data["customer_user"]["id"],
+                        name=ticket_in_data["customer_user"]["first_name"] +
+                        " " + ticket_in_data["customer_user"]["last_name"],
+                        email=ticket_in_data["customer_user"]["email"]),
                     ticket_type=TicketType(
                         type_id=ticket_in_data["type"]["id"],
                         name=ticket_in_data["type"]["name"]),
