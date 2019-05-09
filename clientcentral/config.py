@@ -54,8 +54,8 @@ class Config:
             else:
                 merged = base_config
 
-            if environ_token and environ_token != "":
-                merged["token"] = environ_token
+            if environ_token and environ_token != "": # nosec
+                merged["token"] = environ_token # nosec
 
             return merged
         else:
@@ -87,7 +87,7 @@ class Config:
             else:
                 merged = base_config
 
-            if environ_token and environ_token != "":
-                merged["token"] = environ_token
+            if environ_token and environ_token != "": # nosec
+                merged["token"] = environ_token # nosec
 
             return merged
