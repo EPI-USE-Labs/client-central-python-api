@@ -20,3 +20,16 @@ class User:
 
         self.title = title
         self.job_title = job_title
+
+    def get_name(self):
+        return self.first_name + " " + self.last_name
+
+    def set_name(self, name):
+        split_name = name.split(" ", 1)
+        self.first_name = split_name[0]
+        self.last_name = split_name[1]
+
+    name = property(
+        get_name,
+        set_name,
+    )

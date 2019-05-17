@@ -16,10 +16,12 @@ if __name__ == "__main__":
     #                                         "87"), )).all()
 
     for ticket in tickets:
-        print(ticket.__dict__)
+        # print(ticket.__dict__)
         #print(ticket.type.name, ticket.type.type_id)
 
         ticket.refresh()
+
+        print(ticket.custom_fields_attributes)
 
         for comment in ticket.comments:
             if comment.created_by_user:

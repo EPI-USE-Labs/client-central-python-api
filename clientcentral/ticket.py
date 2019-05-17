@@ -45,11 +45,8 @@ class Ticket:
     # email_watchers = None
 
     # Custom
-    internal_it_category = None
-    sap_sid = None
-    ms_category = None
-
     custom_fields_attributes: List[Dict[str, int]]
+    custom_fields: List[Dict[str, Any]]
 
     # comments: List[Comment] = None
     # events: List[TicketEvent] = None
@@ -175,29 +172,21 @@ class Ticket:
             type_id=result["data"]["type"]["id"],
             name=result["data"]["type"]["name"])
 
-        # Will hopefully get updated in future CC builds
-        self.custom_fields_attributes = []
+        self.assignee = result["data"]["assignee"]["id"]
 
-        try:
-            self.assignee = result["data"]["assignee"]["id"]
-        except TypeError:
-            pass
+        self.custom_fields: dict = {}
+        reserved_fields = [
+            "description", "subject", "status", "created_by_user",
+            "customer_user", "created_at", "updated_at", "project",
+            "workspace", "type", "user_watchers", "events",
+            "email_watcher_emails", "visible_to_customer", "priority",
+            "last_event", "account", "assignee", "assignee_roles", "id"
+        ]
 
-        try:
-            self.sap_sid = result["data"]["sap_sid"]
-        except KeyError:
-            pass
-
-        try:
-            self.internal_it_category = result["data"]["internal_it_category"][
-                "id"]
-        except TypeError:
-            pass
-
-        try:
-            self.ms_category = result["data"]["ms_category"]["id"]
-        except TypeError:
-            pass
+        for field_name in result["data"]:
+            if field_name not in reserved_fields:
+                self.custom_fields[field_name] = result["data"][
+                    field_name]
 
         self.user_watchers = [
             User(
@@ -278,10 +267,6 @@ class Ticket:
         if not self.user_watchers:
             self.user_watchers = []
 
-        try:
-            self.sid = result["data"]["sap_sid"]
-        except KeyError:
-            pass
         # self.email_watchers = [email for email in result["data"]["email_watcher_emails"]]
 
     def create(self) -> "Ticket":
@@ -322,6 +307,9 @@ class Ticket:
                 # 2 -> Category [363 -> Other]
             }
         }
+
+        # for custom_field in self.custom_fields:
+        #     params["ticket"][custom_field] = self.custom_fields[custom_field]
 
         response = requests.post(url, json=params, headers=self.headers)
         # print(response.text)
@@ -369,6 +357,7 @@ class Ticket:
                     str(key): value
                     for key, value in enumerate(self.custom_fields_attributes)
                 },
+                "assignee": str(self.assignee),
                 "status_id": self.status.status_id,
                 "workspace_id": self.workspace_id,
                 "project_id": self.project_id
@@ -377,6 +366,9 @@ class Ticket:
                 "comment": None
             }
         }
+
+        # for custom_field in self.custom_fields:
+        #     payload["ticket"][custom_field] = self.custom_fields[custom_field]
 
         if comment:
             payload["ticket_event"] = {"comment": str(comment)}
@@ -409,8 +401,8 @@ class Ticket:
         payload += ",*"
         response = requests.get(url + payload)
 
-        print(payload)
-        print(response.text)
+        # print(payload)
+        # print(response.text)
 
         if response.status_code != 200:
             raise HTTPError(response.text)
@@ -430,6 +422,11 @@ class Ticket:
             raise HTTPError(response.text)
         response.raise_for_status()
         self._update()
+
+    def press_button(self, comment: str = None):
+        if not hasattr(self, "_available_buttons"):
+            self._available_buttons = ""
+        pass
 
     def grab(self) -> None:
         url = self._build_url(self.button_ids["grab"])

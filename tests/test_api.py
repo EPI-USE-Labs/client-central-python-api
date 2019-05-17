@@ -36,7 +36,7 @@ def test_create_ticket():
     assert ticket.description == desc
     assert ticket.subject == subj
     # assert ticket.sid == sid
-    assert ticket.ms_category == 363
+    assert ticket.custom_fields["ms_category"]["id"] == 363
     assert ticket.owner.user_id == cc.config.get(
     )["user_ids"]["thomas-scholtz"]
     assert ticket.creator.user_id == cc.config.get(

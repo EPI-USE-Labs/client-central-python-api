@@ -69,14 +69,19 @@ class QueryTickets:
                     subject=ticket_in_data["subject"],
                     creator=User(
                         user_id=ticket_in_data["created_by_user"]["id"],
-                        first_name=ticket_in_data["created_by_user"]["first_name"],
-                        last_name=ticket_in_data["created_by_user"]["last_name"],
-                        title=ticket_in_data["created_by_user"]["title"]["name"],
-                        job_title=ticket_in_data["created_by_user"]["job_title"],
+                        first_name=ticket_in_data["created_by_user"]
+                        ["first_name"],
+                        last_name=ticket_in_data["created_by_user"]
+                        ["last_name"],
+                        title=ticket_in_data["created_by_user"]["title"]
+                        ["name"],
+                        job_title=ticket_in_data["created_by_user"]
+                        ["job_title"],
                         email=ticket_in_data["created_by_user"]["email"]),
                     owner=User(
                         user_id=ticket_in_data["customer_user"]["id"],
-                        first_name=ticket_in_data["customer_user"]["first_name"],
+                        first_name=ticket_in_data["customer_user"]
+                        ["first_name"],
                         last_name=ticket_in_data["customer_user"]["last_name"],
                         title=ticket_in_data["customer_user"]["title"]["name"],
                         job_title=ticket_in_data["customer_user"]["job_title"],
