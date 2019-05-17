@@ -3,4 +3,4 @@
 
 __author__ = """Thomas Scholtz"""
 __email__ = 'thomas@labs.epiuse.com'
-__version__ = '4.0.0'
+__version__ = '4.1.0'
