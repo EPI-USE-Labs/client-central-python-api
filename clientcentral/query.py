@@ -37,7 +37,9 @@ class QueryTickets:
 
     def all(self) -> List[Ticket]:
         url = self.base_url + "/api/v1/tickets.json?" + self.token
-        payload = self._query + "&select=type.*,events.comment,events.created_by_user.email,events.created_by_user.name,events.created_at,created_by_user.email,created_by_user.name,subject,description,priority.name,user_watchers.email,user_watchers.name,status.name,customer_user.*,*"
+        payload = self._query
+        payload += "&select=type.*,events.comment,events.created_by_user.email,events.created_by_user.name,events.created_at,created_by_user.*,subject,description,priority.name,user_watchers.email,user_watchers.name,status.name,customer_user.*,*"
+
         response = requests.get(url + payload)
         # print(response.text)
         if response.status_code != 200:
@@ -67,12 +69,17 @@ class QueryTickets:
                     subject=ticket_in_data["subject"],
                     creator=User(
                         user_id=ticket_in_data["created_by_user"]["id"],
-                        name=ticket_in_data["created_by_user"]["name"],
+                        first_name=ticket_in_data["created_by_user"]["first_name"],
+                        last_name=ticket_in_data["created_by_user"]["last_name"],
+                        title=ticket_in_data["created_by_user"]["title"]["name"],
+                        job_title=ticket_in_data["created_by_user"]["job_title"],
                         email=ticket_in_data["created_by_user"]["email"]),
                     owner=User(
                         user_id=ticket_in_data["customer_user"]["id"],
-                        name=ticket_in_data["customer_user"]["first_name"] +
-                        " " + ticket_in_data["customer_user"]["last_name"],
+                        first_name=ticket_in_data["customer_user"]["first_name"],
+                        last_name=ticket_in_data["customer_user"]["last_name"],
+                        title=ticket_in_data["customer_user"]["title"]["name"],
+                        job_title=ticket_in_data["customer_user"]["job_title"],
                         email=ticket_in_data["customer_user"]["email"]),
                     ticket_type=TicketType(
                         type_id=ticket_in_data["type"]["id"],
@@ -80,7 +87,8 @@ class QueryTickets:
                     user_watchers=[
                         User(
                             user_id=user["id"],
-                            name=user["name"],
+                            first_name=user["first_name"],
+                            last_name=user["first_name"],
                             email=user["email"])
                         for user in ticket_in_data["user_watchers"]
                     ],

@@ -149,13 +149,18 @@ class Ticket:
 
         self.creator = User(
             user_id=result["data"]["created_by_user"]["id"],
-            name=result["data"]["created_by_user"]["name"],
+            first_name=result["data"]["created_by_user"]["first_name"],
+            last_name=result["data"]["created_by_user"]["last_name"],
+            title=result["data"]["created_by_user"]["title"]["name"],
+            job_title=result["data"]["created_by_user"]["job_title"],
             email=result["data"]["created_by_user"]["email"])
 
         self.owner = User(
             user_id=result["data"]["customer_user"]["id"],
-            name=result["data"]["customer_user"]["first_name"] + " " +
-            result["data"]["customer_user"]["last_name"],
+            first_name=result["data"]["customer_user"]["first_name"],
+            last_name=result["data"]["customer_user"]["last_name"],
+            title=result["data"]["customer_user"]["title"]["name"],
+            job_title=result["data"]["customer_user"]["job_title"],
             email=result["data"]["customer_user"]["email"])
 
         self.created_at = datetime.strptime(result["data"]["created_at"],
@@ -195,7 +200,13 @@ class Ticket:
             pass
 
         self.user_watchers = [
-            User(user_id=user["id"], name=user["name"], email=user["email"])
+            User(
+                user_id=user["id"],
+                first_name=user["first_name"],
+                last_name=user["last_name"],
+                title=user["title"]["name"],
+                job_title=user["job_title"],
+                email=user["email"])
             for user in result["data"]["user_watchers"]
         ]
 
@@ -222,7 +233,10 @@ class Ticket:
             if event["created_by_user"]:
                 user = User(
                     user_id=event["created_by_user"]["id"],
-                    name=event["created_by_user"]["name"],
+                    first_name=event["created_by_user"]["first_name"],
+                    last_name=event["created_by_user"]["last_name"],
+                    title=event["created_by_user"]["title"]["name"],
+                    job_title=event["created_by_user"]["job_title"],
                     email=event["created_by_user"]["email"])
 
             if event["event_changes"]:
@@ -237,6 +251,7 @@ class Ticket:
                     created_by_user=user,
                     created_at=event_created_at,
                     changes=changes,
+                    visible_to_customer=event["visible_to_customer"],
                     comment=str(event["comment"]))
                 self._change_events.append(change_event)
                 self._events.append(change_event)
@@ -247,6 +262,7 @@ class Ticket:
                 comment_event = Comment(
                     created_by_user=user,
                     comment=event["comment"],
+                    visible_to_customer=event["visible_to_customer"],
                     created_at=event_created_at)
                 self._comments.append(comment_event)
                 self._events.append(comment_event)
@@ -372,9 +388,29 @@ class Ticket:
 
     def get(self) -> Dict[str, object]:
         url = self._base_url + "/api/v1/tickets/" + self.ticket_id + ".json?" + self._token
-        payload = "&select=type.*,events.comment,events.created_by_user.email,events.created_by_user.name,events.created_at,created_by_user.email,created_by_user.name,subject,description,priority.name,events.comment,user_watchers.email,user_watchers.name,status.name,events.event_changes.to_value,events.event_changes.from_value,events.event_changes.name,customer_user.*,*"
+
+        selection = [
+            "subject", "description", "priority.name", "status.name",
+            "events.event_changes.name", "customer_user.*", "type.name",
+            "events.comment", "events.created_by_user.first_name",
+            "events.created_by_user.last_name", "events.created_by_user.title",
+            "events.created_by_user.job_title", "events.created_by_user.email",
+            "events.created_at", "created_by_user.email",
+            "created_by_user.title", "created_by_user.job_title",
+            "created_by_user.first_name", "created_by_user.last_name",
+            "user_watchers.email", "user_watchers.first_name",
+            "user_watchers.last_name", "user_watchers.title",
+            "user_watchers.job_title", "events.event_changes.to_value",
+            "events.event_changes.from_value", "events.visible_to_customer"
+        ]
+
+        payload = "&select="
+        payload += ",".join(selection)
+        payload += ",*"
         response = requests.get(url + payload)
-        # print(response.text)
+
+        print(payload)
+        print(response.text)
 
         if response.status_code != 200:
             raise HTTPError(response.text)
