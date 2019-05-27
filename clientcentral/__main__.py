@@ -3,17 +3,16 @@
 
 import clientcentral.query as operators
 from clientcentral.clientcentral import ClientCentral
+from clientcentral.model.Status import Status
 
 if __name__ == "__main__":
     cc = ClientCentral(production=False)
     # Dummy commit 10
-    tickets = [cc.get_ticket_by_id("75705")]
+    # tickets = [cc.get_ticket_by_id("75705")]
     # ,operators.comparison("status.name", "=","'New'")
     # operators.comparison("created_by_user.email", "=",
     #                      "'thomas@labs.epiuse.com'")
-    # tickets = cc.query_tickets().filter_by(
-    #     operators.and_(operators.comparison("workspace_id", "=",
-    #                                         "87"), )).all()
+    tickets = cc.query_tickets().filter_by(operators.comparison("created_by_user.email", "=","'thomas@labs.epiuse.com'")).all()
 
     for ticket in tickets:
         # print(ticket.__dict__)
@@ -34,9 +33,9 @@ if __name__ == "__main__":
                 print("Changed: " + str(change.name) + " from: " +
                       str(change.from_value) + " to: " + str(change.to_value))
 
-        # ticket.status = Status(
-        #     status_id=cc.config.get()["ticket-status"]["cancelled"])
-        # ticket.priority = cc.config.get()["ticket-priority"]["very-low"]
-        # ticket.update()
+        ticket.status = Status(
+            status_id=cc.config.get()["ticket-status"]["cancelled"])
+        ticket.priority = cc.config.get()["ticket-priority"]["very-low"]
+        ticket.update()
         #
         # print("Updated")

@@ -2,6 +2,7 @@ import pytest
 
 from clientcentral.clientcentral import ClientCentral
 from clientcentral.Exceptions import HTTPError
+from clientcentral.Exceptions import ButtonNotAvailable
 
 cc = ClientCentral(production=False)
 pytest.ticket_id = None
@@ -85,7 +86,7 @@ def test_comment():
 
 def test_grab():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
-    ticket.grab()
+    ticket.press_button("Grab")
     assert ticket.assignee == cc.config.get()["user_ids"]["thomas-scholtz"]
     assert ticket.status.status_id == cc.config.get(
     )["ticket-status"]["in-progress"]
@@ -97,7 +98,7 @@ def test_grab():
 
 def test_suggest_solution():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
-    ticket.suggest_solution("<p>sol</p>")
+    ticket.press_button("Suggest solution", "<p>sol</p>")
     assert ticket.status.status_id == cc.config.get(
     )["ticket-status"]["suggest-solution"]
 
@@ -119,15 +120,15 @@ def test_comment_and_update():
 
 def test_suggest_solution_then_grab():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
-    with pytest.raises(HTTPError):
-        ticket.suggest_solution("sol")
-    with pytest.raises(HTTPError):
-        ticket.grab()
+    with pytest.raises(ButtonNotAvailable):
+        ticket.press_button("Suggest solution", "sol")
+    with pytest.raises(ButtonNotAvailable):
+        ticket.press_button("Grab")
 
 
 def test_decline_solution():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
-    ticket.decline("<p>decline</p>")
+    ticket.press_button("Decline", "<p>decline</p>")
 
     assert ticket.status.status_id == cc.config.get(
     )["ticket-status"]["in-progress"]
@@ -170,7 +171,7 @@ def test_lazy_load():
 
 def test_cancel():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
-    ticket.cancel_ticket("<p>close</p>")
+    ticket.press_button("Cancel ticket","<p>close</p>")
 
     assert ticket.status.status_id == cc.config.get(
     )["ticket-status"]["cancelled"]

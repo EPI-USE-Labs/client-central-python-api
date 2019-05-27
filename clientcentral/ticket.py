@@ -9,6 +9,8 @@ import requests
 
 from clientcentral.config import Config
 from clientcentral.Exceptions import HTTPError
+from clientcentral.Exceptions import ButtonNotAvailable
+from clientcentral.Exceptions import ButtonRequiresComment
 from clientcentral.model.Change import Change
 from clientcentral.model.ChangeEvent import ChangeEvent
 from clientcentral.model.Comment import Comment
@@ -16,6 +18,7 @@ from clientcentral.model.Status import Status
 from clientcentral.model.TicketEvent import TicketEvent
 from clientcentral.model.TicketType import TicketType
 from clientcentral.model.User import User
+from clientcentral.model.Button import Button
 
 
 class Ticket:
@@ -48,6 +51,8 @@ class Ticket:
     custom_fields_attributes: List[Dict[str, int]]
     custom_fields: List[Dict[str, Any]]
 
+    available_buttons: List[Button]
+
     # comments: List[Comment] = None
     # events: List[TicketEvent] = None
     # change_events: List[ChangeEvent] = None
@@ -57,8 +62,6 @@ class Ticket:
 
     config: Config
     button_ids = None
-
-    sid = None
 
     headers = {
         'Content-Type': 'application/json',
@@ -130,6 +133,30 @@ class Ticket:
     def refresh(self) -> None:
         self._update()
 
+    # Call the button URL to get the current buttons.
+    def _get_available_buttons(self) -> None:
+        url = self._base_url + "/api/v1/tickets/" + self.ticket_id + "/available_buttons.json?" + self._token
+        response = requests.get(url, headers=self.headers)
+        # print(response.text)
+        if response.status_code != 200:
+            raise HTTPError(response.text)
+        response.raise_for_status()
+
+        result = json.loads(response.text)
+
+        self.available_buttons = list()
+
+        for button in result["data"]:
+            self.available_buttons.append(Button(
+                button_id=button["id"],
+                enabled=button["enabled"],
+                name=button["name"],
+                agent_only=button["agent_only"],
+                require_comment=button["require_comment"],
+                colour=button["colour"]
+            ))
+
+
     def _update(self) -> None:
         # print("UPDATED!!!")
 
@@ -138,9 +165,15 @@ class Ticket:
         self.description = str(result["data"]["description"]).strip()
         self.subject = str(result["data"]["subject"]).strip()
 
-        self.status = Status(
+        new_status = Status(
             status_id=result["data"]["status"]["id"],
             name=result["data"]["status"]["name"])
+
+        if self.status != new_status:
+            # Update buttons
+            self._get_available_buttons()
+
+        self.status = new_status
 
         self.priority = result["data"]["priority"]["id"]
 
@@ -172,7 +205,8 @@ class Ticket:
             type_id=result["data"]["type"]["id"],
             name=result["data"]["type"]["name"])
 
-        self.assignee = result["data"]["assignee"]["id"]
+        if result["data"]["assignee"]:
+            self.assignee = result["data"]["assignee"]["id"]
 
         self.custom_fields: dict = {}
         reserved_fields = [
@@ -268,6 +302,9 @@ class Ticket:
             self.user_watchers = []
 
         # self.email_watchers = [email for email in result["data"]["email_watcher_emails"]]
+
+        # Update available buttons
+
 
     def create(self) -> "Ticket":
         # If the ticket already exists just return.
@@ -423,85 +460,30 @@ class Ticket:
         response.raise_for_status()
         self._update()
 
-    def press_button(self, comment: str = None):
-        if not hasattr(self, "_available_buttons"):
-            self._available_buttons = ""
-        pass
+    def press_button(self, button_name: str, comment: str = None):
+        if not self.available_buttons or len(self.available_buttons) == 0:
+            self._get_available_buttons()
 
-    def grab(self) -> None:
-        url = self._build_url(self.button_ids["grab"])
-        params = {}
-        response = requests.post(url, params)
-        if response.status_code != 200:
-            raise HTTPError(response.text)
-        response.raise_for_status()
-        self._update()
+        for button in self.available_buttons:
+            if button_name == button.name:
 
-    def cancel_ticket(self, description):
-        url = self._build_url(self.button_ids["cancel-ticket"])
-        params = {
-            'comment': str(description),
-        }
-        response = requests.post(url, params)
-        if response.status_code != 200:
-            raise HTTPError(response.text)
-        response.raise_for_status()
-        self._update()
+                if button.require_comment and not comment:
+                    raise ButtonRequiresComment("This button requires a comment")
+                url = self._build_url(button.button_id)
+                params = {}
 
-    def request_information(self, description):
-        url = self._build_url(self.button_ids["request-information"])
-        params = {
-            'comment': str(description),
-        }
-        response = requests.post(url, params)
-        if response.status_code != 200:
-            raise HTTPError(response.text)
-        response.raise_for_status()
-        self._update()
-
-    def provide_information(self, description):
-        url = self._build_url(self.button_ids["provide-information"])
-        params = {
-            'comment': str(description),
-        }
-        response = requests.post(url, params)
-        if response.status_code != 200:
-            raise HTTPError(response.text)
-        response.raise_for_status()
-        self._update()
-
-    def accept(self, description):
-        url = self._build_url(self.button_ids["accept"])
-        params = {
-            'comment': str(description),
-        }
-        response = requests.post(url, params)
-        if response.status_code != 200:
-            raise HTTPError(response.text)
-        response.raise_for_status()
-        self._update()
-
-    def decline(self, description):
-        url = self._build_url(self.button_ids["decline"])
-        params = {
-            'comment': str(description),
-        }
-        response = requests.post(url, params)
-        if response.status_code != 200:
-            raise HTTPError(response.text)
-        response.raise_for_status()
-        self._update()
-
-    def suggest_solution(self, description):
-        url = self._build_url(self.button_ids["suggest-solution"])
-        params = {
-            'comment': str(description),
-        }
-        response = requests.post(url, params)
-        if response.status_code != 200:
-            raise HTTPError(response.text)
-        response.raise_for_status()
-        self._update()
+                if comment:
+                    params = {
+                        'comment': str(comment),
+                    }
+                response = requests.post(url, params)
+                if response.status_code != 200:
+                    raise HTTPError(response.text)
+                response.raise_for_status()
+                self._update()
+                break
+        else:
+            raise ButtonNotAvailable("This button is currently not active!")
 
     def _build_url(self, button):
         url = self._base_url + "/api/v1/tickets/" + self.ticket_id + "/buttons/" + str(
