@@ -8,9 +8,9 @@ from typing import Any, Dict, List, Optional
 import requests
 
 from clientcentral.config import Config
-from clientcentral.Exceptions import HTTPError
-from clientcentral.Exceptions import ButtonNotAvailable
-from clientcentral.Exceptions import ButtonRequiresComment
+from clientcentral.Exceptions import (ButtonNotAvailable,
+                                      ButtonRequiresComment, HTTPError)
+from clientcentral.model.Button import Button
 from clientcentral.model.Change import Change
 from clientcentral.model.ChangeEvent import ChangeEvent
 from clientcentral.model.Comment import Comment
@@ -18,7 +18,6 @@ from clientcentral.model.Status import Status
 from clientcentral.model.TicketEvent import TicketEvent
 from clientcentral.model.TicketType import TicketType
 from clientcentral.model.User import User
-from clientcentral.model.Button import Button
 
 
 class Ticket:
@@ -147,15 +146,14 @@ class Ticket:
         self.available_buttons = list()
 
         for button in result["data"]:
-            self.available_buttons.append(Button(
-                button_id=button["id"],
-                enabled=button["enabled"],
-                name=button["name"],
-                agent_only=button["agent_only"],
-                require_comment=button["require_comment"],
-                colour=button["colour"]
-            ))
-
+            self.available_buttons.append(
+                Button(
+                    button_id=button["id"],
+                    enabled=button["enabled"],
+                    name=button["name"],
+                    agent_only=button["agent_only"],
+                    require_comment=button["require_comment"],
+                    colour=button["colour"]))
 
     def _update(self) -> None:
         # print("UPDATED!!!")
@@ -219,8 +217,7 @@ class Ticket:
 
         for field_name in result["data"]:
             if field_name not in reserved_fields:
-                self.custom_fields[field_name] = result["data"][
-                    field_name]
+                self.custom_fields[field_name] = result["data"][field_name]
 
         self.user_watchers = [
             User(
@@ -304,7 +301,6 @@ class Ticket:
         # self.email_watchers = [email for email in result["data"]["email_watcher_emails"]]
 
         # Update available buttons
-
 
     def create(self) -> "Ticket":
         # If the ticket already exists just return.
@@ -468,7 +464,8 @@ class Ticket:
             if button_name == button.name:
 
                 if button.require_comment and not comment:
-                    raise ButtonRequiresComment("This button requires a comment")
+                    raise ButtonRequiresComment(
+                        "This button requires a comment")
                 url = self._build_url(button.button_id)
                 params = {}
 

@@ -12,7 +12,9 @@ if __name__ == "__main__":
     # ,operators.comparison("status.name", "=","'New'")
     # operators.comparison("created_by_user.email", "=",
     #                      "'thomas@labs.epiuse.com'")
-    tickets = cc.query_tickets().filter_by(operators.comparison("created_by_user.email", "=","'thomas@labs.epiuse.com'")).all()
+    tickets = cc.query_tickets().filter_by(
+        operators.comparison("created_by_user.email", "=",
+                             "'thomas@labs.epiuse.com'")).all()
 
     for ticket in tickets:
         # print(ticket.__dict__)

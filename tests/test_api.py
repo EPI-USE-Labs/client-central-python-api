@@ -1,8 +1,8 @@
 import pytest
 
 from clientcentral.clientcentral import ClientCentral
-from clientcentral.Exceptions import HTTPError
-from clientcentral.Exceptions import ButtonNotAvailable
+from clientcentral.Exceptions import (ButtonNotAvailable,
+                                      ButtonRequiresComment, HTTPError)
 
 cc = ClientCentral(production=False)
 pytest.ticket_id = None
@@ -126,6 +126,12 @@ def test_suggest_solution_then_grab():
         ticket.press_button("Grab")
 
 
+def test_button_press_comment_required():
+    ticket = cc.get_ticket_by_id(pytest.ticket_id)
+    with pytest.raises(ButtonRequiresComment):
+        ticket.press_button("Decline")
+
+
 def test_decline_solution():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
     ticket.press_button("Decline", "<p>decline</p>")
@@ -171,7 +177,7 @@ def test_lazy_load():
 
 def test_cancel():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
-    ticket.press_button("Cancel ticket","<p>close</p>")
+    ticket.press_button("Cancel ticket", "<p>close</p>")
 
     assert ticket.status.status_id == cc.config.get(
     )["ticket-status"]["cancelled"]
