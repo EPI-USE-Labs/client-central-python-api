@@ -84,6 +84,22 @@ def test_comment():
     assert (old_num_change_eventes) == new_num_change_events
 
 
+def test_bump_priority():
+    ticket = cc.get_ticket_by_id(pytest.ticket_id)
+
+    ticket.bump_priority_up()
+    ticket.bump_priority_up()
+    ticket.bump_priority_up()
+    ticket.bump_priority_up()
+    assert ticket.priority == 1
+
+    ticket.bump_priority_down()
+    ticket.bump_priority_down()
+    ticket.bump_priority_down()
+    ticket.bump_priority_down()
+    assert ticket.priority == 33
+
+
 def test_grab():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
     ticket.press_button("Grab")

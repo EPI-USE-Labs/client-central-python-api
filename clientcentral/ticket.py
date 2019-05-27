@@ -482,6 +482,33 @@ class Ticket:
         else:
             raise ButtonNotAvailable("This button is currently not active!")
 
+    def bump_priority_up(self):
+        changed = False
+        # Current priority + 1
+        if self.priority == 33:
+            self.priority = 4
+            changed = True
+        elif self.priority - 1 >= 1:
+            self.priority = self.priority - 1
+            changed = True
+
+        if changed:
+            self.update()
+
+    def bump_priority_down(self):
+        changed = False
+
+        # low priority
+        if self.priority + 1 <= 4:
+            self.priority = self.priority + 1
+            changed = True
+        elif self.priority == 4:
+            self.priority = 33
+            changed = True
+
+        if changed:
+            self.update()
+
     def _build_url(self, button):
         url = self._base_url + "/api/v1/tickets/" + self.ticket_id + "/buttons/" + str(
             button) + ".json?" + self._token
