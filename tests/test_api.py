@@ -91,8 +91,12 @@ def test_bump_priority():
     ticket.bump_priority_up()
     ticket.bump_priority_up()
     ticket.bump_priority_up()
+    ticket.bump_priority_up()
+    ticket.bump_priority_up()
     assert ticket.priority == 1
 
+    ticket.bump_priority_down()
+    ticket.bump_priority_down()
     ticket.bump_priority_down()
     ticket.bump_priority_down()
     ticket.bump_priority_down()
