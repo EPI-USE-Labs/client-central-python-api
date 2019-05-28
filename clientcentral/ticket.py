@@ -8,8 +8,11 @@ from typing import Any, Dict, List, Optional
 import requests
 
 from clientcentral.config import Config
-from clientcentral.Exceptions import (ButtonNotAvailable,
-                                      ButtonRequiresComment, HTTPError)
+from clientcentral.Exceptions import (
+    ButtonNotAvailable,
+    ButtonRequiresComment,
+    HTTPError,
+)
 from clientcentral.model.Button import Button
 from clientcentral.model.Change import Change
 from clientcentral.model.ChangeEvent import ChangeEvent

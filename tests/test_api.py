@@ -1,8 +1,11 @@
 import pytest
 
 from clientcentral.clientcentral import ClientCentral
-from clientcentral.Exceptions import (ButtonNotAvailable,
-                                      ButtonRequiresComment, HTTPError)
+from clientcentral.Exceptions import (
+    ButtonNotAvailable,
+    ButtonRequiresComment,
+    HTTPError,
+)
 
 cc = ClientCentral(production=False)
 pytest.ticket_id = None
