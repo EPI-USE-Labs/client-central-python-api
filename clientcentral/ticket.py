@@ -62,31 +62,30 @@ class Ticket:
     config: Config
     button_ids = None
 
-    headers = {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-    }
+    headers = {"Content-Type": "application/json", "Accept": "application/json"}
 
-    def __init__(self,
-                 base_url: str,
-                 token: str,
-                 config: Config,
-                 ticket_id: str,
-                 production: bool,
-                 workspace_id: int,
-                 project_id: int,
-                 custom_fields_attributes: List[Dict[str, int]] = [],
-                 ticket_type: Optional[TicketType] = None,
-                 created_at: Optional[datetime] = None,
-                 updated_at: Optional[datetime] = None,
-                 status: Optional[Status] = None,
-                 description: Optional[str] = None,
-                 subject: Optional[str] = None,
-                 owner: Optional[User] = None,
-                 creator: Optional[User] = None,
-                 user_watchers: List[User] = [],
-                 priority: Optional[int] = None,
-                 assignee: Optional[int] = None) -> None:
+    def __init__(
+        self,
+        base_url: str,
+        token: str,
+        config: Config,
+        ticket_id: str,
+        production: bool,
+        workspace_id: int,
+        project_id: int,
+        custom_fields_attributes: List[Dict[str, int]] = [],
+        ticket_type: Optional[TicketType] = None,
+        created_at: Optional[datetime] = None,
+        updated_at: Optional[datetime] = None,
+        status: Optional[Status] = None,
+        description: Optional[str] = None,
+        subject: Optional[str] = None,
+        owner: Optional[User] = None,
+        creator: Optional[User] = None,
+        user_watchers: List[User] = [],
+        priority: Optional[int] = None,
+        assignee: Optional[int] = None,
+    ) -> None:
 
         self.description = description
         self.subject = subject
@@ -134,7 +133,13 @@ class Ticket:
 
     # Call the button URL to get the current buttons.
     def _get_available_buttons(self) -> None:
-        url = self._base_url + "/api/v1/tickets/" + self.ticket_id + "/available_buttons.json?" + self._token
+        url = (
+            self._base_url
+            + "/api/v1/tickets/"
+            + self.ticket_id
+            + "/available_buttons.json?"
+            + self._token
+        )
         response = requests.get(url, headers=self.headers)
         # print(response.text)
         if response.status_code != 200:
@@ -153,7 +158,9 @@ class Ticket:
                     name=button["name"],
                     agent_only=button["agent_only"],
                     require_comment=button["require_comment"],
-                    colour=button["colour"]))
+                    colour=button["colour"],
+                )
+            )
 
     def _update(self) -> None:
         # print("UPDATED!!!")
@@ -165,7 +172,8 @@ class Ticket:
 
         new_status = Status(
             status_id=result["data"]["status"]["id"],
-            name=result["data"]["status"]["name"])
+            name=result["data"]["status"]["name"],
+        )
 
         if self.status != new_status:
             # Update buttons
@@ -181,7 +189,8 @@ class Ticket:
             last_name=result["data"]["created_by_user"]["last_name"],
             title=result["data"]["created_by_user"]["title"]["name"],
             job_title=result["data"]["created_by_user"]["job_title"],
-            email=result["data"]["created_by_user"]["email"])
+            email=result["data"]["created_by_user"]["email"],
+        )
 
         self.owner = User(
             user_id=result["data"]["customer_user"]["id"],
@@ -189,30 +198,48 @@ class Ticket:
             last_name=result["data"]["customer_user"]["last_name"],
             title=result["data"]["customer_user"]["title"]["name"],
             job_title=result["data"]["customer_user"]["job_title"],
-            email=result["data"]["customer_user"]["email"])
+            email=result["data"]["customer_user"]["email"],
+        )
 
-        self.created_at = datetime.strptime(result["data"]["created_at"],
-                                            "%Y-%m-%dT%H:%M:%S.%f%z")
-        self.updated_at = datetime.strptime(result["data"]["updated_at"],
-                                            "%Y-%m-%dT%H:%M:%S.%f%z")
+        self.created_at = datetime.strptime(
+            result["data"]["created_at"], "%Y-%m-%dT%H:%M:%S.%f%z"
+        )
+        self.updated_at = datetime.strptime(
+            result["data"]["updated_at"], "%Y-%m-%dT%H:%M:%S.%f%z"
+        )
 
         self.project_id = result["data"]["project"]["id"]
         self.workspace_id = result["data"]["workspace"]["id"]
 
         self.type = TicketType(
-            type_id=result["data"]["type"]["id"],
-            name=result["data"]["type"]["name"])
+            type_id=result["data"]["type"]["id"], name=result["data"]["type"]["name"]
+        )
 
         if result["data"]["assignee"]:
             self.assignee = result["data"]["assignee"]["id"]
 
         self.custom_fields: dict = {}
         reserved_fields = [
-            "description", "subject", "status", "created_by_user",
-            "customer_user", "created_at", "updated_at", "project",
-            "workspace", "type", "user_watchers", "events",
-            "email_watcher_emails", "visible_to_customer", "priority",
-            "last_event", "account", "assignee", "assignee_roles", "id"
+            "description",
+            "subject",
+            "status",
+            "created_by_user",
+            "customer_user",
+            "created_at",
+            "updated_at",
+            "project",
+            "workspace",
+            "type",
+            "user_watchers",
+            "events",
+            "email_watcher_emails",
+            "visible_to_customer",
+            "priority",
+            "last_event",
+            "account",
+            "assignee",
+            "assignee_roles",
+            "id",
         ]
 
         for field_name in result["data"]:
@@ -226,7 +253,8 @@ class Ticket:
                 last_name=user["last_name"],
                 title=user["title"]["name"],
                 job_title=user["job_title"],
-                email=user["email"])
+                email=user["email"],
+            )
             for user in result["data"]["user_watchers"]
         ]
 
@@ -257,7 +285,8 @@ class Ticket:
                     last_name=event["created_by_user"]["last_name"],
                     title=event["created_by_user"]["title"]["name"],
                     job_title=event["created_by_user"]["job_title"],
-                    email=event["created_by_user"]["email"])
+                    email=event["created_by_user"]["email"],
+                )
 
             if event["event_changes"]:
                 changes = []
@@ -266,13 +295,16 @@ class Ticket:
                         Change(
                             from_value=change["from_value"],
                             to_value=change["to_value"],
-                            name=change["name"]))
+                            name=change["name"],
+                        )
+                    )
                 change_event = ChangeEvent(
                     created_by_user=user,
                     created_at=event_created_at,
                     changes=changes,
                     visible_to_customer=event["visible_to_customer"],
-                    comment=str(event["comment"]))
+                    comment=str(event["comment"]),
+                )
                 self._change_events.append(change_event)
                 self._events.append(change_event)
 
@@ -283,17 +315,19 @@ class Ticket:
                     created_by_user=user,
                     comment=event["comment"],
                     visible_to_customer=event["visible_to_customer"],
-                    created_at=event_created_at)
+                    created_at=event_created_at,
+                )
                 self._comments.append(comment_event)
                 self._events.append(comment_event)
 
         # Sort by datetime created.
-        self._events = sorted(
-            self._events, key=lambda x: x.created_at, reverse=True)
+        self._events = sorted(self._events, key=lambda x: x.created_at, reverse=True)
         self._change_events = sorted(
-            self._change_events, key=lambda x: x.created_at, reverse=True)
+            self._change_events, key=lambda x: x.created_at, reverse=True
+        )
         self._comments = sorted(
-            self._comments, key=lambda x: x.created_at, reverse=True)
+            self._comments, key=lambda x: x.created_at, reverse=True
+        )
 
         if not self.user_watchers:
             self.user_watchers = []
@@ -334,7 +368,6 @@ class Ticket:
                 }
                 # Not supported yet
                 # "email_watcher_emails": self.email_watchers,
-
                 # 0 -> Security related
                 # 1 -> SAP SID
                 # 2 -> Category [363 -> Other]
@@ -378,7 +411,13 @@ class Ticket:
         self.user_watchers.append(user_id)
 
     def update(self, comment: Optional[str] = None):
-        url = self._base_url + "/api/v1/tickets/" + self.ticket_id + ".json?" + self._token
+        url = (
+            self._base_url
+            + "/api/v1/tickets/"
+            + self.ticket_id
+            + ".json?"
+            + self._token
+        )
 
         payload = {
             "ticket": {
@@ -393,11 +432,9 @@ class Ticket:
                 "assignee": str(self.assignee),
                 "status_id": self.status.status_id,
                 "workspace_id": self.workspace_id,
-                "project_id": self.project_id
+                "project_id": self.project_id,
             },
-            "ticket_event": {
-                "comment": None
-            }
+            "ticket_event": {"comment": None},
         }
 
         # for custom_field in self.custom_fields:
@@ -412,21 +449,42 @@ class Ticket:
         response.raise_for_status()
 
     def get(self) -> Dict[str, object]:
-        url = self._base_url + "/api/v1/tickets/" + self.ticket_id + ".json?" + self._token
+        url = (
+            self._base_url
+            + "/api/v1/tickets/"
+            + self.ticket_id
+            + ".json?"
+            + self._token
+        )
 
         selection = [
-            "subject", "description", "priority.name", "status.name",
-            "events.event_changes.name", "customer_user.*", "type.name",
-            "events.comment", "events.created_by_user.first_name",
-            "events.created_by_user.last_name", "events.created_by_user.title",
-            "events.created_by_user.job_title", "events.created_by_user.email",
-            "events.created_at", "created_by_user.email",
-            "created_by_user.title", "created_by_user.job_title",
-            "created_by_user.first_name", "created_by_user.last_name",
-            "user_watchers.email", "user_watchers.first_name",
-            "user_watchers.last_name", "user_watchers.title",
-            "user_watchers.job_title", "events.event_changes.to_value",
-            "events.event_changes.from_value", "events.visible_to_customer"
+            "subject",
+            "description",
+            "priority.name",
+            "status.name",
+            "events.event_changes.name",
+            "customer_user.*",
+            "type.name",
+            "events.comment",
+            "events.created_by_user.first_name",
+            "events.created_by_user.last_name",
+            "events.created_by_user.title",
+            "events.created_by_user.job_title",
+            "events.created_by_user.email",
+            "events.created_at",
+            "created_by_user.email",
+            "created_by_user.title",
+            "created_by_user.job_title",
+            "created_by_user.first_name",
+            "created_by_user.last_name",
+            "user_watchers.email",
+            "user_watchers.first_name",
+            "user_watchers.last_name",
+            "user_watchers.title",
+            "user_watchers.job_title",
+            "events.event_changes.to_value",
+            "events.event_changes.from_value",
+            "events.visible_to_customer",
         ]
 
         payload = "&select="
@@ -443,12 +501,17 @@ class Ticket:
         return json.loads(response.text)
 
     def comment(self, description: str) -> None:
-        url = self._base_url + "/api/v1/tickets/" + self.ticket_id + "/buttons/" + str(
-            self.button_ids["comment"]) + ".json?" + self._token
+        url = (
+            self._base_url
+            + "/api/v1/tickets/"
+            + self.ticket_id
+            + "/buttons/"
+            + str(self.button_ids["comment"])
+            + ".json?"
+            + self._token
+        )
 
-        params = {
-            'comment': str(description),
-        }
+        params = {"comment": str(description)}
 
         response = requests.post(url, params)
         if response.status_code != 200:
@@ -464,15 +527,12 @@ class Ticket:
             if button_name == button.name:
 
                 if button.require_comment and not comment:
-                    raise ButtonRequiresComment(
-                        "This button requires a comment")
+                    raise ButtonRequiresComment("This button requires a comment")
                 url = self._build_url(button.button_id)
                 params = {}
 
                 if comment:
-                    params = {
-                        'comment': str(comment),
-                    }
+                    params = {"comment": str(comment)}
                 response = requests.post(url, params)
                 if response.status_code != 200:
                     raise HTTPError(response.text)
@@ -510,6 +570,13 @@ class Ticket:
             self.update()
 
     def _build_url(self, button):
-        url = self._base_url + "/api/v1/tickets/" + self.ticket_id + "/buttons/" + str(
-            button) + ".json?" + self._token
+        url = (
+            self._base_url
+            + "/api/v1/tickets/"
+            + self.ticket_id
+            + "/buttons/"
+            + str(button)
+            + ".json?"
+            + self._token
+        )
         return url

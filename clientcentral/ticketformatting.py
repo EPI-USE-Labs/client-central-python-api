@@ -44,7 +44,7 @@ def strikethrough(val: str) -> str:
 
 
 def link(val: str, url: str) -> str:
-    val = "<a href=\"" + url + "\" target=\"_blank\">" + val + "</a>"
+    val = '<a href="' + url + '" target="_blank">' + val + "</a>"
     return val
 
 
@@ -54,5 +54,5 @@ def blockquote(val: str) -> str:
 
 
 def formatted(val: str) -> str:
-    val = "<pre class=\"ql-syntax hljs\">" + val + "</pre>"
+    val = '<pre class="ql-syntax hljs">' + val + "</pre>"
     return val

@@ -12,13 +12,19 @@ if __name__ == "__main__":
     # ,operators.comparison("status.name", "=","'New'")
     # operators.comparison("created_by_user.email", "=",
     #                      "'thomas@labs.epiuse.com'")
-    tickets = cc.query_tickets().filter_by(
-        operators.comparison("created_by_user.email", "=",
-                             "'thomas@labs.epiuse.com'")).all()
+    tickets = (
+        cc.query_tickets()
+        .filter_by(
+            operators.comparison(
+                "created_by_user.email", "=", "'thomas@labs.epiuse.com'"
+            )
+        )
+        .all()
+    )
 
     for ticket in tickets:
         # print(ticket.__dict__)
-        #print(ticket.type.name, ticket.type.type_id)
+        # print(ticket.type.name, ticket.type.type_id)
 
         ticket.refresh()
 
@@ -26,17 +32,26 @@ if __name__ == "__main__":
 
         for comment in ticket.comments:
             if comment.created_by_user:
-                print("Comment from: " + comment.created_by_user.name +
-                      " says: " + comment.comment)
+                print(
+                    "Comment from: "
+                    + comment.created_by_user.name
+                    + " says: "
+                    + comment.comment
+                )
         for change_event in ticket.change_events:
             if change_event.created_by_user:
                 print("Change by: " + str(change_event.created_by_user.name))
             for change in change_event.changes:
-                print("Changed: " + str(change.name) + " from: " +
-                      str(change.from_value) + " to: " + str(change.to_value))
+                print(
+                    "Changed: "
+                    + str(change.name)
+                    + " from: "
+                    + str(change.from_value)
+                    + " to: "
+                    + str(change.to_value)
+                )
 
-        ticket.status = Status(
-            status_id=cc.config.get()["ticket-status"]["cancelled"])
+        ticket.status = Status(status_id=cc.config.get()["ticket-status"]["cancelled"])
         ticket.priority = cc.config.get()["ticket-priority"]["very-low"]
         ticket.update()
         #

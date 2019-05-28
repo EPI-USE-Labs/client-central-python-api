@@ -22,8 +22,9 @@ class QueryTickets:
     config: Config
     production: bool = False
 
-    def __init__(self, base_url: str, token: str, config: Config,
-                 production: bool) -> None:
+    def __init__(
+        self, base_url: str, token: str, config: Config, production: bool
+    ) -> None:
         self._query = ""
         self.base_url = base_url
         self.token = token
@@ -60,44 +61,47 @@ class QueryTickets:
                     project_id=ticket_in_data["project"]["id"],
                     status=Status(
                         status_id=ticket_in_data["status"]["id"],
-                        name=ticket_in_data["status"]["id"]),
-                    created_at=datetime.strptime(ticket_in_data["created_at"],
-                                                 "%Y-%m-%dT%H:%M:%S.%f%z"),
-                    updated_at=datetime.strptime(ticket_in_data["updated_at"],
-                                                 "%Y-%m-%dT%H:%M:%S.%f%z"),
+                        name=ticket_in_data["status"]["id"],
+                    ),
+                    created_at=datetime.strptime(
+                        ticket_in_data["created_at"], "%Y-%m-%dT%H:%M:%S.%f%z"
+                    ),
+                    updated_at=datetime.strptime(
+                        ticket_in_data["updated_at"], "%Y-%m-%dT%H:%M:%S.%f%z"
+                    ),
                     description=ticket_in_data["description"],
                     subject=ticket_in_data["subject"],
                     creator=User(
                         user_id=ticket_in_data["created_by_user"]["id"],
-                        first_name=ticket_in_data["created_by_user"]
-                        ["first_name"],
-                        last_name=ticket_in_data["created_by_user"]
-                        ["last_name"],
-                        title=ticket_in_data["created_by_user"]["title"]
-                        ["name"],
-                        job_title=ticket_in_data["created_by_user"]
-                        ["job_title"],
-                        email=ticket_in_data["created_by_user"]["email"]),
+                        first_name=ticket_in_data["created_by_user"]["first_name"],
+                        last_name=ticket_in_data["created_by_user"]["last_name"],
+                        title=ticket_in_data["created_by_user"]["title"]["name"],
+                        job_title=ticket_in_data["created_by_user"]["job_title"],
+                        email=ticket_in_data["created_by_user"]["email"],
+                    ),
                     owner=User(
                         user_id=ticket_in_data["customer_user"]["id"],
-                        first_name=ticket_in_data["customer_user"]
-                        ["first_name"],
+                        first_name=ticket_in_data["customer_user"]["first_name"],
                         last_name=ticket_in_data["customer_user"]["last_name"],
                         title=ticket_in_data["customer_user"]["title"]["name"],
                         job_title=ticket_in_data["customer_user"]["job_title"],
-                        email=ticket_in_data["customer_user"]["email"]),
+                        email=ticket_in_data["customer_user"]["email"],
+                    ),
                     ticket_type=TicketType(
                         type_id=ticket_in_data["type"]["id"],
-                        name=ticket_in_data["type"]["name"]),
+                        name=ticket_in_data["type"]["name"],
+                    ),
                     user_watchers=[
                         User(
                             user_id=user["id"],
                             first_name=user["first_name"],
                             last_name=user["first_name"],
-                            email=user["email"])
+                            email=user["email"],
+                        )
                         for user in ticket_in_data["user_watchers"]
                     ],
-                    priority=ticket_in_data["priority"]["id"])
+                    priority=ticket_in_data["priority"]["id"],
+                )
                 if ticket_in_data["assignee"]:
                     ticket.assignee = ticket_in_data["assignee"]["id"]
                 tickets.append(ticket)

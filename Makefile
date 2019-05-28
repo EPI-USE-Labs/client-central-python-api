@@ -54,10 +54,9 @@ lint: ## check style with flake8
 	flake8 ./clientcentral
 
 format:
-	yapf -i --style='{based_on_style: pep8, split_before_logical_operator: true}' --recursive ./clientcentral
+	black ./clientcentral -t py37
 	isort -rc ./clientcentral
-
-	yapf -i --style='{based_on_style: pep8, split_before_logical_operator: true}' --recursive ./tests
+	black ./tests -t py37
 	isort -rc ./tests
 
 test: ## run tests quickly with the default Python

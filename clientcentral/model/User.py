@@ -6,13 +6,15 @@ class User:
     last_name: str
     email: str
 
-    def __init__(self,
-                 user_id: str,
-                 first_name: str,
-                 last_name: str,
-                 email: str,
-                 title: str = None,
-                 job_title: str = None):
+    def __init__(
+        self,
+        user_id: str,
+        first_name: str,
+        last_name: str,
+        email: str,
+        title: str = None,
+        job_title: str = None,
+    ):
         self.user_id = user_id
         self.first_name = first_name
         self.last_name = last_name
@@ -29,7 +31,4 @@ class User:
         self.first_name = split_name[0]
         self.last_name = split_name[1]
 
-    name = property(
-        get_name,
-        set_name,
-    )
+    name = property(get_name, set_name)

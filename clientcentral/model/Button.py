@@ -6,8 +6,15 @@ class Button:
     require_comment: bool
     colour: str
 
-    def __init__(self, button_id: str, enabled: bool, name: str,
-                 agent_only: bool, require_comment: bool, colour: str) -> None:
+    def __init__(
+        self,
+        button_id: str,
+        enabled: bool,
+        name: str,
+        agent_only: bool,
+        require_comment: bool,
+        colour: str,
+    ) -> None:
         self.button_id = button_id
         self.enabled = enabled
         self.name = name

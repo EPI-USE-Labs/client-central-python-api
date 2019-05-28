@@ -2,5 +2,5 @@
 """Top-level package for src."""
 
 __author__ = """Thomas Scholtz"""
-__email__ = 'thomas@labs.epiuse.com'
-__version__ = '5.1.0'
+__email__ = "thomas@labs.epiuse.com"
+__version__ = "5.1.0"

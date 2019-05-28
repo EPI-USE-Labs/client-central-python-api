@@ -30,8 +30,7 @@ class ClientCentral:
         self.token = "token=" + str(self.config.get()["token"])
 
     def query_tickets(self) -> QueryTickets:
-        q = QueryTickets(self.base_url, self.token, self.config,
-                         self.production)
+        q = QueryTickets(self.base_url, self.token, self.config, self.production)
         return q
 
     def get_ticket_by_id(self, ticket_id: str) -> Ticket:
@@ -42,16 +41,19 @@ class ClientCentral:
             config=self.config,
             production=self.production,
             project_id=None,
-            workspace_id=None)
+            workspace_id=None,
+        )
 
-    def create_ticket(self,
-                      subject: str,
-                      description: str,
-                      project_id,
-                      custom_fields_attributes: List[Dict[str, int]] = [],
-                      workspace_id=None,
-                      priority=None,
-                      type_id: Optional[int] = None):
+    def create_ticket(
+        self,
+        subject: str,
+        description: str,
+        project_id,
+        custom_fields_attributes: List[Dict[str, int]] = [],
+        workspace_id=None,
+        priority=None,
+        type_id: Optional[int] = None,
+    ):
 
         if not type_id:
             ticket_type = TicketType(type_id=8)
@@ -67,7 +69,8 @@ class ClientCentral:
             custom_fields_attributes=custom_fields_attributes,
             workspace_id=workspace_id,
             project_id=project_id,
-            ticket_type=ticket_type)
+            ticket_type=ticket_type,
+        )
 
         ticket.subject = str(subject)
         ticket.description = str(description)
