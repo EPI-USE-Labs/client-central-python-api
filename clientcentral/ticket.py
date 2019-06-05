@@ -520,15 +520,29 @@ class Ticket:
             self._base_url
             + "/api/v1/tickets/"
             + self.ticket_id
-            + "/buttons/"
-            + str(self.button_ids["comment"])
             + ".json?"
             + self._token
         )
 
-        params = {"comment": str(description)}
+        payload = {
+            "ticket": {
+                # "subject": str(self.subject),
+                # "description": str(self.description),
+                # "priority_id": self.priority,
+                # "user_watchers": [user.user_id for user in self.user_watchers],
+                # "custom_fields_attributes": {
+                #     str(key): value
+                #     for key, value in enumerate(self.custom_fields_attributes)
+                # },
+                # "assignee": str(self.assignee),
+                # "status_id": self.status.status_id,
+                "workspace_id": self.workspace_id,
+                "project_id": self.project_id,
+            },
+            "ticket_event": {"comment": str(description)},
+        }
 
-        response = requests.post(url, params)
+        response = requests.patch(url, json=payload)
         if response.status_code != 200:
             raise HTTPError(response.text)
         response.raise_for_status()
