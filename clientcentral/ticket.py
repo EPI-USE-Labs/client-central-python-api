@@ -190,19 +190,21 @@ class Ticket:
             user_id=result["data"]["created_by_user"]["id"],
             first_name=result["data"]["created_by_user"]["first_name"],
             last_name=result["data"]["created_by_user"]["last_name"],
-            title=result["data"]["created_by_user"]["title"]["name"],
             job_title=result["data"]["created_by_user"]["job_title"],
             email=result["data"]["created_by_user"]["email"],
         )
+        if result["data"]["created_by_user"]["title"]:
+            self.creator.title = result["data"]["created_by_user"]["title"]["name"]
 
         self.owner = User(
             user_id=result["data"]["customer_user"]["id"],
             first_name=result["data"]["customer_user"]["first_name"],
             last_name=result["data"]["customer_user"]["last_name"],
-            title=result["data"]["customer_user"]["title"]["name"],
             job_title=result["data"]["customer_user"]["job_title"],
             email=result["data"]["customer_user"]["email"],
         )
+        if result["data"]["customer_user"]["title"]:
+            self.owner = result["data"]["customer_user"]["title"]["name"]
 
         self.created_at = datetime.strptime(
             result["data"]["created_at"], "%Y-%m-%dT%H:%M:%S.%f%z"
@@ -249,17 +251,20 @@ class Ticket:
             if field_name not in reserved_fields:
                 self.custom_fields[field_name] = result["data"][field_name]
 
-        self.user_watchers = [
-            User(
-                user_id=user["id"],
-                first_name=user["first_name"],
-                last_name=user["last_name"],
-                title=user["title"]["name"],
-                job_title=user["job_title"],
-                email=user["email"],
-            )
-            for user in result["data"]["user_watchers"]
-        ]
+        self.user_watchers = []
+
+        if result["data"]["user_watchers"]:
+            for user in result["data"]["user_watchers"]:
+                user_watcher = User(
+                    user_id=user["id"],
+                    first_name=user["first_name"],
+                    last_name=user["last_name"],
+                    job_title=user["job_title"],
+                    email=user["email"],
+                )
+                if user["title"]:
+                    user_watcher.title = user["title"]["name"]
+                self.user_watchers.append(user_watcher)
 
         if not hasattr(self, "_change_events"):
             setattr(self, "_change_events", List[ChangeEvent])
@@ -286,10 +291,11 @@ class Ticket:
                     user_id=event["created_by_user"]["id"],
                     first_name=event["created_by_user"]["first_name"],
                     last_name=event["created_by_user"]["last_name"],
-                    title=event["created_by_user"]["title"]["name"],
                     job_title=event["created_by_user"]["job_title"],
                     email=event["created_by_user"]["email"],
                 )
+                if event["created_by_user"]["title"]:
+                    user.title = event["created_by_user"]["title"]["name"]
 
             if event["event_changes"]:
                 changes = []

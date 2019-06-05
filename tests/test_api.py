@@ -84,7 +84,7 @@ def test_comment():
     assert ticket.comments[0].comment == "<p>Test comment via button</p>"
 
     # nothing else should have changed unless someone edited the ticket.
-    assert (old_num_change_eventes) == new_num_change_events
+    assert old_num_change_eventes == new_num_change_events
 
 
 def test_bump_priority():

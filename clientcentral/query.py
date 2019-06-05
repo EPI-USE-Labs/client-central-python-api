@@ -39,9 +39,43 @@ class QueryTickets:
     def all(self) -> List[Ticket]:
         url = self.base_url + "/api/v1/tickets.json?" + self.token
         payload = self._query
-        payload += "&select=type.*,events.comment,events.created_by_user.email,events.created_by_user.name,events.created_at,created_by_user.*,subject,description,priority.name,user_watchers.email,user_watchers.name,status.name,customer_user.*,*"
 
+        selection = [
+            "subject",
+            "description",
+            "priority.name",
+            "status.name",
+            "events.event_changes.name",
+            "customer_user.*",
+            "type.name",
+            "events.comment",
+            "events.created_by_user.first_name",
+            "events.created_by_user.last_name",
+            "events.created_by_user.title",
+            "events.created_by_user.job_title",
+            "events.created_by_user.email",
+            "events.created_at",
+            "created_by_user.email",
+            "created_by_user.title",
+            "created_by_user.job_title",
+            "created_by_user.first_name",
+            "created_by_user.last_name",
+            "user_watchers.email",
+            "user_watchers.first_name",
+            "user_watchers.last_name",
+            "user_watchers.title",
+            "user_watchers.job_title",
+            "events.event_changes.to_value",
+            "events.event_changes.from_value",
+            "events.visible_to_customer",
+            "customer_user.*"
+        ]
+
+        payload += "&select="
+        payload += ",".join(selection)
+        payload += ",*"
         response = requests.get(url + payload)
+
         # print(response.text)
         if response.status_code != 200:
             raise HTTPError(response.text)
@@ -51,6 +85,29 @@ class QueryTickets:
 
         for page in range(1, (result["total_pages"] + 1)):
             for ticket_in_data in result["data"]:
+                # print(ticket_in_data)
+                creator = User(
+                    user_id=ticket_in_data["created_by_user"]["id"],
+                    first_name=ticket_in_data["created_by_user"]["first_name"],
+                    last_name=ticket_in_data["created_by_user"]["last_name"],
+                    job_title=ticket_in_data["created_by_user"]["job_title"],
+                    email=ticket_in_data["created_by_user"]["email"],
+                )
+                if ticket_in_data["created_by_user"]["title"]:
+                    creator.title = ticket_in_data["created_by_user"]["title"]["name"]
+
+                owner = None
+                if ticket_in_data["customer_user"]:
+                    owner = User(
+                        user_id=ticket_in_data["customer_user"]["id"],
+                        first_name=ticket_in_data["customer_user"]["first_name"],
+                        last_name=ticket_in_data["customer_user"]["last_name"],
+                        job_title=ticket_in_data["customer_user"]["job_title"],
+                        email=ticket_in_data["customer_user"]["email"],
+                    )
+                    if ticket_in_data["customer_user"]["title"]:
+                        owner.title = ticket_in_data["customer_user"]["title"]["name"]
+
                 ticket = Ticket(
                     base_url=self.base_url,
                     token=self.token,
@@ -71,22 +128,8 @@ class QueryTickets:
                     ),
                     description=ticket_in_data["description"],
                     subject=ticket_in_data["subject"],
-                    creator=User(
-                        user_id=ticket_in_data["created_by_user"]["id"],
-                        first_name=ticket_in_data["created_by_user"]["first_name"],
-                        last_name=ticket_in_data["created_by_user"]["last_name"],
-                        title=ticket_in_data["created_by_user"]["title"]["name"],
-                        job_title=ticket_in_data["created_by_user"]["job_title"],
-                        email=ticket_in_data["created_by_user"]["email"],
-                    ),
-                    owner=User(
-                        user_id=ticket_in_data["customer_user"]["id"],
-                        first_name=ticket_in_data["customer_user"]["first_name"],
-                        last_name=ticket_in_data["customer_user"]["last_name"],
-                        title=ticket_in_data["customer_user"]["title"]["name"],
-                        job_title=ticket_in_data["customer_user"]["job_title"],
-                        email=ticket_in_data["customer_user"]["email"],
-                    ),
+                    owner=owner,
+                    creator=creator,
                     ticket_type=TicketType(
                         type_id=ticket_in_data["type"]["id"],
                         name=ticket_in_data["type"]["name"],
