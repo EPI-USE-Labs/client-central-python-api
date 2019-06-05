@@ -51,7 +51,7 @@ class Ticket:
 
     # Custom
     custom_fields_attributes: List[Dict[str, int]]
-    custom_fields: List[Dict[str, Any]]
+    # custom_fields: List[Dict[str, Any]]
 
     available_buttons: List[Button]
 
@@ -204,7 +204,7 @@ class Ticket:
             email=result["data"]["customer_user"]["email"],
         )
         if result["data"]["customer_user"]["title"]:
-            self.owner = result["data"]["customer_user"]["title"]["name"]
+            self.owner.title = result["data"]["customer_user"]["title"]["name"]
 
         self.created_at = datetime.strptime(
             result["data"]["created_at"], "%Y-%m-%dT%H:%M:%S.%f%z"
@@ -223,7 +223,7 @@ class Ticket:
         if result["data"]["assignee"]:
             self.assignee = result["data"]["assignee"]["id"]
 
-        self.custom_fields: dict = {}
+        self._custom_fields: dict = {}
         reserved_fields = [
             "description",
             "subject",
@@ -249,7 +249,7 @@ class Ticket:
 
         for field_name in result["data"]:
             if field_name not in reserved_fields:
-                self.custom_fields[field_name] = result["data"][field_name]
+                self._custom_fields[field_name] = result["data"][field_name]
 
         self.user_watchers = []
 
@@ -415,6 +415,12 @@ class Ticket:
         if not hasattr(self, "_events"):
             self._update()
         return self._events
+
+    @property
+    def custom_fields(self):
+        if not hasattr(self, "_custom_fields"):
+            self._update()
+        return self._custom_fields
 
     def add_user_watcher(self, user_id: int) -> None:
         self.user_watchers.append(user_id)

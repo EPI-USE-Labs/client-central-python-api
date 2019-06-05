@@ -201,11 +201,13 @@ def test_lazy_load():
     assert hasattr(ticket, "_comments") == False
     assert hasattr(ticket, "_change_events") == False
     assert hasattr(ticket, "_events") == False
+    assert hasattr(ticket, "_custom_fields") == False
 
     ticket.comments
     assert hasattr(ticket, "_comments") == True
     assert hasattr(ticket, "_change_events") == True
     assert hasattr(ticket, "_events") == True
+    assert hasattr(ticket, "_custom_fields") == True
 
 
 def test_cancel():

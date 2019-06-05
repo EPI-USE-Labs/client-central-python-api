@@ -68,7 +68,7 @@ class QueryTickets:
             "events.event_changes.to_value",
             "events.event_changes.from_value",
             "events.visible_to_customer",
-            "customer_user.*"
+            "customer_user.*",
         ]
 
         payload += "&select="
