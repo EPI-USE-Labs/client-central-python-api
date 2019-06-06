@@ -46,7 +46,6 @@ def test_create_ticket():
 
     pytest.ticket_id = ticket.ticket_id
 
-
 def test_update_ticket():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
     ticket.description = "<p>update desc</p>"
@@ -218,6 +217,14 @@ def test_cancel():
 
     assert ticket.status.status_id == cc.config.get()["ticket-status"]["cancelled"]
 
+
+def test_add_user_watcher():
+    ticket = cc.get_ticket_by_id(pytest.ticket_id)
+    ticket.add_user_watcher_by_id(12)
+
+    # print(ticket.user_watchers)
+
+    assert ticket.user_watchers[0].user_id == 12
 
 def test_create_related_ticket():
     subj = "[Test-Ticket]"
