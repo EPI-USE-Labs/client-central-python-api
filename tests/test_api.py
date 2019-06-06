@@ -10,6 +10,8 @@ from clientcentral.Exceptions import (
 cc = ClientCentral(production=False)
 pytest.ticket_id = None
 
+pytest.ticket_id_related = None
+
 
 def test_create_ticket():
     subj = "[Test-Ticket]"
@@ -215,6 +217,37 @@ def test_cancel():
     ticket.press_button("Cancel ticket", "<p>close</p>")
 
     assert ticket.status.status_id == cc.config.get()["ticket-status"]["cancelled"]
+
+
+def test_create_related_ticket():
+    subj = "[Test-Ticket]"
+    desc = "<h1>This is a related test ticket. Please ignore</h1>"
+    # sid = "ZZZ"
+
+    ticket = cc.create_ticket(
+        subject=subj,
+        description=desc,
+        project_id=8,
+        workspace_id=16,
+        custom_fields_attributes=[{"id": 17, "values": 0}, {"id": 75, "values": 363}],
+        related_tickets=[pytest.ticket_id],
+    )
+    ticket.refresh()
+
+    assert ticket.workspace_id == 16
+    assert ticket.project_id == 8
+
+    assert ticket.description == desc
+    assert ticket.subject == subj
+    # assert ticket.sid == sid
+    assert ticket.custom_fields["ms_category"]["id"] == 363
+    assert ticket.owner.user_id == cc.config.get()["user_ids"]["thomas-scholtz"]
+    assert ticket.creator.user_id == cc.config.get()["user_ids"]["thomas-scholtz"]
+    assert ticket.status.status_id == cc.config.get()["ticket-status"]["new"]
+    assert ticket.status.name == "New"
+    assert ticket.priority == cc.config.get()["ticket-priority"]["very-low"]
+
+    pytest.ticket_id_related = ticket.ticket_id
 
 
 # def test_create_ticket_on_different_workspace():

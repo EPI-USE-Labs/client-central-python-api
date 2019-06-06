@@ -51,6 +51,9 @@ class Ticket:
 
     # Custom
     custom_fields_attributes: List[Dict[str, int]]
+
+    related_tickets: Optional[List[int]]
+
     # custom_fields: List[Dict[str, Any]]
 
     available_buttons: List[Button]
@@ -88,6 +91,7 @@ class Ticket:
         user_watchers: List[User] = [],
         priority: Optional[int] = None,
         assignee: Optional[int] = None,
+        related_tickets: Optional[List[int]] = None,
     ) -> None:
 
         self.description = description
@@ -101,6 +105,8 @@ class Ticket:
         # self.comments = []
         self.user_watchers = user_watchers
         self.custom_fields_attributes = custom_fields_attributes
+
+        self.related_tickets = related_tickets
 
         self.creator = creator
         self.owner = owner
@@ -382,6 +388,9 @@ class Ticket:
                 # 2 -> Category [363 -> Other]
             }
         }
+
+        if self.related_tickets:
+            params["ticket"]["related_tickets"] = self.related_tickets
 
         # for custom_field in self.custom_fields:
         #     params["ticket"][custom_field] = self.custom_fields[custom_field]
