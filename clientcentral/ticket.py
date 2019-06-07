@@ -229,6 +229,14 @@ class Ticket:
         if result["data"]["assignee"]:
             self.assignee = result["data"]["assignee"]["id"]
 
+        try:
+            result["data"]["related_tickets"]
+            self.related_tickets = []
+            for related_ticket in result["data"]["related_tickets"]:
+                self.related_tickets.append(related_ticket["id"])
+        except KeyError:
+            pass
+
         self._custom_fields: dict = {}
         reserved_fields = [
             "description",
@@ -251,6 +259,7 @@ class Ticket:
             "assignee",
             "assignee_roles",
             "id",
+            "related_tickets"
         ]
 
         for field_name in result["data"]:

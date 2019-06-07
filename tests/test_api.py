@@ -1,6 +1,7 @@
 import pytest
 
 from clientcentral.clientcentral import ClientCentral
+from clientcentral.model.Status import Status
 from clientcentral.Exceptions import (
     ButtonNotAvailable,
     ButtonRequiresComment,
@@ -119,7 +120,6 @@ def test_grab():
         cc.config.get()["ticket-status"]["in-progress"]
     )
 
-
 def test_suggest_solution():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
     ticket.press_button("Suggest solution", "<p>sol</p>")
@@ -226,6 +226,12 @@ def test_add_user_watcher():
 
     assert ticket.user_watchers[0].user_id == 12
 
+def test_assignee_user_by_id():
+    ticket = cc.get_ticket_by_id(pytest.ticket_id)
+    ticket.assignee = 12
+    ticket.update()
+    assert ticket.assignee == 12
+
 def test_create_related_ticket():
     subj = "[Test-Ticket]"
     desc = "<h1>This is a related test ticket. Please ignore</h1>"
@@ -256,6 +262,17 @@ def test_create_related_ticket():
 
     pytest.ticket_id_related = ticket.ticket_id
 
+    orig_ticket = cc.get_ticket_by_id(pytest.ticket_id)
+
+    assert orig_ticket.related_tickets[0] == int(ticket.ticket_id)
+
+    assert ticket.related_tickets[0] == int(orig_ticket.ticket_id)
+
+    ticket.update()
+    assert orig_ticket.related_tickets[0] == int(ticket.ticket_id)
+    assert ticket.related_tickets[0] == int(orig_ticket.ticket_id)
+    ticket.status = Status("12")
+    ticket.update()
 
 # def test_create_ticket_on_different_workspace():
 #     subj = "[Test-Ticket]"

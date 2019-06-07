@@ -6,29 +6,31 @@ from clientcentral.clientcentral import ClientCentral
 from clientcentral.model.Status import Status
 
 if __name__ == "__main__":
-    cc = ClientCentral(production=False)
+    cc = ClientCentral(production=True)
     # Dummy commit 10
     # tickets = [cc.get_ticket_by_id("75705")]
     # ,operators.comparison("status.name", "=","'New'")
     # operators.comparison("created_by_user.email", "=",
     #                      "'thomas@labs.epiuse.com'")
-    tickets = (
-        cc.query_tickets()
-        .filter_by(
-            operators.comparison(
-                "created_by_user.email", "=", "'thomas@labs.epiuse.com'"
-            )
-        )
-        .all()
-    )
+    # tickets = (
+    #     cc.query_tickets()
+    #     .filter_by(
+    #         operators.comparison(
+    #             "created_by_user.email", "=", "'thomas@labs.epiuse.com'"
+    #         )
+    #     )
+    #     .all()
+    # )
+
+    tickets = [cc.get_ticket_by_id("81939")]
 
     for ticket in tickets:
         # print(ticket.__dict__)
         # print(ticket.type.name, ticket.type.type_id)
 
-        ticket.refresh()
+        # ticket.refresh()
 
-        print(ticket.custom_fields_attributes)
+        # print(ticket.custom_fields_attributes)
 
         for comment in ticket.comments:
             if comment.created_by_user:
@@ -51,8 +53,8 @@ if __name__ == "__main__":
                     + str(change.to_value)
                 )
 
-        ticket.status = Status(status_id=cc.config.get()["ticket-status"]["cancelled"])
-        ticket.priority = cc.config.get()["ticket-priority"]["very-low"]
-        ticket.update()
-        #
+        # ticket.status = Status(status_id=cc.config.get()["ticket-status"]["cancelled"])
+        # ticket.priority = cc.config.get()["ticket-priority"]["very-low"]
+        # ticket.update()
+        # #
         # print("Updated")
