@@ -90,7 +90,7 @@ class Ticket:
         creator: Optional[User] = None,
         user_watchers: List[User] = [],
         priority: Optional[int] = None,
-        assignee: Optional[int] = None,
+        assignee: Optional[str] = None,
         related_tickets: Optional[List[int]] = None,
     ) -> None:
 
@@ -227,7 +227,7 @@ class Ticket:
         )
 
         if result["data"]["assignee"]:
-            self.assignee = result["data"]["assignee"]["id"]
+            self.assignee = result["data"]["assignee"]["_type"] + ":" + str(result["data"]["assignee"]["id"])
 
         if not hasattr(self, "_related_tickets"):
             setattr(self, "_related_tickets", List[int])
@@ -388,7 +388,7 @@ class Ticket:
                 "description": str(self.description),
                 "visible_to_customer": True,
                 "priority_id": self.priority,
-                "assignee": str(self.assignee),
+                "assignee_vp": self.assignee,
                 "user_watchers": [user.user_id for user in self.user_watchers],
                 "custom_fields_attributes": {
                     str(key): value
@@ -475,7 +475,7 @@ class Ticket:
                     str(key): value
                     for key, value in enumerate(self.custom_fields_attributes)
                 },
-                "assignee": str(self.assignee),
+                "assignee_vp": str(self.assignee),
                 "status_id": self.status.status_id,
                 "workspace_id": self.workspace_id,
                 "project_id": self.project_id,

@@ -24,6 +24,7 @@ def test_create_ticket():
         description=desc,
         project_id=8,
         workspace_id=16,
+        # assignee="User:14012",
         custom_fields_attributes=[{"id": 17, "values": 0}, {"id": 75, "values": 363}],
     )
     ticket.refresh()
@@ -40,6 +41,7 @@ def test_create_ticket():
     # assert ticket.sid == sid
     assert ticket.custom_fields["ms_category"]["id"] == 363
     assert ticket.owner.user_id == cc.config.get()["user_ids"]["thomas-scholtz"]
+    # assert ticket.assignee == "User:" + str(cc.config.get()["user_ids"]["thomas-scholtz"])
     assert ticket.creator.user_id == cc.config.get()["user_ids"]["thomas-scholtz"]
     assert ticket.status.status_id == cc.config.get()["ticket-status"]["new"]
     assert ticket.status.name == "New"
@@ -113,7 +115,7 @@ def test_bump_priority():
 def test_grab():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
     ticket.press_button("Grab")
-    assert ticket.assignee == cc.config.get()["user_ids"]["thomas-scholtz"]
+    assert ticket.assignee == "User:" + str(cc.config.get()["user_ids"]["thomas-scholtz"])
     assert ticket.status.status_id == cc.config.get()["ticket-status"]["in-progress"]
     assert ticket.status.name == "In progress"
     assert ticket.change_events[0].changes[1].name == "status"
@@ -268,6 +270,8 @@ def test_create_related_ticket():
 
     orig_ticket = cc.get_ticket_by_id(pytest.ticket_id)
 
+    orig_ticket.refresh()
+    ticket.refresh()
     assert orig_ticket.related_tickets[0] == int(ticket.ticket_id)
 
     assert ticket.related_tickets[0] == int(orig_ticket.ticket_id)
