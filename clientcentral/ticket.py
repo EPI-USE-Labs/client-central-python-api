@@ -229,10 +229,7 @@ class Ticket:
         if result["data"]["assignee"]:
             self.assignee = result["data"]["assignee"]["_type"] + ":" + str(result["data"]["assignee"]["id"])
 
-        if not hasattr(self, "_related_tickets"):
-            setattr(self, "_related_tickets", List[int])
         self._related_tickets: List[int] = list()
-
         try:
             result["data"]["related_tickets"]
             # self.related_tickets = []

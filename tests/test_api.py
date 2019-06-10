@@ -273,7 +273,6 @@ def test_create_related_ticket():
     orig_ticket.refresh()
     ticket.refresh()
     assert orig_ticket.related_tickets[0] == int(ticket.ticket_id)
-
     assert ticket.related_tickets[0] == int(orig_ticket.ticket_id)
 
     ticket.update()
