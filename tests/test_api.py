@@ -47,6 +47,7 @@ def test_create_ticket():
 
     pytest.ticket_id = ticket.ticket_id
 
+
 def test_update_ticket():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
     ticket.description = "<p>update desc</p>"
@@ -119,6 +120,7 @@ def test_grab():
     assert ticket.change_events[0].changes[1].to_value == str(
         cc.config.get()["ticket-status"]["in-progress"]
     )
+
 
 def test_suggest_solution():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
@@ -226,11 +228,13 @@ def test_add_user_watcher():
 
     assert ticket.user_watchers[0].user_id == 12
 
+
 def test_assignee_user_by_id():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
     ticket.assignee = 12
     ticket.update()
     assert ticket.assignee == 12
+
 
 def test_create_related_ticket():
     subj = "[Test-Ticket]"
@@ -273,6 +277,7 @@ def test_create_related_ticket():
     assert ticket.related_tickets[0] == int(orig_ticket.ticket_id)
     ticket.status = Status("12")
     ticket.update()
+
 
 # def test_create_ticket_on_different_workspace():
 #     subj = "[Test-Ticket]"

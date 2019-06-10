@@ -52,7 +52,7 @@ class Ticket:
     # Custom
     custom_fields_attributes: List[Dict[str, int]]
 
-    related_tickets: Optional[List[int]]
+    # related_tickets: Optional[List[int]]
 
     # custom_fields: List[Dict[str, Any]]
 
@@ -106,7 +106,7 @@ class Ticket:
         self.user_watchers = user_watchers
         self.custom_fields_attributes = custom_fields_attributes
 
-        self.related_tickets = related_tickets
+        self._related_tickets = related_tickets
 
         self.creator = creator
         self.owner = owner
@@ -229,11 +229,15 @@ class Ticket:
         if result["data"]["assignee"]:
             self.assignee = result["data"]["assignee"]["id"]
 
+        if not hasattr(self, "_related_tickets"):
+            setattr(self, "_related_tickets", List[int])
+        self._related_tickets: List[int] = list()
+
         try:
             result["data"]["related_tickets"]
-            self.related_tickets = []
+            # self.related_tickets = []
             for related_ticket in result["data"]["related_tickets"]:
-                self.related_tickets.append(related_ticket["id"])
+                self._related_tickets.append(related_ticket["id"])
         except KeyError:
             pass
 
@@ -259,7 +263,7 @@ class Ticket:
             "assignee",
             "assignee_roles",
             "id",
-            "related_tickets"
+            "related_tickets",
         ]
 
         for field_name in result["data"]:
@@ -440,8 +444,16 @@ class Ticket:
             self._update()
         return self._custom_fields
 
+    @property
+    def related_tickets(self):
+        if not hasattr(self, "_related_tickets"):
+            self._update()
+        return self._related_tickets
+
     def add_user_watcher_by_id(self, user_id: int) -> None:
-        self.user_watchers.append(User(user_id=user_id, first_name = None, last_name = None, email = None))
+        self.user_watchers.append(
+            User(user_id=user_id, first_name=None, last_name=None, email=None)
+        )
         self.update()
 
     def update(self, comment: Optional[str] = None):
