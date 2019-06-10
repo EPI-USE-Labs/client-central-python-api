@@ -39,7 +39,7 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://git.labs.epiuse.com:SWAT/clientcentral-api-python.git',
-    version='5.2.1',
+    version='5.3.0',
     zip_safe=False,
     data_files=[('.', ['clientcentral/prod_template.yaml','clientcentral/qa_template.yaml'])]
 )
