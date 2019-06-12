@@ -53,7 +53,7 @@ class ClientCentral:
         workspace_id=None,
         priority=None,
         type_id: Optional[int] = None,
-        assignee = None,
+        assignee=None,
         related_tickets: Optional[List[int]] = None,
     ):
 
@@ -73,7 +73,7 @@ class ClientCentral:
             project_id=project_id,
             ticket_type=ticket_type,
             related_tickets=related_tickets,
-            assignee=assignee
+            assignee=assignee,
         )
 
         ticket.subject = str(subject)

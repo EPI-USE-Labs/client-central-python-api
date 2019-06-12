@@ -56,7 +56,7 @@ class Ticket:
 
     # custom_fields: List[Dict[str, Any]]
 
-    available_buttons: List[Button]
+    # available_buttons: List[Button]
 
     # comments: List[Comment] = None
     # events: List[TicketEvent] = None
@@ -140,8 +140,7 @@ class Ticket:
     def refresh(self) -> None:
         self._update()
 
-    # Call the button URL to get the current buttons.
-    def _get_available_buttons(self) -> None:
+    def _update_buttons(self):
         url = (
             self._base_url
             + "/api/v1/tickets/"
@@ -157,10 +156,10 @@ class Ticket:
 
         result = json.loads(response.text)
 
-        self.available_buttons = list()
+        self._available_buttons = list()
 
         for button in result["data"]:
-            self.available_buttons.append(
+            self._available_buttons.append(
                 Button(
                     button_id=button["id"],
                     enabled=button["enabled"],
@@ -170,6 +169,15 @@ class Ticket:
                     colour=button["colour"],
                 )
             )
+        return self._available_buttons
+
+    # Call the button URL to get the current buttons.
+    @property
+    def available_buttons(self):
+        if not hasattr(self, "_available_buttons"):
+            self._update_buttons()
+
+        return self._available_buttons
 
     def _update(self) -> None:
         # print("UPDATED!!!")
@@ -186,7 +194,7 @@ class Ticket:
 
         if self.status != new_status:
             # Update buttons
-            self._get_available_buttons()
+            self._update_buttons()
 
         self.status = new_status
 
@@ -227,7 +235,11 @@ class Ticket:
         )
 
         if result["data"]["assignee"]:
-            self.assignee = result["data"]["assignee"]["_type"] + ":" + str(result["data"]["assignee"]["id"])
+            self.assignee = (
+                result["data"]["assignee"]["_type"]
+                + ":"
+                + str(result["data"]["assignee"]["id"])
+            )
 
         self._related_tickets: List[int] = list()
         try:
@@ -578,7 +590,7 @@ class Ticket:
 
     def press_button(self, button_name: str, comment: str = None):
         if not self.available_buttons or len(self.available_buttons) == 0:
-            self._get_available_buttons()
+            self._update_buttons()
 
         for button in self.available_buttons:
             if button_name == button.name:

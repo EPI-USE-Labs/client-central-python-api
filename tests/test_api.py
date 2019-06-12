@@ -115,7 +115,9 @@ def test_bump_priority():
 def test_grab():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
     ticket.press_button("Grab")
-    assert ticket.assignee == "User:" + str(cc.config.get()["user_ids"]["thomas-scholtz"])
+    assert ticket.assignee == "User:" + str(
+        cc.config.get()["user_ids"]["thomas-scholtz"]
+    )
     assert ticket.status.status_id == cc.config.get()["ticket-status"]["in-progress"]
     assert ticket.status.name == "In progress"
     assert ticket.change_events[0].changes[1].name == "status"
@@ -207,12 +209,32 @@ def test_lazy_load():
     assert hasattr(ticket, "_change_events") == False
     assert hasattr(ticket, "_events") == False
     assert hasattr(ticket, "_custom_fields") == False
+    assert hasattr(ticket, "_available_buttons") == False
 
     ticket.comments
     assert hasattr(ticket, "_comments") == True
     assert hasattr(ticket, "_change_events") == True
     assert hasattr(ticket, "_events") == True
     assert hasattr(ticket, "_custom_fields") == True
+    assert hasattr(ticket, "_available_buttons") == True
+
+def test_button_press_from_ticket_query():
+    import clientcentral.query as operators
+
+    ticket = (
+        cc.query_tickets()
+        .filter_by(
+            operators.and_(
+                operators.comparison(
+                    "created_by_user.email", "=", "'thomas@labs.epiuse.com'"
+                ),
+                operators.comparison("id", "=", str(pytest.ticket_id)),
+            )
+        )
+        .all()[0]
+    )
+    assert ticket is not None
+    assert ticket.available_buttons is not None
 
 
 def test_cancel():
