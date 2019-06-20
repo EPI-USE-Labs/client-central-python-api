@@ -54,6 +54,7 @@ def test_update_ticket():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
     ticket.description = "<p>update desc</p>"
     ticket.update()
+    assert ticket.get_text_description() == "update desc"
     assert ticket.description == "<p>update desc</p>"
 
 
@@ -91,6 +92,20 @@ def test_comment():
     # nothing else should have changed unless someone edited the ticket.
     assert old_num_change_eventes == new_num_change_events
 
+def test_set_priority():
+    ticket = cc.get_ticket_by_id(pytest.ticket_id)
+
+    ticket.priority = 1
+    ticket.update()
+    ticket.refresh()
+
+    assert ticket.priority == 1
+
+    ticket.priority = 33
+    ticket.update()
+    ticket.refresh()
+
+    assert ticket.priority == 33
 
 def test_bump_priority():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
@@ -145,6 +160,7 @@ def test_comment_and_update():
     ticket.update("comment and update")
     ticket.refresh()
     assert ticket.description == "<p>update desc 2</p>"
+    assert ticket.get_text_description() == "update desc 2"
 
     last_comment = ticket.comments[0].comment
     assert last_comment == "comment and update"
@@ -212,11 +228,15 @@ def test_lazy_load():
     assert hasattr(ticket, "_available_buttons") == False
 
     ticket.comments
+
     assert hasattr(ticket, "_comments") == True
     assert hasattr(ticket, "_change_events") == True
     assert hasattr(ticket, "_events") == True
     assert hasattr(ticket, "_custom_fields") == True
     assert hasattr(ticket, "_available_buttons") == True
+
+    assert "<" not in ticket.comments[0].get_comment_text()
+    assert ">" not in ticket.comments[0].get_comment_text()
 
 def test_button_press_from_ticket_query():
     import clientcentral.query as operators

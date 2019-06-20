@@ -5,6 +5,8 @@ import json
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
+from bs4 import BeautifulSoup
+
 import requests
 
 from clientcentral.config import Config
@@ -345,8 +347,14 @@ class Ticket:
                 self._change_events.append(change_event)
                 self._events.append(change_event)
 
-                if event["comment"] and event["comment"] != "":
-                    self._comments.append(change_event)
+                if event["comment"] and event["comment"].strip() != "":
+                    comment_event = Comment(
+                        created_by_user=user,
+                        comment=event["comment"],
+                        visible_to_customer=event["visible_to_customer"],
+                        created_at=event_created_at,
+                    )
+                    self._comments.append(comment_event)
             else:
                 comment_event = Comment(
                     created_by_user=user,
@@ -649,3 +657,8 @@ class Ticket:
             + self._token
         )
         return url
+
+
+    def get_text_description(self):
+        soup = BeautifulSoup(str(self.description), features="html.parser")
+        return soup.get_text()
