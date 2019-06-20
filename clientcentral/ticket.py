@@ -467,11 +467,12 @@ class Ticket:
             self._update()
         return self._related_tickets
 
-    def add_user_watcher_by_id(self, user_id: int) -> None:
+    def add_user_watcher_by_id(self, user_id: int, update: bool = True) -> None:
         self.user_watchers.append(
             User(user_id=user_id, first_name=None, last_name=None, email=None)
         )
-        self.update()
+        if update:
+            self.update()
 
     def update(self, comment: Optional[str] = None):
         url = (

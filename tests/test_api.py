@@ -274,6 +274,9 @@ def test_add_user_watcher():
     # print(ticket.user_watchers)
 
     assert ticket.user_watchers[0].user_id == 12
+    ticket.add_user_watcher_by_id(13, False)
+    ticket.refresh()
+    assert len(ticket.user_watchers) == 1
 
 
 def test_assignee_user_by_id():
