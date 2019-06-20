@@ -92,6 +92,7 @@ def test_comment():
     # nothing else should have changed unless someone edited the ticket.
     assert old_num_change_eventes == new_num_change_events
 
+
 def test_set_priority():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
 
@@ -106,6 +107,7 @@ def test_set_priority():
     ticket.refresh()
 
     assert ticket.priority == 33
+
 
 def test_bump_priority():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
@@ -237,6 +239,7 @@ def test_lazy_load():
 
     assert "<" not in ticket.comments[0].get_comment_text()
     assert ">" not in ticket.comments[0].get_comment_text()
+
 
 def test_button_press_from_ticket_query():
     import clientcentral.query as operators

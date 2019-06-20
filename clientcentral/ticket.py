@@ -658,7 +658,6 @@ class Ticket:
         )
         return url
 
-
     def get_text_description(self):
         soup = BeautifulSoup(str(self.description), features="html.parser")
         return soup.get_text()
