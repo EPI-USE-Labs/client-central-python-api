@@ -59,13 +59,20 @@ def test_create_ticket():
 
     pytest.ticket_id = ticket.ticket_id
 
+# def test_update_ticket_with_null_visible_to_customer():
+#     ticket = cc.get_ticket_by_id(pytest.ticket_id)
+#     ticket.visible_to_customer = None
+#     print(ticket.visible_to_customer)
+#     ticket.comment("test")
+#     ticket.update()
+#     raise Exception
 
 def test_update_ticket():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
-    ticket.description = "<p>update desc</p>"
+    ticket.description = "<p>update desc 3</p>"
     ticket.update()
-    assert ticket.get_text_description() == "update desc"
-    assert ticket.description == "<p>update desc</p>"
+    assert ticket.get_text_description() == "update desc 3"
+    assert ticket.description == "<p>update desc 3</p>"
 
 
 def test_comment():

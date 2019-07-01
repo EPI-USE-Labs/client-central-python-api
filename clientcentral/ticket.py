@@ -42,6 +42,8 @@ class Ticket:
 
     type: Optional[TicketType]
 
+    visible_to_customer: bool
+
     workspace_id: int
     project_id: int
 
@@ -94,6 +96,7 @@ class Ticket:
         priority: Optional[int] = None,
         assignee: Optional[str] = None,
         related_tickets: Optional[List[int]] = None,
+        visible_to_customer: bool = True
     ) -> None:
 
         self.description = description
@@ -114,6 +117,8 @@ class Ticket:
         self.owner = owner
 
         self.assignee = assignee
+
+        self.visible_to_customer = visible_to_customer
 
         self._production = production
         self._base_url = base_url
@@ -231,6 +236,8 @@ class Ticket:
 
         self.project_id = result["data"]["project"]["id"]
         self.workspace_id = result["data"]["workspace"]["id"]
+
+        self.visible_to_customer = result["data"]["visible_to_customer"]
 
         self.type = TicketType(
             type_id=result["data"]["type"]["id"], name=result["data"]["type"]["name"]
@@ -403,7 +410,7 @@ class Ticket:
                 "account_vp": 1,
                 "subject": str(self.subject),
                 "description": str(self.description),
-                "visible_to_customer": True,
+                "visible_to_customer": self.visible_to_customer,
                 "priority_id": self.priority,
                 "assignee_vp": self.assignee,
                 "user_watchers": [user.user_id for user in self.user_watchers],
@@ -497,6 +504,7 @@ class Ticket:
                 "status_id": self.status.status_id,
                 "workspace_id": self.workspace_id,
                 "project_id": self.project_id,
+                "visible_to_customer": self.visible_to_customer,
             },
             "ticket_event": {"comment": None},
         }
@@ -575,16 +583,6 @@ class Ticket:
 
         payload = {
             "ticket": {
-                # "subject": str(self.subject),
-                # "description": str(self.description),
-                # "priority_id": self.priority,
-                # "user_watchers": [user.user_id for user in self.user_watchers],
-                # "custom_fields_attributes": {
-                #     str(key): value
-                #     for key, value in enumerate(self.custom_fields_attributes)
-                # },
-                # "assignee": str(self.assignee),
-                # "status_id": self.status.status_id,
                 "workspace_id": self.workspace_id,
                 "project_id": self.project_id,
             },
