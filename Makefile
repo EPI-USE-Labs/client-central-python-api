@@ -60,7 +60,7 @@ format:
 	#isort -rc ./tests
 
 test: ## run tests quickly with the default Python
-	pytest tests --maxfail=2
+	pytest tests --maxfail=1
 
 test-all: ## run tests on every Python version with tox
 	tox

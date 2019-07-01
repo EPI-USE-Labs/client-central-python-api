@@ -14,6 +14,16 @@ pytest.ticket_id = None
 pytest.ticket_id_related = None
 
 
+def test_get_all_roles():
+    r = cc.get_roles_manager()
+    all_roles = r.roles
+
+    users_in_role = r.get_all_users_in_role("VM developers")
+
+    for user in users_in_role:
+        print(user)
+
+
 def test_create_ticket():
     subj = "[Test-Ticket]"
     desc = "<h1>This is a test ticket. Please ignore</h1>"

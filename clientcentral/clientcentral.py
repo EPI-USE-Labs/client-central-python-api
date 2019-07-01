@@ -6,7 +6,10 @@ from typing import Dict, List, Optional
 from clientcentral.config import Config
 from clientcentral.model.TicketType import TicketType
 from clientcentral.query import QueryTickets
+from clientcentral.roles import Roles
 from clientcentral.ticket import Ticket
+
+from clientcentral.Exceptions import HTTPError
 
 
 class ClientCentral:
@@ -82,3 +85,9 @@ class ClientCentral:
         ticket.create()
 
         return ticket
+
+    def get_roles_manager(self) -> Roles:
+        # Call roles API
+        # Going to change in next CC prod.
+        r = Roles(self.base_url, self.token, self.config, self.production)
+        return r
