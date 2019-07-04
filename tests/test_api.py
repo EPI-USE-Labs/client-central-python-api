@@ -35,6 +35,7 @@ def test_create_ticket():
         project_id=8,
         workspace_id=16,
         # assignee="User:14012",
+        priority=33,
         custom_fields_attributes=[{"id": 17, "values": 0}, {"id": 75, "values": 363}],
     )
     ticket.refresh()
@@ -313,6 +314,7 @@ def test_create_related_ticket():
         description=desc,
         project_id=8,
         workspace_id=16,
+        priority=33,
         custom_fields_attributes=[{"id": 17, "values": 0}, {"id": 75, "values": 363}],
         related_tickets=[pytest.ticket_id],
     )

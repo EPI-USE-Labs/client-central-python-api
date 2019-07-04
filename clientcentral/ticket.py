@@ -396,8 +396,8 @@ class Ticket:
 
         url = self._base_url + "/api/v1/tickets.json?" + self._token
 
-        if not self.priority:
-            self.priority = self.config.get()["ticket-priority"]["very-low"]
+        # if not self.priority:
+        #     self.priority = self.config.get()["ticket-priority"]["very-low"]
 
         if not self.user_watchers:
             self.user_watchers = []

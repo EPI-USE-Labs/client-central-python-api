@@ -22,9 +22,16 @@ if __name__ == "__main__":
     #     .all()
     # )
 
-    tickets = [cc.get_ticket_by_id("82061")]
+    all_roles = cc.get_roles_manager().get_all_users_in_role("Internal IT - Email")
 
-    for ticket in tickets:
+    print(all_roles)
+
+    for role in all_roles:
+        print(role.__dict__)
+
+    # tickets = [cc.get_ticket_by_id("82061")]
+
+    # for ticket in tickets:
         # print(ticket.__dict__)
         # print(ticket.type.name, ticket.type.type_id)
 
@@ -56,7 +63,7 @@ if __name__ == "__main__":
         # ticket.description = '<p>Hi!</p><br/><p>This is the master ticket for the new candidate: <strong id="candidate_name">test user</strong> with the email: <strong id="candidate_email">test@test.co</strong></p><br/><p>Relevant tickets are being/have been created for the relevant On-Boarding access requests. Once all the requests have been completed this ticket will be closed!</p><br/><p>The following tasks need to be <strong>approved/completed</strong>:</p><p><ul id=\'job_list\'><li>l1</li><li>l2</li><li><del>l3</del></li></ul></p><br/><p>Please note that this is an <strong>automated</strong> response.</p><br><p>Kind regards,</p><p>SWAT.</p>'
         # ticket.update()
         # ticket = cc.get_ticket_by_id("75888")
-        print(ticket.description)
+        # print(ticket.description)
         # ticket.status = Status(status_id=cc.config.get()["ticket-status"]["cancelled"])
         # ticket.priority = cc.config.get()["ticket-priority"]["very-low"]
         # ticket.update()
