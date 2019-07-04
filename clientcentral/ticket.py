@@ -96,7 +96,7 @@ class Ticket:
         priority: Optional[int] = None,
         assignee: Optional[str] = None,
         related_tickets: Optional[List[int]] = None,
-        visible_to_customer: bool = True
+        visible_to_customer: bool = True,
     ) -> None:
 
         self.description = description
@@ -585,7 +585,7 @@ class Ticket:
             "ticket": {
                 "workspace_id": self.workspace_id,
                 "project_id": self.project_id,
-                "visible_to_customer": self.visible_to_customer
+                "visible_to_customer": self.visible_to_customer,
             },
             "ticket_event": {"comment": str(description)},
         }

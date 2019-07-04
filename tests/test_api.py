@@ -24,6 +24,14 @@ def test_get_all_roles():
         print(user)
 
 
+def test_get_user_by_id():
+    um = cc.get_users_manager()
+
+    user = um.get_user_by_id(6)
+
+    print(user)
+
+
 def test_create_ticket():
     subj = "[Test-Ticket]"
     desc = "<h1>This is a test ticket. Please ignore</h1>"
@@ -60,6 +68,7 @@ def test_create_ticket():
 
     pytest.ticket_id = ticket.ticket_id
 
+
 # def test_update_ticket_with_null_visible_to_customer():
 #     ticket = cc.get_ticket_by_id(pytest.ticket_id)
 #     ticket.visible_to_customer = None
@@ -67,6 +76,7 @@ def test_create_ticket():
 #     ticket.comment("test")
 #     ticket.update()
 #     raise Exception
+
 
 def test_update_ticket():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
