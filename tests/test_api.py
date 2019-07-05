@@ -23,6 +23,12 @@ def test_get_all_roles():
     for user in users_in_role:
         print(user)
 
+    # Test get role by nameserver
+    role = r.get_role_by_name("VM developers")
+
+    assert role.role_name == "VM developers"
+    assert role.role_id is not None
+
 
 def test_get_user_by_id():
     um = cc.get_users_manager()

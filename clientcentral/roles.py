@@ -35,6 +35,11 @@ class Roles:
                 # Found role return user_ids
                 return role.users
 
+    def get_role_by_name(self, role_name: str) -> Role:
+        for role in self.roles:
+            if role.role_name == role_name:
+                return role
+
     def get_all_roles(self):
         url = self._base_url + "/account/roles.json?" + self._token
 
