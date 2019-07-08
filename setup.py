@@ -9,7 +9,7 @@ with open('README.md') as readme_file:
     readme = readme_file.read()
 
 requirements = []
-with open('requirements') as f:
+with open('stable-requirements.txt') as f:
     requirements = f.read().splitlines()
 
 setup_requirements = ['pytest-runner', ]
