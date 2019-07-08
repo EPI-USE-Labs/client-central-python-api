@@ -47,6 +47,7 @@ def test_get_user_by_id():
     print(user)
 
 
+
 def test_create_ticket():
     subj = "[Test-Ticket]"
     desc = "<h1>This is a test ticket. Please ignore</h1>"
@@ -93,6 +94,11 @@ def test_create_ticket():
 #     ticket.update()
 #     raise Exception
 
+def test_human_url():
+    ticket = cc.get_ticket_by_id(pytest.ticket_id)
+    assert str(ticket.ticket_id) in ticket.get_human_url()
+    # print(ticket.get_human_url())
+    # raise Exception
 
 def test_update_ticket():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)

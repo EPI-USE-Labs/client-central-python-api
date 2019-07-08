@@ -663,3 +663,9 @@ class Ticket:
     def get_text_description(self):
         soup = BeautifulSoup(str(self.description), features="html.parser")
         return soup.get_text()
+
+
+    def get_human_url(self):
+        if self._production:
+            return "https://clientcentral.io/support/tickets/" + str(self.ticket_id)
+        return "https://qa-cc.labs.epiuse.com/support/tickets/" + str(self.ticket_id)
