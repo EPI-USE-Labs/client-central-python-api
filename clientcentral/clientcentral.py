@@ -89,13 +89,15 @@ class ClientCentral:
         return ticket
 
     def get_users_manager(self) -> UsersManager:
-        users_manager = UsersManager(
-            self.base_url, self.token, self.config, self.production
-        )
-        return users_manager
+        if not hasattr(self, "_users_manager"):
+            self._users_manager = UsersManager(
+                self.base_url, self.token, self.config, self.production
+            )
+        return self._users_manager
 
     def get_roles_manager(self) -> Roles:
         # Call roles API
         # Going to change in next CC prod.
-        roles_manager = Roles(self.base_url, self.token, self.config, self.production)
-        return roles_manager
+        if not hasattr(self, "_roles"):
+            self._roles = Roles(self.base_url, self.token, self.config, self.production)
+        return self._roles

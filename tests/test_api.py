@@ -15,25 +15,34 @@ pytest.ticket_id_related = None
 
 
 def test_get_all_roles():
-    r = cc.get_roles_manager()
-    all_roles = r.roles
+    r1 = cc.get_roles_manager()
+    r2 = cc.get_roles_manager()
 
-    users_in_role = r.get_all_users_in_role("VM developers")
+    # Test object reuse
+    assert r1 == r2
+
+    all_roles = r1.roles
+
+    users_in_role = r1.get_all_users_in_role("VM developers")
 
     for user in users_in_role:
         print(user)
 
     # Test get role by nameserver
-    role = r.get_role_by_name("VM developers")
+    role = r1.get_role_by_name("VM developers")
 
     assert role.role_name == "VM developers"
     assert role.role_id is not None
 
 
 def test_get_user_by_id():
-    um = cc.get_users_manager()
+    um1 = cc.get_users_manager()
+    um2 = cc.get_users_manager()
 
-    user = um.get_user_by_id(6)
+    # Test object reuse
+    assert um1 == um2
+
+    user = um1.get_user_by_id(6)
 
     print(user)
 
