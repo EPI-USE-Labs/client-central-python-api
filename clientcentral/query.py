@@ -45,6 +45,7 @@ class QueryTickets:
             "description",
             "priority.name",
             "status.name",
+            "status.open",
             "events.event_changes.name",
             "customer_user.*",
             "type.name",
@@ -118,7 +119,8 @@ class QueryTickets:
                     project_id=ticket_in_data["project"]["id"],
                     status=Status(
                         status_id=ticket_in_data["status"]["id"],
-                        name=ticket_in_data["status"]["id"],
+                        name=ticket_in_data["status"]["name"],
+                        open=ticket_in_data["status"]["open"],
                     ),
                     created_at=datetime.strptime(
                         ticket_in_data["created_at"], "%Y-%m-%dT%H:%M:%S.%f%z"

@@ -79,6 +79,7 @@ def test_create_ticket():
     assert ticket.creator.user_id == cc.config.get()["user_ids"]["thomas-scholtz"]
     assert ticket.status.status_id == cc.config.get()["ticket-status"]["new"]
     assert ticket.status.name == "New"
+    assert ticket.status.open == True
     assert ticket.priority == cc.config.get()["ticket-priority"]["very-low"]
 
     pytest.ticket_id = ticket.ticket_id
@@ -356,6 +357,7 @@ def test_create_related_ticket():
     assert ticket.creator.user_id == cc.config.get()["user_ids"]["thomas-scholtz"]
     assert ticket.status.status_id == cc.config.get()["ticket-status"]["new"]
     assert ticket.status.name == "New"
+    assert ticket.status.open == True
     assert ticket.priority == cc.config.get()["ticket-priority"]["very-low"]
 
     pytest.ticket_id_related = ticket.ticket_id
