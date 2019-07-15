@@ -226,8 +226,8 @@ class Ticket:
                 job_title=result["data"]["customer_user"]["job_title"],
                 email=result["data"]["customer_user"]["email"],
             )
-        if result["data"]["customer_user"]["title"]:
-            self.owner.title = result["data"]["customer_user"]["title"]["name"]
+            if result["data"]["customer_user"]["title"]:
+                self.owner.title = result["data"]["customer_user"]["title"]["name"]
 
         self.created_at = datetime.strptime(
             result["data"]["created_at"], "%Y-%m-%dT%H:%M:%S.%f%z"
