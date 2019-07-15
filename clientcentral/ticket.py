@@ -218,13 +218,14 @@ class Ticket:
         if result["data"]["created_by_user"]["title"]:
             self.creator.title = result["data"]["created_by_user"]["title"]["name"]
 
-        self.owner = User(
-            user_id=result["data"]["customer_user"]["id"],
-            first_name=result["data"]["customer_user"]["first_name"],
-            last_name=result["data"]["customer_user"]["last_name"],
-            job_title=result["data"]["customer_user"]["job_title"],
-            email=result["data"]["customer_user"]["email"],
-        )
+        if result["data"]["customer_user"]:
+            self.owner = User(
+                user_id=result["data"]["customer_user"]["id"],
+                first_name=result["data"]["customer_user"]["first_name"],
+                last_name=result["data"]["customer_user"]["last_name"],
+                job_title=result["data"]["customer_user"]["job_title"],
+                email=result["data"]["customer_user"]["email"],
+            )
         if result["data"]["customer_user"]["title"]:
             self.owner.title = result["data"]["customer_user"]["title"]["name"]
 
