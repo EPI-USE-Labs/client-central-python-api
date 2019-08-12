@@ -273,6 +273,8 @@ def test_lazy_load():
         .all()[0]
     )
     assert ticket is not None
+    assert ticket.status.open == True
+    assert ticket.status.closed == False
 
     assert hasattr(ticket, "_comments") == False
     assert hasattr(ticket, "_change_events") == False
@@ -418,3 +420,5 @@ def close_cancel():
     print("teardown ticket")
     ticket.status = cc.config.get()["ticket-status"]["cancelled"]
     ticket.update()
+    assert ticket.status.open == False
+    assert ticket.status.closed == True

@@ -197,7 +197,7 @@ class Ticket:
         new_status = Status(
             status_id=result["data"]["status"]["id"],
             name=result["data"]["status"]["name"],
-            open=result["data"]["status"]["open"]
+            open=not result["data"]["status"]["closed"]
         )
 
         if self.status != new_status:
@@ -536,7 +536,7 @@ class Ticket:
             "description",
             "priority.name",
             "status.name",
-            "status.open",
+            "status.closed",
             "events.event_changes.name",
             "customer_user.*",
             "type.name",
