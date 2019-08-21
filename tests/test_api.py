@@ -23,15 +23,15 @@ def test_get_all_roles():
 
     all_roles = r1.roles
 
-    users_in_role = r1.get_all_users_in_role("VM developers")
+    users_in_role = r1.get_all_users_in_role("IT Support")
 
     for user in users_in_role:
         print(user)
 
     # Test get role by nameserver
-    role = r1.get_role_by_name("VM developers")
+    role = r1.get_role_by_name("IT Support")
 
-    assert role.role_name == "VM developers"
+    assert role.role_name == "IT Support"
     assert role.role_id is not None
 
 
@@ -57,7 +57,7 @@ def test_create_ticket():
         subject=subj,
         description=desc,
         project_id=8,
-        workspace_id=16,
+        workspace_id=141,
         # assignee="User:14012",
         priority=33,
         custom_fields_attributes=[{"id": 17, "values": 0}, {"id": 75, "values": 363}],
@@ -348,7 +348,7 @@ def test_create_related_ticket():
         subject=subj,
         description=desc,
         project_id=8,
-        workspace_id=16,
+        workspace_id=141,
         priority=33,
         custom_fields_attributes=[{"id": 17, "values": 0}, {"id": 75, "values": 363}],
         related_tickets=[pytest.ticket_id],
