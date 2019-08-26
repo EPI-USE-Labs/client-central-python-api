@@ -68,7 +68,7 @@ def test_create_ticket():
     # 1 -> SAP SID
     # 2 -> Category [363 -> Other]
 
-    assert ticket.workspace_id == 16
+    assert ticket.workspace_id == 141
     assert ticket.project_id == 8
 
     assert ticket.description == desc
@@ -355,7 +355,7 @@ def test_create_related_ticket():
     )
     ticket.refresh()
 
-    assert ticket.workspace_id == 16
+    assert ticket.workspace_id == 141
     assert ticket.project_id == 8
 
     assert ticket.description == desc

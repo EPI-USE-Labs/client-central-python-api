@@ -26,13 +26,13 @@ class ClientCentral:
     def __init__(self, production: bool, token: Optional[str] = None) -> None:
         self.production = production
 
+        self.config = Config(self.production)
+        self.token = "token=" + str(self.config.get()["token"])
+        self.base_url = self.config.get()["base-url"]
+
         if token:
             self.token = "token=" + str(token)
 
-        self.config = Config(self.production)
-        self.base_url = self.config.get()["base-url"]
-
-        self.token = "token=" + str(self.config.get()["token"])
 
     def query_tickets(self) -> QueryTickets:
         q = QueryTickets(self.base_url, self.token, self.config, self.production)
