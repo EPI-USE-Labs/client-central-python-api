@@ -13,6 +13,8 @@ from clientcentral.ticket import Ticket
 
 from clientcentral.Exceptions import HTTPError
 
+import aiohttp
+import asyncio
 
 class ClientCentral:
     production: bool = False
@@ -23,7 +25,7 @@ class ClientCentral:
 
     query = None
 
-    def __init__(self, production: bool, token: Optional[str] = None) -> None:
+    def __init__(self, production: bool, token: Optional[str] = None, run_async: bool = False) -> None:
         self.production = production
 
         self.config = Config(self.production)
@@ -33,23 +35,44 @@ class ClientCentral:
         if token:
             self.token = "token=" + str(token)
 
+        self.run_async = run_async
+        self._event_loop = self._get_event_loop()
+        self.session = None
+
+    def _get_event_loop(self):
+        """Retrieves the event loop or creates a new one."""
+        try:
+            return asyncio.get_event_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            return loop
 
     def query_tickets(self) -> QueryTickets:
         q = QueryTickets(self.base_url, self.token, self.config, self.production)
         return q
 
     def get_ticket_by_id(self, ticket_id: str) -> Ticket:
-        return Ticket(
+        if self._event_loop is None:
+            self._event_loop = self._event_loop()
+
+        future = asyncio.ensure_future(Ticket.factory_create(
+            session=self.session,
             base_url=self.base_url,
             token=self.token,
             ticket_id=str(ticket_id),
             config=self.config,
             production=self.production,
             project_id=None,
-            workspace_id=None,
-        )
+            workspace_id=None), loop=self._event_loop)
 
-    def create_ticket(
+        if self.run_async:
+            return future
+
+        result = self._event_loop.run_until_complete(future)
+        return result
+
+    async def _create_ticket(
         self,
         subject: str,
         description: str,
@@ -61,13 +84,13 @@ class ClientCentral:
         assignee=None,
         related_tickets: Optional[List[int]] = None,
     ):
-
         if not type_id:
             ticket_type = TicketType(type_id=8)
         else:
             ticket_type = TicketType(type_id=type_id)
 
-        ticket = Ticket(
+        ticket = await Ticket.factory_create(
+            session=self.session,
             base_url=self.base_url,
             token=self.token,
             ticket_id=None,
@@ -84,9 +107,32 @@ class ClientCentral:
         ticket.subject = str(subject)
         ticket.description = str(description)
         ticket.priority = priority
-        ticket.create()
+        await ticket.create()
 
         return ticket
+
+    def create_ticket(
+        self,
+        subject: str,
+        description: str,
+        project_id,
+        priority,
+        custom_fields_attributes: List[Dict[str, int]] = [],
+        workspace_id=None,
+        type_id: Optional[int] = None,
+        assignee=None,
+        related_tickets: Optional[List[int]] = None,
+    ):
+
+        if self._event_loop is None:
+            self._event_loop = self._event_loop()
+
+        future = asyncio.ensure_future(self._create_ticket(subject, description, project_id, priority, custom_fields_attributes, workspace_id, type_id, assignee, related_tickets))
+        if self.run_async:
+            return future
+
+        result = self._event_loop.run_until_complete(future)
+        return result
 
     def get_users_manager(self) -> UsersManager:
         if not hasattr(self, "_users_manager"):

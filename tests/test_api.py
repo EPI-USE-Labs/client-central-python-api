@@ -1,5 +1,7 @@
 import pytest
 
+import asyncio
+
 from clientcentral.clientcentral import ClientCentral
 from clientcentral.model.Status import Status
 from clientcentral.Exceptions import (
@@ -257,60 +259,60 @@ def test_lazy_load_get_by_id():
     assert hasattr(ticket, "_events") == True
 
 
-def test_lazy_load():
-    import clientcentral.query as operators
+# def test_lazy_load():
+#     import clientcentral.query as operators
+#
+#     ticket = (
+#         cc.query_tickets()
+#         .filter_by(
+#             operators.and_(
+#                 operators.comparison(
+#                     "created_by_user.email", "=", "'thomas@labs.epiuse.com'"
+#                 ),
+#                 operators.comparison("id", "=", str(pytest.ticket_id)),
+#             )
+#         )
+#         .all()[0]
+#     )
+#     assert ticket is not None
+#     assert ticket.status.open == True
+#     assert ticket.status.closed == False
+#
+#     assert hasattr(ticket, "_comments") == False
+#     assert hasattr(ticket, "_change_events") == False
+#     assert hasattr(ticket, "_events") == False
+#     assert hasattr(ticket, "_custom_fields") == False
+#     assert hasattr(ticket, "_available_buttons") == False
+#
+#     ticket.comments
+#
+#     assert hasattr(ticket, "_comments") == True
+#     assert hasattr(ticket, "_change_events") == True
+#     assert hasattr(ticket, "_events") == True
+#     assert hasattr(ticket, "_custom_fields") == True
+#     assert hasattr(ticket, "_available_buttons") == True
+#
+#     assert "<" not in ticket.comments[0].get_comment_text()
+#     assert ">" not in ticket.comments[0].get_comment_text()
 
-    ticket = (
-        cc.query_tickets()
-        .filter_by(
-            operators.and_(
-                operators.comparison(
-                    "created_by_user.email", "=", "'thomas@labs.epiuse.com'"
-                ),
-                operators.comparison("id", "=", str(pytest.ticket_id)),
-            )
-        )
-        .all()[0]
-    )
-    assert ticket is not None
-    assert ticket.status.open == True
-    assert ticket.status.closed == False
 
-    assert hasattr(ticket, "_comments") == False
-    assert hasattr(ticket, "_change_events") == False
-    assert hasattr(ticket, "_events") == False
-    assert hasattr(ticket, "_custom_fields") == False
-    assert hasattr(ticket, "_available_buttons") == False
-
-    ticket.comments
-
-    assert hasattr(ticket, "_comments") == True
-    assert hasattr(ticket, "_change_events") == True
-    assert hasattr(ticket, "_events") == True
-    assert hasattr(ticket, "_custom_fields") == True
-    assert hasattr(ticket, "_available_buttons") == True
-
-    assert "<" not in ticket.comments[0].get_comment_text()
-    assert ">" not in ticket.comments[0].get_comment_text()
-
-
-def test_button_press_from_ticket_query():
-    import clientcentral.query as operators
-
-    ticket = (
-        cc.query_tickets()
-        .filter_by(
-            operators.and_(
-                operators.comparison(
-                    "created_by_user.email", "=", "'thomas@labs.epiuse.com'"
-                ),
-                operators.comparison("id", "=", str(pytest.ticket_id)),
-            )
-        )
-        .all()[0]
-    )
-    assert ticket is not None
-    assert ticket.available_buttons is not None
+# def test_button_press_from_ticket_query():
+#     import clientcentral.query as operators
+#
+#     ticket = (
+#         cc.query_tickets()
+#         .filter_by(
+#             operators.and_(
+#                 operators.comparison(
+#                     "created_by_user.email", "=", "'thomas@labs.epiuse.com'"
+#                 ),
+#                 operators.comparison("id", "=", str(pytest.ticket_id)),
+#             )
+#         )
+#         .all()[0]
+#     )
+#     assert ticket is not None
+#     assert ticket.available_buttons is not None
 
 
 def test_cancel():
