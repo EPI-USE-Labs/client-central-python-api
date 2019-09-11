@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import json
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from bs4 import BeautifulSoup
+import ujson
 
-import requests
-
-from clientcentral.config import Config
+# import requests
+import aiohttp
+import asyncio
 from clientcentral.Exceptions import (
     ButtonNotAvailable,
     ButtonRequiresComment,
@@ -25,7 +25,7 @@ from clientcentral.model.TicketType import TicketType
 from clientcentral.model.User import User
 
 
-class Ticket:
+class Ticket(object):
     _production: bool = False
 
     _base_url: str
@@ -56,20 +56,9 @@ class Ticket:
     # Custom
     custom_fields_attributes: List[Dict[str, int]]
 
-    # related_tickets: Optional[List[int]]
-
-    # custom_fields: List[Dict[str, Any]]
-
-    # available_buttons: List[Button]
-
-    # comments: List[Comment] = None
-    # events: List[TicketEvent] = None
-    # change_events: List[ChangeEvent] = None
-
     status: Optional[Status]
     assignee = None
 
-    config: Config
     button_ids = None
 
     headers = {"Content-Type": "application/json", "Accept": "application/json"}
@@ -78,7 +67,6 @@ class Ticket:
         self,
         base_url: str,
         token: str,
-        config: Config,
         ticket_id: str,
         production: bool,
         workspace_id: int,
@@ -96,7 +84,9 @@ class Ticket:
         priority: Optional[int] = None,
         assignee: Optional[str] = None,
         related_tickets: Optional[List[int]] = None,
-        visible_to_customer: bool = True,
+        visible_to_customer: bool = False,
+        session=None,
+        run_async: bool = False,
     ) -> None:
 
         self.description = description
@@ -111,7 +101,7 @@ class Ticket:
         self.user_watchers = user_watchers
         self.custom_fields_attributes = custom_fields_attributes
 
-        self._related_tickets = related_tickets
+        self._related_tickets_attribute = related_tickets
 
         self.creator = creator
         self.owner = owner
@@ -132,22 +122,110 @@ class Ticket:
         self.workspace_id = workspace_id
         self.project_id = project_id
 
-        self.config = config
-
         self.priority = priority
 
-        if not self.priority:
-            self.priority = self.config.get()["ticket-priority"]["very-low"]
+        self.run_async = run_async
+        self.session = session
 
-        self.button_ids = self.config.get()["button-ids"]
+        self._event_loop = None
 
-        if ticket_id and not self.created_at and not self.updated_at:
-            self._update()
+        self._net_calls = 0
 
-    def refresh(self) -> None:
-        self._update()
+    @classmethod
+    async def factory_create(
+        cls,
+        base_url: str,
+        token: str,
+        ticket_id: str,
+        production: bool,
+        workspace_id: int,
+        project_id: int,
+        custom_fields_attributes: List[Dict[str, int]] = [],
+        ticket_type: Optional[TicketType] = None,
+        created_at: Optional[datetime] = None,
+        updated_at: Optional[datetime] = None,
+        status: Optional[Status] = None,
+        description: Optional[str] = None,
+        subject: Optional[str] = None,
+        owner: Optional[User] = None,
+        creator: Optional[User] = None,
+        user_watchers: List[User] = [],
+        priority: Optional[int] = None,
+        assignee: Optional[str] = None,
+        related_tickets: Optional[List[int]] = None,
+        visible_to_customer: bool = False,
+        session=None,
+        run_async: bool = False,
+    ):
+        self = Ticket(
+            base_url,
+            token,
+            ticket_id,
+            production,
+            workspace_id,
+            project_id,
+            custom_fields_attributes,
+            ticket_type,
+            created_at,
+            updated_at,
+            status,
+            description,
+            subject,
+            owner,
+            creator,
+            user_watchers,
+            priority,
+            assignee,
+            related_tickets,
+            visible_to_customer,
+            session,
+            run_async,
+        )
+        self._event_loop = self._get_event_loop()
 
-    def _update_buttons(self):
+        if not self.session:
+            self.session = aiohttp.ClientSession(loop=self._event_loop)
+
+        if self.ticket_id and not self.created_at and not self.updated_at:
+            await self._update()
+        return self
+
+    def refresh(self) -> "Ticket":
+        """Refreshes the current ticket instance. Syncs all data from Client Central"""
+        if self._event_loop is None:
+            self._event_loop = self._event_loop()
+
+        future = asyncio.ensure_future(self._update(), loop=self._event_loop)
+
+        if self.run_async:
+            return future
+
+        result = self._event_loop.run_until_complete(future)
+        return result
+
+    async def _request(self, http_verb, url, json=None, headers=None):
+        """Submit the HTTP request with the running session or a new session."""
+
+        self._net_calls += 1
+
+        if not headers:
+            headers = self.headers
+
+        if not self.session or self.session.closed:
+            self.session = aiohttp.ClientSession(
+                loop=self._event_loop, json_serialize=ujson.dumps
+            )
+
+        async with self.session.request(
+            http_verb, url, headers=headers, json=json
+        ) as resp:
+            return {
+                "json": await resp.json(),
+                "headers": resp.headers,
+                "status_code": resp.status,
+            }
+
+    async def _update_buttons(self):
         url = (
             self._base_url
             + "/api/v1/tickets/"
@@ -155,18 +233,17 @@ class Ticket:
             + "/available_buttons.json?"
             + self._token
         )
-        response = requests.get(url, headers=self.headers)
-        # print(response.text)
-        if response.status_code != 200:
-            raise HTTPError(response.text)
-        response.raise_for_status()
 
-        result = json.loads(response.text)
+        response = await self._request("GET", url, headers=self.headers)
+        if response["status_code"] != 200:
+            raise HTTPError(response["json"])
 
-        self._available_buttons = list()
+        result = response["json"]
+
+        self._available_buttons_attribute = list()
 
         for button in result["data"]:
-            self._available_buttons.append(
+            self._available_buttons_attribute.append(
                 Button(
                     button_id=button["id"],
                     enabled=button["enabled"],
@@ -176,20 +253,25 @@ class Ticket:
                     colour=button["colour"],
                 )
             )
-        return self._available_buttons
+        return self._available_buttons_attribute
 
     # Call the button URL to get the current buttons.
     @property
     def available_buttons(self):
-        if not hasattr(self, "_available_buttons"):
-            self._update_buttons()
+        if not hasattr(self, "_available_buttons_attribute"):
+            if self._event_loop is None:
+                self._event_loop = self._get_event_loop()
 
-        return self._available_buttons
+            future = asyncio.ensure_future(
+                self._update_buttons(), loop=self._event_loop
+            )
+            self._event_loop.run_until_complete(future)
 
-    def _update(self) -> None:
-        # print("UPDATED!!!")
+        return self._available_buttons_attribute
 
-        result: Dict[str, Any] = self.get()
+    async def _update(self) -> "Ticket":
+        response = await self._get()
+        result: Dict[str, Any] = response["json"]
 
         self.description = str(result["data"]["description"]).strip()
         self.subject = str(result["data"]["subject"]).strip()
@@ -197,12 +279,12 @@ class Ticket:
         new_status = Status(
             status_id=result["data"]["status"]["id"],
             name=result["data"]["status"]["name"],
-            open=not result["data"]["status"]["closed"]
+            open=not result["data"]["status"]["closed"],
         )
 
         if self.status != new_status:
             # Update buttons
-            self._update_buttons()
+            await self._update_buttons()
 
         self.status = new_status
 
@@ -252,16 +334,16 @@ class Ticket:
                 + str(result["data"]["assignee"]["id"])
             )
 
-        self._related_tickets: List[int] = list()
+        self._related_tickets_attribute: List[int] = list()
         try:
             result["data"]["related_tickets"]
             # self.related_tickets = []
             for related_ticket in result["data"]["related_tickets"]:
-                self._related_tickets.append(related_ticket["id"])
+                self._related_tickets_attribute.append(related_ticket["id"])
         except KeyError:
             pass
 
-        self._custom_fields: dict = {}
+        self._custom_fields_attribute: dict = {}
         reserved_fields = [
             "description",
             "subject",
@@ -288,7 +370,7 @@ class Ticket:
 
         for field_name in result["data"]:
             if field_name not in reserved_fields:
-                self._custom_fields[field_name] = result["data"][field_name]
+                self._custom_fields_attribute[field_name] = result["data"][field_name]
 
         self.user_watchers = []
 
@@ -305,16 +387,16 @@ class Ticket:
                     user_watcher.title = user["title"]["name"]
                 self.user_watchers.append(user_watcher)
 
-        if not hasattr(self, "_change_events"):
-            setattr(self, "_change_events", List[ChangeEvent])
-        self._change_events: List[ChangeEvent] = list()
-        if not hasattr(self, "_comments"):
-            setattr(self, "_comments", List[Comment])
-        self._comments: List[Comment] = list()
+        if not hasattr(self, "_change_events_attribute"):
+            setattr(self, "_change_events_attribute", List[ChangeEvent])
+        self._change_events_attribute: List[ChangeEvent] = list()
+        if not hasattr(self, "_comments_attribute"):
+            setattr(self, "_comments_attribute", List[Comment])
+        self._comments_attribute: List[Comment] = list()
 
-        if not hasattr(self, "_events"):
-            setattr(self, "_events", List[TicketEvent])
-        self._events: List[TicketEvent] = list()
+        if not hasattr(self, "_events_attribute"):
+            setattr(self, "_events_attribute", List[TicketEvent])
+        self._events_attribute: List[TicketEvent] = list()
 
         for event in result["data"]["events"]:
             user = None
@@ -353,8 +435,8 @@ class Ticket:
                     visible_to_customer=event["visible_to_customer"],
                     comment=str(event["comment"]),
                 )
-                self._change_events.append(change_event)
-                self._events.append(change_event)
+                self._change_events_attribute.append(change_event)
+                self._events_attribute.append(change_event)
 
                 if event["comment"] and event["comment"].strip() != "":
                     comment_event = Comment(
@@ -363,7 +445,7 @@ class Ticket:
                         visible_to_customer=event["visible_to_customer"],
                         created_at=event_created_at,
                     )
-                    self._comments.append(comment_event)
+                    self._comments_attribute.append(comment_event)
             else:
                 comment_event = Comment(
                     created_by_user=user,
@@ -371,16 +453,18 @@ class Ticket:
                     visible_to_customer=event["visible_to_customer"],
                     created_at=event_created_at,
                 )
-                self._comments.append(comment_event)
-                self._events.append(comment_event)
+                self._comments_attribute.append(comment_event)
+                self._events_attribute.append(comment_event)
 
         # Sort by datetime created.
-        self._events = sorted(self._events, key=lambda x: x.created_at, reverse=True)
-        self._change_events = sorted(
-            self._change_events, key=lambda x: x.created_at, reverse=True
+        self._events_attribute = sorted(
+            self._events_attribute, key=lambda x: x.created_at, reverse=True
         )
-        self._comments = sorted(
-            self._comments, key=lambda x: x.created_at, reverse=True
+        self._change_events_attribute = sorted(
+            self._change_events_attribute, key=lambda x: x.created_at, reverse=True
+        )
+        self._comments_attribute = sorted(
+            self._comments_attribute, key=lambda x: x.created_at, reverse=True
         )
 
         if not self.user_watchers:
@@ -389,17 +473,14 @@ class Ticket:
         # self.email_watchers = [email for email in result["data"]["email_watcher_emails"]]
 
         # Update available buttons
+        return self
 
-    def create(self) -> "Ticket":
+    async def _create(self):
         # If the ticket already exists just return.
         if self.ticket_id:
-            self._update()
-            return self
+            return await self._update()
 
         url = self._base_url + "/api/v1/tickets.json?" + self._token
-
-        # if not self.priority:
-        #     self.priority = self.config.get()["ticket-priority"]["very-low"]
 
         if not self.user_watchers:
             self.user_watchers = []
@@ -428,62 +509,111 @@ class Ticket:
             }
         }
 
-        if self.related_tickets:
-            params["ticket"]["related_tickets"] = self.related_tickets
+        params["ticket"]["related_tickets"] = await self._related_tickets()
 
-        # for custom_field in self.custom_fields:
-        #     params["ticket"][custom_field] = self.custom_fields[custom_field]
+        response = await self._request("POST", url, json=params, headers=self.headers)
 
-        response = requests.post(url, json=params, headers=self.headers)
-        # print(response.text)
-        if response.status_code != 200:
-            raise HTTPError(response.text)
-        response.raise_for_status()
+        if response["status_code"] != 200:
+            raise HTTPError(response["json"])
 
-        result = json.loads(response.text)
+        self.ticket_id = str(response["json"]["data"]["id"])
+        return await self._update()
 
-        self.ticket_id = str(result["data"]["id"])
-        self._update()
-        return self
+    async def create(self) -> "Ticket":
+        return await self._create()
+
+    async def _comments(self):
+        if not hasattr(self, "_comments_attribute"):
+            await self._update()
+        return self._comments_attribute
 
     @property
     def comments(self):
-        if not hasattr(self, "_comments"):
-            self._update()
-        return self._comments
+        # return await self._comments()
+        if self._event_loop is None:
+            self._event_loop = self._get_event_loop()
+
+        future = asyncio.ensure_future(self._comments(), loop=self._event_loop)
+        if self.run_async:
+            return future
+        return self._event_loop.run_until_complete(future)
+
+    async def _change_events(self):
+        if not hasattr(self, "_change_events_attribute"):
+            await self._update()
+        return self._change_events_attribute
 
     @property
     def change_events(self):
-        if not hasattr(self, "_change_events"):
-            self._update()
-        return self._change_events
+        if self._event_loop is None:
+            self._event_loop = self._get_event_loop()
+
+        future = asyncio.ensure_future(self._change_events(), loop=self._event_loop)
+
+        if self.run_async:
+            return future
+
+        return self._event_loop.run_until_complete(future)
+
+    async def _events(self):
+        if not hasattr(self, "_events_attribute"):
+            await self._update()
+        return self._events_attribute
 
     @property
     def events(self):
-        if not hasattr(self, "_events"):
-            self._update()
-        return self._events
+        if self._event_loop is None:
+            self._event_loop = self._get_event_loop()
+
+        future = asyncio.ensure_future(self._events(), loop=self._event_loop)
+
+        if self.run_async:
+            return future
+
+        return self._event_loop.run_until_complete(future)
+
+    async def _custom_fields(self):
+        if not hasattr(self, "_custom_fields_attribute"):
+            await self._update()
+        return self._custom_fields_attribute
 
     @property
     def custom_fields(self):
-        if not hasattr(self, "_custom_fields"):
-            self._update()
-        return self._custom_fields
+        if self._event_loop is None:
+            self._event_loop = self._get_event_loop()
+
+        future = asyncio.ensure_future(self._custom_fields(), loop=self._event_loop)
+
+        if self.run_async:
+            return future
+
+        return self._event_loop.run_until_complete(future)
+
+    async def _related_tickets(self):
+        if not hasattr(self, "_related_tickets_attribute"):
+            await self._update()
+        return self._related_tickets_attribute
 
     @property
     def related_tickets(self):
-        if not hasattr(self, "_related_tickets"):
-            self._update()
-        return self._related_tickets
+        if self._event_loop is None:
+            self._event_loop = self._get_event_loop()
+
+        future = asyncio.ensure_future(self._related_tickets(), loop=self._event_loop)
+
+        if self.run_async:
+            return future
+
+        return self._event_loop.run_until_complete(future)
 
     def add_user_watcher_by_id(self, user_id: int, update: bool = True) -> None:
         self.user_watchers.append(
             User(user_id=user_id, first_name=None, last_name=None, email=None)
         )
         if update:
-            self.update()
+            self.commit()
 
-    def update(self, comment: Optional[str] = None):
+    async def _commit(self, comment: Optional[str] = None):
         url = (
             self._base_url
             + "/api/v1/tickets/"
@@ -506,6 +636,7 @@ class Ticket:
                 "status_id": self.status.status_id,
                 "workspace_id": self.workspace_id,
                 "project_id": self.project_id,
+                "type_id": self.type.type_id,
                 "visible_to_customer": self.visible_to_customer,
             },
             "ticket_event": {"comment": None},
@@ -517,12 +648,27 @@ class Ticket:
         if comment:
             payload["ticket_event"] = {"comment": str(comment)}
 
-        response = requests.patch(url, json=payload)
-        if response.status_code != 200:
-            raise HTTPError(response.text)
-        response.raise_for_status()
+        response = await self._request("PATCH", url, headers=self.headers, json=payload)
 
-    def get(self) -> Dict[str, object]:
+        if response["status_code"] != 200:
+            raise HTTPError(response["json"])
+
+        return await self._update()
+
+    def commit(self, comment: Optional[str] = None):
+        """Commit the current state of the ticket to Client Central"""
+
+        if self._event_loop is None:
+            self._event_loop = self._get_event_loop()
+
+        future = asyncio.ensure_future(self._commit(comment), loop=self._event_loop)
+
+        if self.run_async:
+            return future
+
+        return self._event_loop.run_until_complete(future)
+
+    async def _get(self):
         url = (
             self._base_url
             + "/api/v1/tickets/"
@@ -565,17 +711,15 @@ class Ticket:
         payload = "&select="
         payload += ",".join(selection)
         payload += ",*"
-        response = requests.get(url + payload)
 
-        # print(payload)
-        # print(response.text)
+        response = await self._request("GET", url + payload)
 
-        if response.status_code != 200:
-            raise HTTPError(response.text)
-        response.raise_for_status()
-        return json.loads(response.text)
+        if response["status_code"] != 200:
+            raise HTTPError(response["json"])
 
-    def comment(self, description: str) -> None:
+        return response
+
+    async def _comment(self, description: str) -> "Ticket":
         url = (
             self._base_url
             + "/api/v1/tickets/"
@@ -593,15 +737,29 @@ class Ticket:
             "ticket_event": {"comment": str(description)},
         }
 
-        response = requests.patch(url, json=payload)
-        if response.status_code != 200:
-            raise HTTPError(response.text)
-        response.raise_for_status()
-        self._update()
+        response = await self._request("PATCH", url, headers=self.headers, json=payload)
 
-    def press_button(self, button_name: str, comment: str = None):
+        if response["status_code"] != 200:
+            raise HTTPError(response["json"])
+        return await self._update()
+
+    def comment(self, description: str) -> None:
+        if self._event_loop is None:
+            self._event_loop = self._get_event_loop()
+
+        future = asyncio.ensure_future(
+            self._comment(description), loop=self._event_loop
+        )
+
+        if self.run_async:
+            return future
+
+        result = self._event_loop.run_until_complete(future)
+        return result
+
+    async def _press_button(self, button_name: str, comment: str = None):
         if not self.available_buttons or len(self.available_buttons) == 0:
-            self._update_buttons()
+            await self._update_buttons()
 
         for button in self.available_buttons:
             if button_name == button.name:
@@ -613,41 +771,55 @@ class Ticket:
 
                 if comment:
                     params = {"comment": str(comment)}
-                response = requests.post(url, params)
-                if response.status_code != 200:
-                    raise HTTPError(response.text)
-                response.raise_for_status()
-                self._update()
+
+                response = await self._request("POST", url, json=params)
+                if response["status_code"] != 200:
+                    raise HTTPError(response["text"])
+                await self._update()
                 break
         else:
             raise ButtonNotAvailable("This button is currently not active!")
 
-    def bump_priority_up(self):
-        changed = False
-        # Current priority + 1
-        if self.priority == 33:
-            self.priority = 4
-            changed = True
-        elif self.priority - 1 >= 1:
-            self.priority = self.priority - 1
-            changed = True
+    def press_button(self, button_name: str, comment: str = None):
+        if self._event_loop is None:
+            self._event_loop = self._get_event_loop()
 
-        if changed:
-            self.update()
+        future = asyncio.ensure_future(
+            self._press_button(button_name, comment), loop=self._event_loop
+        )
 
-    def bump_priority_down(self):
-        changed = False
+        if self.run_async:
+            return future
 
-        # low priority
-        if self.priority + 1 <= 4:
-            self.priority = self.priority + 1
-            changed = True
-        elif self.priority == 4:
-            self.priority = 33
-            changed = True
+        result = self._event_loop.run_until_complete(future)
+        return result
 
-        if changed:
-            self.update()
+    # def bump_priority_up(self):
+    #     changed = False
+    #     # Current priority + 1
+    #     if self.priority == 33:
+    #         self.priority = 4
+    #         changed = True
+    #     elif self.priority - 1 >= 1:
+    #         self.priority = self.priority - 1
+    #         changed = True
+    #
+    #     if changed:
+    #         self.commit()
+    #
+    # def bump_priority_down(self):
+    #     changed = False
+    #
+    #     # low priority
+    #     if self.priority + 1 <= 4:
+    #         self.priority = self.priority + 1
+    #         changed = True
+    #     elif self.priority == 4:
+    #         self.priority = 33
+    #         changed = True
+    #
+    #     if changed:
+    #         self.commit()
 
     def _build_url(self, button):
         url = (
@@ -665,8 +837,17 @@ class Ticket:
         soup = BeautifulSoup(str(self.description), features="html.parser")
         return soup.get_text()
 
-
     def get_human_url(self):
         if self._production:
             return "https://clientcentral.io/support/tickets/" + str(self.ticket_id)
         return "https://qa-cc.labs.epiuse.com/support/tickets/" + str(self.ticket_id)
+
+    def _get_event_loop(self):
+        """Retrieves the event loop or creates a new one."""
+        try:
+            return asyncio.get_event_loop()
+        except RuntimeError:
+            # print("CREATED LOOP")
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            return loop

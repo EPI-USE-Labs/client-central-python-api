@@ -1,5 +1,7 @@
 import pytest
 
+import asyncio
+
 from clientcentral.clientcentral import ClientCentral
 from clientcentral.model.Status import Status
 from clientcentral.Exceptions import (
@@ -47,7 +49,6 @@ def test_get_user_by_id():
     print(user)
 
 
-
 def test_create_ticket():
     subj = "[Test-Ticket]"
     desc = "<h1>This is a test ticket. Please ignore</h1>"
@@ -58,7 +59,7 @@ def test_create_ticket():
         description=desc,
         project_id=8,
         workspace_id=141,
-        # assignee="User:14012",
+        type_id=8,
         priority=33,
         custom_fields_attributes=[{"id": 17, "values": 0}, {"id": 75, "values": 363}],
     )
@@ -68,6 +69,8 @@ def test_create_ticket():
     # 1 -> SAP SID
     # 2 -> Category [363 -> Other]
 
+    assert ticket.run_async == False
+
     assert ticket.workspace_id == 141
     assert ticket.project_id == 8
 
@@ -75,36 +78,26 @@ def test_create_ticket():
     assert ticket.subject == subj
     # assert ticket.sid == sid
     assert ticket.custom_fields["ms_category"]["id"] == 363
-    assert ticket.owner.user_id == cc.config.get()["user_ids"]["thomas-scholtz"]
-    # assert ticket.assignee == "User:" + str(cc.config.get()["user_ids"]["thomas-scholtz"])
-    assert ticket.creator.user_id == cc.config.get()["user_ids"]["thomas-scholtz"]
-    assert ticket.status.status_id == cc.config.get()["ticket-status"]["new"]
+    assert ticket.owner.user_id == 14012  # Thomas Scholtz
+    assert ticket.creator.user_id == 14012  # Thomas Scholtz
+    assert ticket.status.status_id == 1  # New
     assert ticket.status.name == "New"
     assert ticket.status.open == True
     assert ticket.status.closed == False
-    assert ticket.priority == cc.config.get()["ticket-priority"]["very-low"]
+    assert ticket.priority == 33  # Very low
 
     pytest.ticket_id = ticket.ticket_id
 
 
-# def test_update_ticket_with_null_visible_to_customer():
-#     ticket = cc.get_ticket_by_id(pytest.ticket_id)
-#     ticket.visible_to_customer = None
-#     print(ticket.visible_to_customer)
-#     ticket.comment("test")
-#     ticket.update()
-#     raise Exception
-
 def test_human_url():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
     assert str(ticket.ticket_id) in ticket.get_human_url()
-    # print(ticket.get_human_url())
-    # raise Exception
+
 
 def test_update_ticket():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
     ticket.description = "<p>update desc 3</p>"
-    ticket.update()
+    ticket.commit()
     assert ticket.get_text_description() == "update desc 3"
     assert ticket.description == "<p>update desc 3</p>"
 
@@ -125,11 +118,11 @@ def test_comment():
         for change in change_event.changes:
             print(
                 "Changed: "
-                + change.name
+                + str(change.name)
                 + " from: "
-                + change.from_value
+                + str(change.from_value)
                 + " to: "
-                + change.to_value
+                + str(change.to_value)
                 + " at: "
                 + change_event.created_at.strftime("%B %d, %Y %M %F %s")
             )
@@ -148,69 +141,61 @@ def test_set_priority():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
 
     ticket.priority = 1
-    ticket.update()
+    ticket.commit()
     ticket.refresh()
 
     assert ticket.priority == 1
 
     ticket.priority = 33
-    ticket.update()
+    ticket.commit()
     ticket.refresh()
 
     assert ticket.priority == 33
 
 
-def test_bump_priority():
-    ticket = cc.get_ticket_by_id(pytest.ticket_id)
-
-    ticket.bump_priority_up()
-    ticket.bump_priority_up()
-    ticket.bump_priority_up()
-    ticket.bump_priority_up()
-    ticket.bump_priority_up()
-    ticket.bump_priority_up()
-    assert ticket.priority == 1
-
-    ticket.bump_priority_down()
-    ticket.bump_priority_down()
-    ticket.bump_priority_down()
-    ticket.bump_priority_down()
-    ticket.bump_priority_down()
-    ticket.bump_priority_down()
-    assert ticket.priority == 33
+# def test_bump_priority():
+#     ticket = cc.get_ticket_by_id(pytest.ticket_id)
+#
+#     ticket.bump_priority_up()
+#     ticket.bump_priority_up()
+#     ticket.bump_priority_up()
+#     ticket.bump_priority_up()
+#     ticket.bump_priority_up()
+#     ticket.bump_priority_up()
+#     assert ticket.priority == 1
+#
+#     ticket.bump_priority_down()
+#     ticket.bump_priority_down()
+#     ticket.bump_priority_down()
+#     ticket.bump_priority_down()
+#     ticket.bump_priority_down()
+#     ticket.bump_priority_down()
+#     assert ticket.priority == 33
 
 
 def test_grab():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
     ticket.press_button("Grab")
-    assert ticket.assignee == "User:" + str(
-        cc.config.get()["user_ids"]["thomas-scholtz"]
-    )
-    assert ticket.status.status_id == cc.config.get()["ticket-status"]["in-progress"]
+    assert ticket.assignee == "User:" + str(14012)  # Thomas Scholtz
+    assert ticket.status.status_id == 2  # In progress
     assert ticket.status.name == "In progress"
     assert ticket.change_events[0].changes[1].name == "status"
-    assert ticket.change_events[0].changes[1].to_value == str(
-        cc.config.get()["ticket-status"]["in-progress"]
-    )
+    assert ticket.change_events[0].changes[1].to_value == str(2)
 
 
 def test_suggest_solution():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
     ticket.press_button("Suggest solution", "<p>sol</p>")
-    assert (
-        ticket.status.status_id == cc.config.get()["ticket-status"]["suggest-solution"]
-    )
+    assert ticket.status.status_id == 8  # Suggest solution
 
     assert ticket.change_events[0].changes[0].name == "status"
-    assert ticket.change_events[0].changes[0].to_value == str(
-        cc.config.get()["ticket-status"]["suggest-solution"]
-    )
+    assert ticket.change_events[0].changes[0].to_value == str(8)  # Suggest solution
 
 
 def test_comment_and_update():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
     ticket.description = "<p>update desc 2</p>"
-    ticket.update("comment and update")
+    ticket.commit("comment and update")
     ticket.refresh()
     assert ticket.description == "<p>update desc 2</p>"
     assert ticket.get_text_description() == "update desc 2"
@@ -237,14 +222,10 @@ def test_decline_solution():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
     ticket.press_button("Decline", "<p>decline</p>")
 
-    assert ticket.status.status_id == cc.config.get()["ticket-status"]["in-progress"]
+    assert ticket.status.status_id == 2  # In progress
     assert ticket.change_events[0].changes[0].name == "status"
-    assert ticket.change_events[0].changes[0].from_value == str(
-        cc.config.get()["ticket-status"]["suggest-solution"]
-    )
-    assert ticket.change_events[0].changes[0].to_value == str(
-        cc.config.get()["ticket-status"]["in-progress"]
-    )
+    assert ticket.change_events[0].changes[0].from_value == str(8)  # Suggest solution
+    assert ticket.change_events[0].changes[0].to_value == str(2)  # In progress
 
 
 def test_lazy_load_get_by_id():
@@ -276,19 +257,19 @@ def test_lazy_load():
     assert ticket.status.open == True
     assert ticket.status.closed == False
 
-    assert hasattr(ticket, "_comments") == False
-    assert hasattr(ticket, "_change_events") == False
-    assert hasattr(ticket, "_events") == False
-    assert hasattr(ticket, "_custom_fields") == False
-    assert hasattr(ticket, "_available_buttons") == False
+    assert hasattr(ticket, "_comments_attribute") == False
+    assert hasattr(ticket, "_change_events_attribute") == False
+    assert hasattr(ticket, "_events_attribute") == False
+    assert hasattr(ticket, "_custom_fields_attribute") == False
+    assert hasattr(ticket, "_available_buttons_attribute") == False
 
     ticket.comments
 
-    assert hasattr(ticket, "_comments") == True
-    assert hasattr(ticket, "_change_events") == True
-    assert hasattr(ticket, "_events") == True
-    assert hasattr(ticket, "_custom_fields") == True
-    assert hasattr(ticket, "_available_buttons") == True
+    assert hasattr(ticket, "_comments_attribute") == True
+    assert hasattr(ticket, "_change_events_attribute") == True
+    assert hasattr(ticket, "_events_attribute") == True
+    assert hasattr(ticket, "_custom_fields_attribute") == True
+    assert hasattr(ticket, "_available_buttons_attribute") == True
 
     assert "<" not in ticket.comments[0].get_comment_text()
     assert ">" not in ticket.comments[0].get_comment_text()
@@ -317,7 +298,7 @@ def test_cancel():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
     ticket.press_button("Cancel ticket", "<p>close</p>")
 
-    assert ticket.status.status_id == cc.config.get()["ticket-status"]["cancelled"]
+    assert ticket.status.status_id == 12  # Cancelled
 
 
 def test_add_user_watcher():
@@ -334,9 +315,10 @@ def test_add_user_watcher():
 
 def test_assignee_user_by_id():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
-    ticket.assignee = 12
-    ticket.update()
-    assert ticket.assignee == 12
+    assert ticket.assignee == "User:14012"
+    ticket.assignee = "User:14012"
+    ticket.commit()
+    assert ticket.assignee == "User:14012"
 
 
 def test_create_related_ticket():
@@ -348,6 +330,7 @@ def test_create_related_ticket():
         subject=subj,
         description=desc,
         project_id=8,
+        type_id=8,
         workspace_id=141,
         priority=33,
         custom_fields_attributes=[{"id": 17, "values": 0}, {"id": 75, "values": 363}],
@@ -362,13 +345,13 @@ def test_create_related_ticket():
     assert ticket.subject == subj
     # assert ticket.sid == sid
     assert ticket.custom_fields["ms_category"]["id"] == 363
-    assert ticket.owner.user_id == cc.config.get()["user_ids"]["thomas-scholtz"]
-    assert ticket.creator.user_id == cc.config.get()["user_ids"]["thomas-scholtz"]
-    assert ticket.status.status_id == cc.config.get()["ticket-status"]["new"]
+    assert ticket.owner.user_id == 14012  # Thomas Scholtz
+    assert ticket.creator.user_id == 14012  # Thomas Scholtz
+    assert ticket.status.status_id == 1  # New
     assert ticket.status.name == "New"
     assert ticket.status.open == True
     assert ticket.status.closed == False
-    assert ticket.priority == cc.config.get()["ticket-priority"]["very-low"]
+    assert ticket.priority == 33  # Very low
 
     pytest.ticket_id_related = ticket.ticket_id
 
@@ -379,11 +362,11 @@ def test_create_related_ticket():
     assert orig_ticket.related_tickets[0] == int(ticket.ticket_id)
     assert ticket.related_tickets[0] == int(orig_ticket.ticket_id)
 
-    ticket.update()
+    ticket.commit()
     assert orig_ticket.related_tickets[0] == int(ticket.ticket_id)
     assert ticket.related_tickets[0] == int(orig_ticket.ticket_id)
     ticket.status = Status("12")
-    ticket.update()
+    ticket.commit()
 
 
 # def test_create_ticket_on_different_workspace():
@@ -409,7 +392,7 @@ def test_create_related_ticket():
 #
 #     # pytest.ticket_id = ticket.ticket_id
 #     ticket.status = cc.config.get()["ticket-status"]["cancelled"]
-#     ticket.update()
+#     ticket.commit()
 #
 #     assert ticket.status == cc.config.get()["ticket-status"]["cancelled"]
 
@@ -418,7 +401,7 @@ def test_create_related_ticket():
 def close_cancel():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
     print("teardown ticket")
-    ticket.status = cc.config.get()["ticket-status"]["cancelled"]
-    ticket.update()
+    ticket.status = 12  # Cancelled
+    ticket.commit()
     assert ticket.status.open == False
     assert ticket.status.closed == True

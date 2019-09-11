@@ -1,5 +1,6 @@
 Chronyk
-requests
+aiohttp
+ujson
 pytest
 PyYAML
 beautifulsoup4
