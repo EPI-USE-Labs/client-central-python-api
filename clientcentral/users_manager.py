@@ -12,8 +12,11 @@ from clientcentral.model.User import User
 
 HEADERS = {"Content-Type": "application/json", "Accept": "application/json"}
 
+
 class UsersManager:
-    def __init__(self, base_url: str, token: str, production: bool, session = None, event_loop = None) -> None:
+    def __init__(
+        self, base_url: str, token: str, production: bool, session=None, event_loop=None
+    ) -> None:
         self._base_url = base_url
         self._token = token
         self.production = production
@@ -39,7 +42,9 @@ class UsersManager:
             headers = HEADERS
 
         if not self.session or self.session.closed:
-            self.session = aiohttp.ClientSession(loop=self._event_loop, json_serialize=ujson.dumps)
+            self.session = aiohttp.ClientSession(
+                loop=self._event_loop, json_serialize=ujson.dumps
+            )
 
         async with self.session.request(
             http_verb, url, headers=headers, json=json

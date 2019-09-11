@@ -9,12 +9,20 @@ import asyncio
 
 from clientcentral.Exceptions import HTTPError
 from clientcentral.model.Role import Role
+from clientcentral.model.User import User
 
 HEADERS = {"Content-Type": "application/json", "Accept": "application/json"}
 
 
 class Roles:
-    def __init__(self, base_url: str, token: str, production: bool, session = None, event_loop = None) -> None:
+    def __init__(
+        self,
+        base_url: str,
+        token: str,
+        production: bool,
+        session: Optional[aiohttp.ClientSession] = None,
+        event_loop: Optional[asyncio.AbstractEventLoop] = None,
+    ) -> None:
         self._base_url = base_url
         self._token = token
         self.production = production
@@ -40,7 +48,9 @@ class Roles:
             headers = HEADERS
 
         if not self.session or self.session.closed:
-            self.session = aiohttp.ClientSession(loop=self._event_loop, json_serialize=ujson.dumps)
+            self.session = aiohttp.ClientSession(
+                loop=self._event_loop, json_serialize=ujson.dumps
+            )
 
         async with self.session.request(
             http_verb, url, headers=headers, json=json
@@ -80,13 +90,13 @@ class Roles:
 
         if response["status_code"] != 200:
             raise HTTPError(response["json"])
-        result = response["json"]
+        result: List[Dict[str, str]] = response["json"]
 
         self._roles = list()
 
         for role in result:
             # Create new role object
-            role_users = []
+            role_users: List[User] = []
 
             for user in role["users"]:
                 role_users.append(user["id"])

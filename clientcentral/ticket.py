@@ -212,7 +212,9 @@ class Ticket(object):
             headers = self.headers
 
         if not self.session or self.session.closed:
-            self.session = aiohttp.ClientSession(loop=self._event_loop, json_serialize=ujson.dumps)
+            self.session = aiohttp.ClientSession(
+                loop=self._event_loop, json_serialize=ujson.dumps
+            )
 
         async with self.session.request(
             http_verb, url, headers=headers, json=json

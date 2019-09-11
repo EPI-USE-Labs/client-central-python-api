@@ -3,8 +3,6 @@
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
-![works on my machine](https://i.ibb.co/NVNQhDG/68747470733a2f2f692e696d6775722e636f6d2f4c5a6f363162712e6a7067.jpg)
-
 # Install
 ```bash
 pip install --user git+https://git.labs.epiuse.com/SWAT/clientcentral-api-python.git

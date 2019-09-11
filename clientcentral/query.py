@@ -1,5 +1,6 @@
-# query().filter_by(Comparison("created_by_user.name", "=", "name"))
-import json
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 from datetime import datetime
 from typing import List
 
@@ -15,6 +16,7 @@ from clientcentral.ticket import Ticket
 
 HEADERS = {"Content-Type": "application/json", "Accept": "application/json"}
 
+
 class QueryTickets:
     _query: str
 
@@ -23,7 +25,9 @@ class QueryTickets:
 
     production: bool = False
 
-    def __init__(self, base_url: str, token: str, production: bool, session = None, event_loop = None) -> None:
+    def __init__(
+        self, base_url: str, token: str, production: bool, session=None, event_loop=None
+    ) -> None:
         self._query = ""
         self.base_url = base_url
         self.token = token
@@ -49,7 +53,9 @@ class QueryTickets:
             headers = HEADERS
 
         if not self.session or self.session.closed:
-            self.session = aiohttp.ClientSession(loop=self._event_loop)
+            self.session = aiohttp.ClientSession(
+                loop=self._event_loop, json_serialize=ujson.dumps
+            )
 
         async with self.session.request(
             http_verb, url, headers=headers, json=json
@@ -168,7 +174,7 @@ class QueryTickets:
                         for user in ticket_in_data["user_watchers"]
                     ],
                     priority=ticket_in_data["priority"]["id"],
-                    session=self.session
+                    session=self.session,
                 )
                 if ticket_in_data["assignee"]:
                     ticket.assignee = ticket_in_data["assignee"]["id"]
@@ -176,7 +182,9 @@ class QueryTickets:
 
             # print("PAGE: " + str(page + 1))
 
-            future = asyncio.ensure_future(self._request("GET", url + "&page=" + str(page + 1) + payload))
+            future = asyncio.ensure_future(
+                self._request("GET", url + "&page=" + str(page + 1) + payload)
+            )
             response = self._event_loop.run_until_complete(future)
 
             # response = requests.get(url + "&page=" + str(page + 1) + payload)
