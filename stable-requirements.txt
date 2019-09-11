@@ -1,6 +1,4 @@
-requests==2.22.0
-pytest==5.0.1
-setuptools==40.8.0
 beautifulsoup4==4.8.0
 typing==3.7.4
-PyYAML==5.1.2
+aiohttp==3.5.4
+ujson==1.35

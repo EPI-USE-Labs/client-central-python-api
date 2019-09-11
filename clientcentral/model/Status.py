@@ -6,7 +6,7 @@ class Status:
     name: str
     open: bool
 
-    def __init__(self, status_id: str, open = True, name: Optional[str] = None):
+    def __init__(self, status_id: str, open=True, name: Optional[str] = None):
         self.status_id = status_id
         self.name = name
         self.open = open

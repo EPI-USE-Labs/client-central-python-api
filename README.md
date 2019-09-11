@@ -34,26 +34,10 @@ The token that will be used can either be sent as an environement variable:
 ```bash
 CC_TOKEN=<TOKEN> python3 main.py
 ```
-Or the token can be set in the corresponding config file:
-```bash
-prod.yaml
-qa.yaml
+or parsed to the constructor:
+```python
+cc = ClientCentral(production=True, token="123")
 ```
-The token field should just be set, for example in `prod.yaml`:
-```yaml
-base-url: "https://clientcentral.io"
-token: "<MYSECRETETOKEN>"
-button-ids:
-  reassign-to-self: 187
-```
-The `prod.yaml` and `qa.yaml` files override the `prod_template.yaml` and `qa_template.yaml` configuration files.
-
-The previous example will override the `base-url`, you can use this if you want to run your own Client Central Instance.
-This example also overrides the `button-ids`:`reassign-to-self` to `187`
-
-You can view the template files here:
-- [qa_template.yaml](clientcentral/qa_template.yaml)
-- [prod_template.yaml](clientcentral/prod_template.yaml)
 
 # Example usage
 
@@ -97,7 +81,7 @@ ticket.add_user_watcher(14012) # 14012 refers to the user id in this case its "T
 ticket.description = "New and improved ticket description"
 
 # Finally after making all changes commit them.
-ticket.update()
+ticket.commit()
 
 for comment in ticket.comments:
     if comment.created_by_user:

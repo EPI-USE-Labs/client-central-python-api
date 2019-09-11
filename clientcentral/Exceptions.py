@@ -8,3 +8,7 @@ class ButtonNotAvailable(Exception):
 
 class ButtonRequiresComment(Exception):
     pass
+
+
+class NoTokenProvided(Exception):
+    pass
