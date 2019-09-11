@@ -40,8 +40,8 @@ setup(
     setup_requires=setup_requirements,
     test_suite='tests',
     tests_require=test_requirements,
-    url='https://git.labs.epiuse.com:SWAT/clientcentral-api-python.git',
+    url='https://github.com/EPI-USE-Labs/client-central-python-api',
     version='8.0.0',
     zip_safe=False,
-    data_files=[('.', ['clientcentral/prod_template.yaml','clientcentral/qa_template.yaml'])]
+    data_files=[('.', [])]
 )
