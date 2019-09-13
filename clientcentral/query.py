@@ -88,11 +88,11 @@ class QueryTickets:
             "created_by_user.job_title",
             "created_by_user.first_name",
             "created_by_user.last_name",
-            # "user_watchers.email",
-            # "user_watchers.first_name",
-            # "user_watchers.last_name",
-            # "user_watchers.title",
-            # "user_watchers.job_title",
+            "user_watchers.email",
+            "user_watchers.first_name",
+            "user_watchers.last_name",
+            "user_watchers.title",
+            "user_watchers.job_title",
         ]
 
         payload += "&select="
