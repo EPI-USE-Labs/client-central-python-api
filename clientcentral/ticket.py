@@ -24,6 +24,8 @@ from clientcentral.model.TicketEvent import TicketEvent
 from clientcentral.model.TicketType import TicketType
 from clientcentral.model.User import User
 
+HEADERS = {"Content-Type": "application/json", "Accept": "application/json"}
+
 
 class Ticket(object):
     _production: bool = False
@@ -60,8 +62,6 @@ class Ticket(object):
     assignee = None
 
     button_ids = None
-
-    headers = {"Content-Type": "application/json", "Accept": "application/json"}
 
     def __init__(
         self,
@@ -183,8 +183,9 @@ class Ticket(object):
         )
         self._event_loop = self._get_event_loop()
 
-        if not self.session:
-            self.session = aiohttp.ClientSession(loop=self._event_loop)
+        self.session = session
+        # if not self.session:
+        #     self.session = aiohttp.ClientSession(loop=self._event_loop)
 
         if self.ticket_id and not self.created_at and not self.updated_at:
             await self._update()
@@ -205,25 +206,33 @@ class Ticket(object):
 
     async def _request(self, http_verb, url, json=None, headers=None):
         """Submit the HTTP request with the running session or a new session."""
-
         self._net_calls += 1
 
         if not headers:
-            headers = self.headers
+            headers = HEADERS
 
-        if not self.session or self.session.closed:
-            self.session = aiohttp.ClientSession(
-                loop=self._event_loop, json_serialize=ujson.dumps
-            )
+        if self.session and not self.session.closed:
+            async with self.session.request(
+                http_verb, url, headers=headers, json=json
+            ) as resp:
+                return {
+                    "json": await resp.json(),
+                    "headers": resp.headers,
+                    "status_code": resp.status,
+                }
 
-        async with self.session.request(
-            http_verb, url, headers=headers, json=json
-        ) as resp:
-            return {
-                "json": await resp.json(),
-                "headers": resp.headers,
-                "status_code": resp.status,
-            }
+        async with aiohttp.ClientSession(
+            loop=self._event_loop, json_serialize=ujson.dumps
+        ) as session:
+            self.session = session
+            async with self.session.request(
+                http_verb, url, headers=headers, json=json
+            ) as resp:
+                return {
+                    "json": await resp.json(),
+                    "headers": resp.headers,
+                    "status_code": resp.status,
+                }
 
     async def _update_buttons(self):
         url = (
@@ -234,7 +243,7 @@ class Ticket(object):
             + self._token
         )
 
-        response = await self._request("GET", url, headers=self.headers)
+        response = await self._request("GET", url)
         if response["status_code"] != 200:
             raise HTTPError(response["json"])
 
@@ -511,7 +520,7 @@ class Ticket(object):
 
         params["ticket"]["related_tickets"] = await self._related_tickets()
 
-        response = await self._request("POST", url, json=params, headers=self.headers)
+        response = await self._request("POST", url, json=params)
 
         if response["status_code"] != 200:
             raise HTTPError(response["json"])
@@ -648,7 +657,7 @@ class Ticket(object):
         if comment:
             payload["ticket_event"] = {"comment": str(comment)}
 
-        response = await self._request("PATCH", url, headers=self.headers, json=payload)
+        response = await self._request("PATCH", url, json=payload)
 
         if response["status_code"] != 200:
             raise HTTPError(response["json"])
@@ -737,7 +746,7 @@ class Ticket(object):
             "ticket_event": {"comment": str(description)},
         }
 
-        response = await self._request("PATCH", url, headers=self.headers, json=payload)
+        response = await self._request("PATCH", url, json=payload)
 
         if response["status_code"] != 200:
             raise HTTPError(response["json"])

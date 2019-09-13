@@ -14,6 +14,8 @@ from clientcentral.Exceptions import NoTokenProvided
 
 import os
 import asyncio
+import aiohttp
+import ujson
 
 
 class ClientCentral:
@@ -53,7 +55,14 @@ class ClientCentral:
 
         self.run_async = run_async
         self._event_loop = self._get_event_loop()
-        self.session = None
+        future = asyncio.ensure_future(self._create_session(), loop=self._event_loop)
+        self._event_loop.run_until_complete(future)
+
+    async def _create_session(self):
+        async with aiohttp.ClientSession(
+            loop=self._event_loop, json_serialize=ujson.dumps
+        ) as session:
+            self.session = session
 
     def _get_event_loop(self):
         """Retrieves the event loop or creates a new one."""
@@ -65,7 +74,7 @@ class ClientCentral:
             return loop
 
     def query_tickets(self) -> QueryTickets:
-        q = QueryTickets(self.base_url, self.token, self.production)
+        q = QueryTickets(self.base_url, self.token, self.production, self.session)
         return q
 
     def get_ticket_by_id(self, ticket_id: str) -> Ticket:
@@ -168,7 +177,7 @@ class ClientCentral:
     def get_users_manager(self) -> UsersManager:
         if not hasattr(self, "_users_manager"):
             self._users_manager = UsersManager(
-                self.base_url, self.token, self.production
+                self.base_url, self.token, self.production, self.session
             )
         return self._users_manager
 
@@ -176,5 +185,7 @@ class ClientCentral:
         # Call roles API
         # Going to change in next CC prod.
         if not hasattr(self, "_roles"):
-            self._roles = Roles(self.base_url, self.token, self.production)
+            self._roles = Roles(
+                self.base_url, self.token, self.production, self.session
+            )
         return self._roles

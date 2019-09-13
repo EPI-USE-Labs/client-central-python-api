@@ -35,25 +35,33 @@ class UsersManager:
 
     async def _request(self, http_verb, url, json=None, headers=None):
         """Submit the HTTP request with the running session or a new session."""
-
         self._net_calls += 1
 
         if not headers:
             headers = HEADERS
 
-        if not self.session or self.session.closed:
-            self.session = aiohttp.ClientSession(
-                loop=self._event_loop, json_serialize=ujson.dumps
-            )
+        if self.session and not self.session.closed:
+            async with self.session.request(
+                http_verb, url, headers=headers, json=json
+            ) as resp:
+                return {
+                    "json": await resp.json(),
+                    "headers": resp.headers,
+                    "status_code": resp.status,
+                }
 
-        async with self.session.request(
-            http_verb, url, headers=headers, json=json
-        ) as resp:
-            return {
-                "json": await resp.json(),
-                "headers": resp.headers,
-                "status_code": resp.status,
-            }
+        async with aiohttp.ClientSession(
+            loop=self._event_loop, json_serialize=ujson.dumps
+        ) as session:
+            self.session = session
+            async with self.session.request(
+                http_verb, url, headers=headers, json=json
+            ) as resp:
+                return {
+                    "json": await resp.json(),
+                    "headers": resp.headers,
+                    "status_code": resp.status,
+                }
 
     def get_user_by_id(self, user_id: int) -> User:
         url = self._base_url + "/api/v1/users/" + str(user_id) + ".json?" + self._token

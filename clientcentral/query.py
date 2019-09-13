@@ -52,19 +52,28 @@ class QueryTickets:
         if not headers:
             headers = HEADERS
 
-        if not self.session or self.session.closed:
-            self.session = aiohttp.ClientSession(
-                loop=self._event_loop, json_serialize=ujson.dumps
-            )
+        if self.session and not self.session.closed:
+            async with self.session.request(
+                http_verb, url, headers=headers, json=json
+            ) as resp:
+                return {
+                    "json": await resp.json(),
+                    "headers": resp.headers,
+                    "status_code": resp.status,
+                }
 
-        async with self.session.request(
-            http_verb, url, headers=headers, json=json
-        ) as resp:
-            return {
-                "json": await resp.json(),
-                "headers": resp.headers,
-                "status_code": resp.status,
-            }
+        async with aiohttp.ClientSession(
+            loop=self._event_loop, json_serialize=ujson.dumps
+        ) as session:
+            self.session = session
+            async with self.session.request(
+                http_verb, url, headers=headers, json=json
+            ) as resp:
+                return {
+                    "json": await resp.json(),
+                    "headers": resp.headers,
+                    "status_code": resp.status,
+                }
 
     def filter_by(self, arg: str) -> "QueryTickets":
         self._query = "&filter=" + str(arg)
