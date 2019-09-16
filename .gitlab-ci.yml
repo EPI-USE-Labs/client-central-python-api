@@ -54,8 +54,11 @@ release:
     - git push origin master
     - rm -rf dist
     - touch ~/.pypirc
-    - echo "${PYPI_USER}" >> ~/.pypirc
-    - echo "${PYPI_PASSWORD}" >> ~/.pypirc
+    - echo "[distutils]" >> ~/.pypirc
+    - echo "index-servers=pypi" >> ~/.pypirc
+    - echo "[pypi]" >> ~/.pypirc
+    - echo "username: ${PYPI_USER}" >> ~/.pypirc
+    - echo "password: ${PYPI_PASSWORD}" >> ~/.pypirc
     - python3 setup.py check sdist bdist  # This will fail if your creds are bad.
     - python3 setup.py sdist bdist_wheel
     - twine upload --repository-url https://upload.pypi.org/legacy/ dist/*
