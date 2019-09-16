@@ -36,7 +36,8 @@ release:
     - ssh-add <(echo "$DEPLOY_KEY")
 
   script:
-    - pip install bump2version, twine
+    - pip install bump2version
+    - pip install twine
     - npm install -g semantic-release
     - npm install -g "@semantic-release/gitlab-config"
     - npm install -g "@semantic-release/gitlab"
