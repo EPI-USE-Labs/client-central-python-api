@@ -5,20 +5,20 @@
 
 # Install
 ```bash
-pip install --user git+https://git.labs.epiuse.com/SWAT/clientcentral-api-python.git
+pip install clientcentral --user
 ```
 # Upgrading
 ```bash
-pip install --user --upgrade git+https://git.labs.epiuse.com/SWAT/clientcentral-api-python.git
+pip install --user --upgrade clientcentral
 ```
 
 A specific version can also be installed by adding the tag:
 ```bash
-pip install --user --upgrade git+https://git.labs.epiuse.com/SWAT/clientcentral-api-python.git@v1.1.0
+pip install --user --upgrade clientcentral==8.0.1
 ```
 
 # Requirements
-This library was built and tested on `Python 3.7.3` a minimal Python version of `Python 3.6.x` is required.
+This library was built and tested on `Python 3.7.4` a minimal Python version of `Python 3.6.x` is required.
 
 `Python 2` is not supported.
 

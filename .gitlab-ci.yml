@@ -55,6 +55,5 @@ release:
     - git merge $(cat release.txt)
     - git push origin master
     - rm -rf dist
-    - python3 setup.py check sdist bdist  # This will fail if your creds are bad.
-    - python3 setup.py sdist bdist_wheel
+    - python3 setup.py sdist
     - twine upload --repository-url https://upload.pypi.org/legacy/ dist/*

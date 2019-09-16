@@ -4,6 +4,7 @@
 """The setup script."""
 
 from setuptools import setup, find_packages
+import os
 
 with open('README.md') as readme_file:
     readme = readme_file.read()
@@ -15,6 +16,11 @@ with open('stable-requirements.txt') as f:
 setup_requirements = ['pytest-runner', ]
 
 test_requirements = ['pytest', ]
+
+if os.environ.get('CI_COMMIT_TAG'):
+    version = os.environ['CI_COMMIT_TAG']
+else:
+    version = os.environ['CI_JOB_ID']
 
 setup(
     author="Thomas Scholtz",
@@ -42,7 +48,7 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/EPI-USE-Labs/client-central-python-api',
-    version='8.0.1',
+    version=version,
     zip_safe=False,
     data_files=[('.', [])]
 )
