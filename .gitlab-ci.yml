@@ -6,18 +6,17 @@ services:
   - docker:dind
 
 stages:
-- static_analysis
 - test
 - release
 
 analysis:
   image: nikolaik/python-nodejs
-  stage: static_analysis
+  stage: test
   script:
     - pip install bandit
     - bandit -r clientcentral/
 
-test:
+pytest:
   image: nikolaik/python-nodejs
   stage: test
   script:
