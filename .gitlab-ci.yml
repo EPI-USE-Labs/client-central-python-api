@@ -39,6 +39,7 @@ release:
   script:
     - pip install bump2version
     - pip install twine
+    - pip install setuptools
     - npm install -g semantic-release
     - npm install -g "@semantic-release/gitlab-config"
     - npm install -g "@semantic-release/gitlab"
