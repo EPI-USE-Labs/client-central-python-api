@@ -1,5 +1,5 @@
 # clientcentral-api-python
-[![version](https://img.shields.io/badge/version-8.0.1-green.svg)]()
+[![version](https://img.shields.io/badge/version-8.0.2-green.svg)]()
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
@@ -14,7 +14,7 @@ pip install --user --upgrade clientcentral
 
 A specific version can also be installed by adding the tag:
 ```bash
-pip install --user --upgrade clientcentral==8.0.1
+pip install --user --upgrade clientcentral==8.0.2
 ```
 
 # Requirements
