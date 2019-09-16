@@ -12,7 +12,7 @@
         {
           "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}",
           "prepareCmd": "bump2version --new-version ${nextRelease.version} patch",
-          "successCmd": "echo \"v${nextRelease.version}\" > release.txt"
+          "successCmd": "echo \"v${nextRelease.version}\" > release.txt; bash publish.sh;"
         }
       ]
     ]
