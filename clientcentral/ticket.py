@@ -87,6 +87,7 @@ class Ticket(object):
         visible_to_customer: bool = False,
         session=None,
         run_async: bool = False,
+        account_vp: Optional[int] = 1
     ) -> None:
 
         self.description = description
@@ -124,6 +125,8 @@ class Ticket(object):
 
         self.priority = priority
 
+        self.account_vp = account_vp
+
         self.run_async = run_async
         self.session = session
 
@@ -153,33 +156,35 @@ class Ticket(object):
         priority: Optional[int] = None,
         assignee: Optional[str] = None,
         related_tickets: Optional[List[int]] = None,
+        account_vp: Optional[int] = 1,
         visible_to_customer: bool = False,
         session=None,
         run_async: bool = False,
     ):
         self = Ticket(
-            base_url,
-            token,
-            ticket_id,
-            production,
-            workspace_id,
-            project_id,
-            custom_fields_attributes,
-            ticket_type,
-            created_at,
-            updated_at,
-            status,
-            description,
-            subject,
-            owner,
-            creator,
-            user_watchers,
-            priority,
-            assignee,
-            related_tickets,
-            visible_to_customer,
-            session,
-            run_async,
+            base_url=base_url,
+            token=token,
+            ticket_id=ticket_id,
+            production=production,
+            workspace_id=workspace_id,
+            project_id=project_id,
+            custom_fields_attributes=custom_fields_attributes,
+            ticket_type=ticket_type,
+            created_at=created_at,
+            updated_at=updated_at,
+            status=status,
+            description=description,
+            subject=subject,
+            owner=owner,
+            creator=creator,
+            user_watchers=user_watchers,
+            priority=priority,
+            assignee=assignee,
+            related_tickets=related_tickets,
+            visible_to_customer=visible_to_customer,
+            session=session,
+            run_async=run_async,
+            account_vp=account_vp,
         )
         self._event_loop = self._get_event_loop()
 
@@ -327,6 +332,7 @@ class Ticket(object):
             result["data"]["updated_at"], "%Y-%m-%dT%H:%M:%S.%f%z"
         )
 
+        self.account_vp = result["data"]["account"]["id"]
         self.project_id = result["data"]["project"]["id"]
         self.workspace_id = result["data"]["workspace"]["id"]
 
@@ -499,7 +505,7 @@ class Ticket(object):
                 "project_id": self.project_id,
                 "type_id": self.type.type_id,
                 "workspace_id": self.workspace_id,
-                "account_vp": 1,
+                "account_vp": self.account_vp,
                 "subject": str(self.subject),
                 "description": str(self.description),
                 "visible_to_customer": self.visible_to_customer,
@@ -622,7 +628,7 @@ class Ticket(object):
         if update:
             self.commit()
 
-    async def _commit(self, comment: Optional[str] = None):
+    async def _commit(self, comment: Optional[str] = None, commit_visisble_to_customer: bool = True):
         url = (
             self._base_url
             + "/api/v1/tickets/"
@@ -648,14 +654,14 @@ class Ticket(object):
                 "type_id": self.type.type_id,
                 "visible_to_customer": self.visible_to_customer,
             },
-            "ticket_event": {"comment": None},
+            "ticket_event": {"comment": None, "visible_to_customer": commit_visisble_to_customer},
         }
 
         # for custom_field in self.custom_fields:
         #     payload["ticket"][custom_field] = self.custom_fields[custom_field]
 
         if comment:
-            payload["ticket_event"] = {"comment": str(comment)}
+            payload["ticket_event"]["comment"] = str(comment)
 
         response = await self._request("PATCH", url, json=payload)
 
@@ -664,13 +670,13 @@ class Ticket(object):
 
         return await self._update()
 
-    def commit(self, comment: Optional[str] = None):
+    def commit(self, comment: Optional[str] = None, commit_visisble_to_customer: bool = True):
         """Commit the current state of the ticket to Client Central"""
 
         if self._event_loop is None:
             self._event_loop = self._get_event_loop()
 
-        future = asyncio.ensure_future(self._commit(comment), loop=self._event_loop)
+        future = asyncio.ensure_future(self._commit(comment, commit_visisble_to_customer), loop=self._event_loop)
 
         if self.run_async:
             return future

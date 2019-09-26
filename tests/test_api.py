@@ -69,7 +69,7 @@ def test_create_ticket():
     # 1 -> SAP SID
     # 2 -> Category [363 -> Other]
 
-    assert ticket.run_async == False
+    assert ticket.run_async is False
 
     assert ticket.workspace_id == 141
     assert ticket.project_id == 8
@@ -82,8 +82,8 @@ def test_create_ticket():
     assert ticket.creator.user_id == 14012  # Thomas Scholtz
     assert ticket.status.status_id == 1  # New
     assert ticket.status.name == "New"
-    assert ticket.status.open == True
-    assert ticket.status.closed == False
+    assert ticket.status.open is True
+    assert ticket.status.closed is False
     assert ticket.priority == 33  # Very low
 
     pytest.ticket_id = ticket.ticket_id
@@ -368,7 +368,31 @@ def test_create_related_ticket():
     ticket.status = Status("12")
     ticket.commit()
 
+def test_visible_to_customer_event():
+    subj = "[Test-Ticket]"
+    desc = "<h1>This is a related test ticket. Please ignore</h1>"
+    # sid = "ZZZ"
 
+    ticket = cc.create_ticket(
+        account_vp=1631,
+        subject=subj,
+        description=desc,
+        project_id=8,
+        type_id=8,
+        workspace_id=206,
+        priority=33,
+        visible_to_customer=True,
+        custom_fields_attributes=[{"id": 17, "values": 0}, {"id": 75, "values": 363}]
+    )
+    ticket.refresh()
+
+    ticket.commit("not visible", False)
+
+    assert ticket.events[0].visible_to_customer is False
+
+    ticket.commit("visible", True)
+
+    assert ticket.events[0].visible_to_customer is True
 # def test_create_ticket_on_different_workspace():
 #     subj = "[Test-Ticket]"
 #     desc = "<h1>This is a test ticket. Please ignore</h1>"

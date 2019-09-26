@@ -109,9 +109,11 @@ class ClientCentral:
         priority,
         type_id: int,
         custom_fields_attributes: List[Dict[str, int]] = [],
+        account_vp: Optional[int] = 1,
         workspace_id=None,
         assignee=None,
         related_tickets: Optional[List[int]] = None,
+        visible_to_customer: bool = True
     ):
 
         ticket_type = TicketType(type_id=type_id)
@@ -123,11 +125,13 @@ class ClientCentral:
             ticket_id=None,
             production=self.production,
             custom_fields_attributes=custom_fields_attributes,
+            account_vp=account_vp,
             workspace_id=workspace_id,
             project_id=project_id,
             ticket_type=ticket_type,
             related_tickets=related_tickets,
             assignee=assignee,
+            visible_to_customer=visible_to_customer,
             run_async=self.run_async,
         )
 
@@ -145,10 +149,12 @@ class ClientCentral:
         project_id,
         priority,
         custom_fields_attributes: List[Dict[str, int]] = [],
+        account_vp: Optional[int] = 1,
         workspace_id=None,
         type_id: Optional[int] = None,
         assignee=None,
         related_tickets: Optional[List[int]] = None,
+        visible_to_customer: bool = True
     ):
 
         if self._event_loop is None:
@@ -156,6 +162,7 @@ class ClientCentral:
 
         future = asyncio.ensure_future(
             self._create_ticket(
+                account_vp=account_vp,
                 subject=subject,
                 description=description,
                 project_id=project_id,
@@ -165,6 +172,7 @@ class ClientCentral:
                 type_id=type_id,
                 assignee=assignee,
                 related_tickets=related_tickets,
+                visible_to_customer=visible_to_customer,
             ),
             loop=self._event_loop,
         )
