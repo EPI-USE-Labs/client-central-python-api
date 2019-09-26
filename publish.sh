@@ -10,5 +10,10 @@ git merge $(cat release.txt)
 git push origin master
 
 rm -rf dist
+
+pip install twine
+pip install setuptools
+pip install wheel
+
 python setup.py sdist bdist_wheel
 twine upload --repository-url https://upload.pypi.org/legacy/ dist/*

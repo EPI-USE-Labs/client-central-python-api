@@ -1,4 +1,4 @@
 beautifulsoup4==4.8.0
-typing==3.7.4
-aiohttp==3.5.4
+typing==3.7.4.1
+aiohttp==3.6.1
 ujson==1.35
