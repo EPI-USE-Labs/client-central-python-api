@@ -10,5 +10,5 @@ git merge $(cat release.txt)
 git push origin master
 
 rm -rf dist
-python3 setup.py sdist
+python setup.py sdist
 twine upload --repository-url https://upload.pypi.org/legacy/ dist/*
