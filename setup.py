@@ -42,7 +42,7 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/EPI-USE-Labs/client-central-python-api',
-    version='8.0.2',
+    version='8.1.0',
     zip_safe=False,
     data_files=[('.', [])]
 )
