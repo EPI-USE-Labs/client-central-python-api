@@ -6,6 +6,7 @@ services:
   - docker:dind
 
 stages:
+- test
 - release
 
 analysis:
