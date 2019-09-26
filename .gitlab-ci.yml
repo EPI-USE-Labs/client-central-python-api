@@ -1,4 +1,4 @@
-image: docker:latest
+image: nikolaik/python-nodejs
 
 services:
   - docker:dind
@@ -8,25 +8,22 @@ stages:
 - release
 
 analysis:
-  image: nikolaik/python-nodejs
   stage: test
   script:
     - pip install bandit
     - bandit -r clientcentral/
 
 pytest:
-  image: nikolaik/python-nodejs
   stage: test
   script:
     - pip install -r requirements
     - CC_TOKEN=$CC_TOKEN pytest
 
 release:
-  image: nikolaik/python-nodejs
   stage: release
   before_script:
     - echo "nameserver 192.168.5.11" > /etc/resolv.conf
-    - apt-get install -y git openssh-client
+    - apt-get install -y git openssh-client python3-setuptools
     - mkdir ~/.ssh
     - ssh-keyscan -p 22 git.labs.epiuse.com > ~/.ssh/known_hosts
     - eval `ssh-agent -s`

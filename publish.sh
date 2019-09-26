@@ -11,9 +11,10 @@ git push origin master
 
 rm -rf dist
 
-pip install twine
-pip install setuptools
-pip install wheel
+python --version
+pip install twine --upgrade
+pip install setuptools --upgrade
+pip install wheel --upgrade
 
 python setup.py sdist bdist_wheel
 twine upload --repository-url https://upload.pypi.org/legacy/ dist/*
