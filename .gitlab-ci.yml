@@ -23,7 +23,7 @@ release:
   stage: release
   before_script:
     - echo "nameserver 192.168.5.11" > /etc/resolv.conf
-    - apt-get install -y git openssh-client python3-setuptools
+    - apt-get update && apt-get install -y git openssh-client python3-setuptools
     - mkdir ~/.ssh
     - ssh-keyscan -p 22 git.labs.epiuse.com > ~/.ssh/known_hosts
     - eval `ssh-agent -s`
