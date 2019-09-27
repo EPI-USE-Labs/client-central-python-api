@@ -41,4 +41,4 @@ release:
     - npm install -g "@semantic-release/exec"
     - npm install -g "@semantic-release/git"
   script:
-    - GL_URL=git.labs.epiuse.com GL_TOKEN=$GL_TOKEN npx semantic-release
+    - GL_URL=git.labs.epiuse.com GL_TOKEN=$GL_TOKEN semantic-release
