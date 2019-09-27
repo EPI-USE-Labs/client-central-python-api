@@ -384,7 +384,63 @@ def test_visible_to_customer_event():
         visible_to_customer=True,
         custom_fields_attributes=[{"id": 17, "values": 0}, {"id": 75, "values": 363}]
     )
-    ticket.refresh()
+
+    ticket.commit("not visible", False)
+    assert ticket.events[0].visible_to_customer is False
+    ticket.commit("visible", True)
+    assert ticket.events[0].visible_to_customer is True
+
+def test_visible_to_customer_event_ticket_not_visible():
+    subj = "[Test-Ticket]"
+    desc = "<h1>This is a not visible to customer test ticket. Please ignore</h1>"
+    # sid = "ZZZ"
+
+    ticket = cc.create_ticket(
+        assignee="User:14012",
+        account_vp=1631,
+        subject=subj,
+        description=desc,
+        project_id=8,
+        type_id=8,
+        workspace_id=206,
+        priority=33,
+        visible_to_customer=False,
+        custom_fields_attributes=[{"id": 17, "values": 0}, {"id": 75, "values": 363}]
+    )
+
+    ticket_id = ticket.ticket_id
+
+    ticket.commit("not visible", False)
+    assert ticket.events[0].visible_to_customer is False
+    ticket.commit("visible", True)
+    assert ticket.events[0].visible_to_customer is False
+
+    ticket = cc.get_ticket_by_id(ticket_id)
+    ticket.commit("not visible", False)
+    assert ticket.events[0].visible_to_customer is False
+    ticket.commit("visible", True)
+    assert ticket.events[0].visible_to_customer is False
+
+def test_query_visible_to_customer_event():
+    import clientcentral.query as operators
+
+    ticket = (
+        cc.query_tickets()
+        .filter_by(
+            operators.and_(
+                operators.comparison(
+                    "created_by_user.email", "=", "'thomas@labs.epiuse.com'"
+                ),
+                operators.comparison("workspace_id", "=", 206),
+            )
+        )
+        .all()[1]
+    )
+
+    # assert ticket.assignee is not None
+    assert ticket.status is not None
+    assert ticket.type is not None
+    assert ticket.workspace_id is not None
 
     ticket.commit("not visible", False)
 
@@ -393,6 +449,7 @@ def test_visible_to_customer_event():
     ticket.commit("visible", True)
 
     assert ticket.events[0].visible_to_customer is True
+
 # def test_create_ticket_on_different_workspace():
 #     subj = "[Test-Ticket]"
 #     desc = "<h1>This is a test ticket. Please ignore</h1>"

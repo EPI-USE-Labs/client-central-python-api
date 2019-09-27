@@ -628,7 +628,7 @@ class Ticket(object):
         if update:
             self.commit()
 
-    async def _commit(self, comment: Optional[str] = None, commit_visisble_to_customer: bool = True):
+    async def _commit(self, comment: Optional[str] = None, commit_visible_to_customer: bool = True):
         url = (
             self._base_url
             + "/api/v1/tickets/"
@@ -654,7 +654,7 @@ class Ticket(object):
                 "type_id": self.type.type_id,
                 "visible_to_customer": self.visible_to_customer,
             },
-            "ticket_event": {"comment": None, "visible_to_customer": commit_visisble_to_customer},
+            "ticket_event": {"comment": None, "visible_to_customer": commit_visible_to_customer},
         }
 
         # for custom_field in self.custom_fields:
@@ -670,13 +670,13 @@ class Ticket(object):
 
         return await self._update()
 
-    def commit(self, comment: Optional[str] = None, commit_visisble_to_customer: bool = True):
+    def commit(self, comment: Optional[str] = None, commit_visible_to_customer: bool = True):
         """Commit the current state of the ticket to Client Central"""
 
         if self._event_loop is None:
             self._event_loop = self._get_event_loop()
 
-        future = asyncio.ensure_future(self._commit(comment, commit_visisble_to_customer), loop=self._event_loop)
+        future = asyncio.ensure_future(self._commit(comment, commit_visible_to_customer), loop=self._event_loop)
 
         if self.run_async:
             return future

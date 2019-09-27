@@ -92,6 +92,7 @@ class QueryTickets:
             "status.closed",
             "customer_user.*",
             "type.*",
+            "assignee.*",
             "created_by_user.email",
             "created_by_user.title",
             "created_by_user.job_title",
@@ -147,11 +148,20 @@ class QueryTickets:
                     if ticket_in_data["customer_user"]["title"]:
                         owner.title = ticket_in_data["customer_user"]["title"]["name"]
 
+                assignee = None
+                if ticket_in_data["assignee"]:
+                    assignee = (
+                        ticket_in_data["assignee"]["_type"]
+                        + ":"
+                        + str(ticket_in_data["assignee"]["id"])
+                    )
+
                 ticket = Ticket(
                     base_url=self.base_url,
                     token=self.token,
                     ticket_id=str(ticket_in_data["id"]),
                     production=self.production,
+                    account_vp=ticket_in_data["account"]["id"],
                     workspace_id=ticket_in_data["workspace"]["id"],
                     project_id=ticket_in_data["project"]["id"],
                     status=Status(
@@ -169,6 +179,8 @@ class QueryTickets:
                     subject=ticket_in_data["subject"],
                     owner=owner,
                     creator=creator,
+                    assignee=assignee,
+                    visible_to_customer=ticket_in_data["visible_to_customer"],
                     ticket_type=TicketType(
                         type_id=ticket_in_data["type"]["id"],
                         name=ticket_in_data["type"]["name"],
