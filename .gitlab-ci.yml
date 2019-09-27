@@ -22,7 +22,7 @@ release:
   before_script:
     - pip3 install --upgrade pip
     - echo "nameserver 192.168.5.11" > /etc/resolv.conf
-    - apt-get update && apt-get install -y git openssh-client
+    - apt-get update && apt-get update -y && apt-get install -y git openssh-client
     - mkdir ~/.ssh
     - ssh-keyscan -p 22 git.labs.epiuse.com > ~/.ssh/known_hosts
     - eval `ssh-agent -s`
