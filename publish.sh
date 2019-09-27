@@ -1,4 +1,4 @@
-python3 --version
+/usr/local/bin/python3 --version
 ssh -T git@git.labs.epiuse.com -p 22
 
 git remote set-url origin git@git.labs.epiuse.com:SWAT/clientcentral-api-python.git
@@ -11,6 +11,6 @@ git push origin master
 
 rm -rf dist
 
-python3 --version
-python3 setup.py sdist bdist_wheel
+/usr/local/bin/python3 --version
+/usr/local/bin/python3 setup.py sdist bdist_wheel
 twine upload --repository-url https://upload.pypi.org/legacy/ dist/*
