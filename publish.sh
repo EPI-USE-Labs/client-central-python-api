@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+python3 --version
 ssh -T git@git.labs.epiuse.com -p 22
 
 git remote set-url origin git@git.labs.epiuse.com:SWAT/clientcentral-api-python.git
@@ -12,9 +12,5 @@ git push origin master
 rm -rf dist
 
 python3 --version
-pip3 install twine --upgrade
-pip3 install setuptools --upgrade
-pip3 install wheel --upgrade
-
 python3 setup.py sdist bdist_wheel
 twine upload --repository-url https://upload.pypi.org/legacy/ dist/*

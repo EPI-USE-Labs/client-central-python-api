@@ -11,8 +11,8 @@
         "@semantic-release/exec",
         {
           "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}",
-          "prepareCmd": "bump2version --new-version ${nextRelease.version} patch",
-          "successCmd": "echo \"v${nextRelease.version}\" > release.txt; bash publish.sh;"
+          "prepareCmd": "bump2version --new-version ${nextRelease.version} patch; echo \"v${nextRelease.version}\" > release.txt;",
+          "publishCmd": "/bin/bash publish.sh"
         }
       ]
     ]

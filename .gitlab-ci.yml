@@ -1,40 +1,44 @@
 default:
   image: "nikolaik/python-nodejs:latest"
 
+before_script:
+  - apt-get update && apt-get upgrade -y && apt-get install -y git openssh-client
+  - pip3 install pip --upgrade 
+
 stages:
 - test
 - release
 
 analysis:
   stage: test
-  script:
+  before_script:
     - pip3 install bandit
+  script:
     - bandit -r clientcentral/
 
-pytest:
-  stage: test
-  script:
-    - pip3 install -r requirements
-    - CC_TOKEN=$CC_TOKEN pytest
 
 release:
   stage: release
+  variables:
+    TWINE_USERNAME: $PYPI_USER
+    TWINE_PASSWORD: $PYPI_PASSWORD
   before_script:
-    - pip3 install --upgrade pip
+    - python3 --version
+    - apt-get update && apt-get upgrade -y && apt-get install -y git openssh-client
+    - pip3 install pip --upgrade 
+    - pip3 install bump2version --upgrade
+    - pip3 install twine --upgrade
+    - pip3 install setuptools --upgrade
+    - pip3 install wheel --upgrade
     - echo "nameserver 192.168.5.11" > /etc/resolv.conf
-    - apt-get update && apt-get update -y && apt-get install -y git openssh-client
     - mkdir ~/.ssh
     - ssh-keyscan -p 22 git.labs.epiuse.com > ~/.ssh/known_hosts
     - eval `ssh-agent -s`
     - ssh-add <(echo "$DEPLOY_KEY")
-  variables:
-    TWINE_USERNAME: $PYPI_USER
-    TWINE_PASSWORD: $PYPI_PASSWORD
-  script:
-    - pip3 install bump2version
     - npm install -g semantic-release
     - npm install -g "@semantic-release/gitlab-config"
     - npm install -g "@semantic-release/gitlab"
     - npm install -g "@semantic-release/exec"
     - npm install -g "@semantic-release/git"
+  script:
     - GL_URL=git.labs.epiuse.com GL_TOKEN=$GL_TOKEN npx semantic-release
