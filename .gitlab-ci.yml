@@ -1,4 +1,4 @@
-image: nikolaik/python-nodejs
+image: "nikolaik/python-nodejs:latest"
 
 # services:
 #   - docker:dind
@@ -22,6 +22,7 @@ pytest:
 release:
   stage: release
   before_script:
+    - pip3 install --upgrade pip
     - echo "nameserver 192.168.5.11" > /etc/resolv.conf
     - apt-get update && apt-get install -y git openssh-client python3-setuptools
     - mkdir ~/.ssh
