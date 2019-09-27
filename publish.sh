@@ -11,7 +11,7 @@ git push origin master
 
 rm -rf dist
 
-python --version
+python3 --version
 pip3 install twine --upgrade
 pip3 install setuptools --upgrade
 pip3 install wheel --upgrade
