@@ -416,9 +416,9 @@ def test_visible_to_customer_event_ticket_not_visible():
     assert ticket.events[0].visible_to_customer is False
 
     ticket = cc.get_ticket_by_id(ticket_id)
-    ticket.commit("not visible", False)
+    ticket.commit("default value")
     assert ticket.events[0].visible_to_customer is False
-    ticket.commit("visible", True)
+    ticket.commit("default value")
     assert ticket.events[0].visible_to_customer is False
 
 def test_query_visible_to_customer_event():

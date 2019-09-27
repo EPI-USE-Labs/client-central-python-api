@@ -1,7 +1,7 @@
 image: nikolaik/python-nodejs
 
-services:
-  - docker:dind
+# services:
+#   - docker:dind
 
 stages:
 - test
@@ -10,13 +10,13 @@ stages:
 analysis:
   stage: test
   script:
-    - pip install bandit
+    - pip3 install bandit
     - bandit -r clientcentral/
 
 pytest:
   stage: test
   script:
-    - pip install -r requirements
+    - pip3 install -r requirements
     - CC_TOKEN=$CC_TOKEN pytest
 
 release:
@@ -32,7 +32,7 @@ release:
     TWINE_USERNAME: $PYPI_USER
     TWINE_PASSWORD: $PYPI_PASSWORD
   script:
-    - pip install bump2version
+    - pip3 install bump2version
     - npm install -g semantic-release
     - npm install -g "@semantic-release/gitlab-config"
     - npm install -g "@semantic-release/gitlab"
