@@ -240,7 +240,7 @@ def test_lazy_load_get_by_id():
 
 def test_lazy_load():
     import clientcentral.query as operators
-
+    print(pytest.ticket_id)
     ticket = (
         cc.query_tickets()
         .filter_by(

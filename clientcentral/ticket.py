@@ -849,7 +849,7 @@ class Ticket(object):
         return url
 
     def get_text_description(self):
-        soup = BeautifulSoup(str(self.description), features="html.parser")
+        soup = BeautifulSoup(str(self.description.replace("<br>", "\n")), features="html.parser")
         return soup.get_text()
 
     def get_human_url(self):
