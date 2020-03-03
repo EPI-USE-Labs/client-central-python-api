@@ -6,7 +6,7 @@ from typing import Dict, List, Optional
 from clientcentral.model.TicketType import TicketType
 from clientcentral.query import QueryTickets
 from clientcentral.roles import Roles
-from clientcentral.users_manager import UsersManager
+from clientcentral.users_client import UsersClient
 
 from clientcentral.ticket import Ticket
 
@@ -113,7 +113,7 @@ class ClientCentral:
         workspace_id=None,
         assignee=None,
         related_tickets: Optional[List[int]] = None,
-        visible_to_customer: bool = True
+        visible_to_customer: bool = True,
     ):
 
         ticket_type = TicketType(type_id=type_id)
@@ -154,7 +154,7 @@ class ClientCentral:
         type_id: Optional[int] = None,
         assignee=None,
         related_tickets: Optional[List[int]] = None,
-        visible_to_customer: bool = True
+        visible_to_customer: bool = True,
     ):
 
         if self._event_loop is None:
@@ -182,12 +182,12 @@ class ClientCentral:
         result = self._event_loop.run_until_complete(future)
         return result
 
-    def get_users_manager(self) -> UsersManager:
-        if not hasattr(self, "_users_manager"):
-            self._users_manager = UsersManager(
+    def get_users_client(self) -> UsersClient:
+        if not hasattr(self, "_users_client"):
+            self._users_client = UsersClient(
                 self.base_url, self.token, self.production, self.session
             )
-        return self._users_manager
+        return self._users_client
 
     def get_roles_manager(self) -> Roles:
         # Call roles API

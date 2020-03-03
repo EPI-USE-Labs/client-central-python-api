@@ -119,7 +119,7 @@ class QueryTickets:
 
         # print(response.text)
         if response["status_code"] != 200:
-            raise HTTPError(response["json"])
+            raise HTTPError("Failed to query all tickets", response)
         result = response["json"]
         tickets = []
 
@@ -210,7 +210,7 @@ class QueryTickets:
 
             # response = requests.get(url + "&page=" + str(page + 1) + payload)
             if response["status_code"] != 200:
-                raise HTTPError(response["json"])
+                raise HTTPError("Failed to query all tickets", response)
             result = response["json"]
         return tickets
 
@@ -247,4 +247,7 @@ def statement(left: str) -> str:
 
 
 def comparison(left: str, operator: str, right: str) -> str:
+    valid_operators = ["=", ">", "<", ">=", "<=", "<>", "CONTAINS", "NOT CONTAINS", "IN", "OR", "NOT"]
+    if operator not in valid_operators:
+        raise Exception("Invalid operator. Valid operators include: " + str(valid_operators))
     return str(left) + "%20" + str(operator) + "%20" + str(right)

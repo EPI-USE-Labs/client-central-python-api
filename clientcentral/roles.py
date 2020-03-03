@@ -97,7 +97,7 @@ class Roles:
         response = self._get_event_loop().run_until_complete(future)
 
         if response["status_code"] != 200:
-            raise HTTPError(response["json"])
+            raise HTTPError("Failed to get all roles", response)
         result: List[Dict[str, str]] = response["json"]
 
         self._roles = list()

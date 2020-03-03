@@ -38,8 +38,8 @@ def test_get_all_roles():
 
 
 def test_get_user_by_id():
-    um1 = cc.get_users_manager()
-    um2 = cc.get_users_manager()
+    um1 = cc.get_users_client()
+    um2 = cc.get_users_client()
 
     # Test object reuse
     assert um1 == um2
@@ -240,6 +240,7 @@ def test_lazy_load_get_by_id():
 
 def test_lazy_load():
     import clientcentral.query as operators
+
     print(pytest.ticket_id)
     ticket = (
         cc.query_tickets()
@@ -368,6 +369,7 @@ def test_create_related_ticket():
     ticket.status = Status("12")
     ticket.commit()
 
+
 def test_visible_to_customer_event():
     subj = "[Test-Ticket]"
     desc = "<h1>This is a related test ticket. Please ignore</h1>"
@@ -382,13 +384,18 @@ def test_visible_to_customer_event():
         workspace_id=206,
         priority=33,
         visible_to_customer=True,
-        custom_fields_attributes=[{"id": 17, "values": 0}, {"id": 75, "values": 363}]
+        custom_fields_attributes=[
+            {"id": 17, "values": 0},
+            {"id": 75, "values": 363},
+            {"id": 257, "values": [704]},
+        ],
     )
 
     ticket.commit("not visible", False)
     assert ticket.events[0].visible_to_customer is False
     ticket.commit("visible", True)
     assert ticket.events[0].visible_to_customer is True
+
 
 def test_visible_to_customer_event_ticket_not_visible():
     subj = "[Test-Ticket]"
@@ -405,7 +412,11 @@ def test_visible_to_customer_event_ticket_not_visible():
         workspace_id=206,
         priority=33,
         visible_to_customer=False,
-        custom_fields_attributes=[{"id": 17, "values": 0}, {"id": 75, "values": 363}]
+        custom_fields_attributes=[
+            {"id": 17, "values": 0},
+            {"id": 75, "values": 363},
+            {"id": 257, "values": [704]},
+        ],
     )
 
     ticket_id = ticket.ticket_id
@@ -420,6 +431,7 @@ def test_visible_to_customer_event_ticket_not_visible():
     assert ticket.events[0].visible_to_customer is False
     ticket.commit("default value")
     assert ticket.events[0].visible_to_customer is False
+
 
 def test_query_visible_to_customer_event():
     import clientcentral.query as operators
@@ -449,6 +461,7 @@ def test_query_visible_to_customer_event():
     ticket.commit("visible", True)
 
     assert ticket.events[0].visible_to_customer is True
+
 
 # def test_create_ticket_on_different_workspace():
 #     subj = "[Test-Ticket]"

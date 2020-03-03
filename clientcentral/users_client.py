@@ -7,13 +7,24 @@ import ujson
 import aiohttp
 import asyncio
 
+import clientcentral.query as query
 from clientcentral.Exceptions import HTTPError
 from clientcentral.model.User import User
 
 HEADERS = {"Content-Type": "application/json", "Accept": "application/json"}
 
 
-class UsersManager:
+def use_event_loop(f):
+    def new_f(*args):
+        if args[0]._event_loop is None:
+            args[0]._event_loop = args[0]._get_event_loop()
+        result = f(*args)
+        return result
+
+    return new_f
+
+
+class UsersClient:
     def __init__(
         self, base_url: str, token: str, production: bool, session=None, event_loop=None
     ) -> None:
@@ -48,6 +59,8 @@ class UsersManager:
                     "json": await resp.json(),
                     "headers": resp.headers,
                     "status_code": resp.status,
+                    "method": resp.method,
+                    "url": resp.url,
                 }
 
         async with aiohttp.ClientSession(
@@ -61,36 +74,46 @@ class UsersManager:
                     "json": await resp.json(),
                     "headers": resp.headers,
                     "status_code": resp.status,
+                    "method": resp.method,
+                    "url": resp.url,
                 }
 
+    @use_event_loop
     def get_user_by_id(self, user_id: int) -> User:
         url = self._base_url + "/api/v1/users/" + str(user_id) + ".json?" + self._token
-
-        if self._event_loop is None:
-            self._event_loop = self._get_event_loop()
 
         # Call URL
         future = asyncio.ensure_future(self._request("GET", url))
         response = self._event_loop.run_until_complete(future)
 
         if response["status_code"] != 200:
-            raise HTTPError(response["json"])
+            raise HTTPError(f"Failed to get user by id: {user_id}", response)
 
         result_data = response["json"]["data"]
+        return User.create_user_from_dict(result_data)
 
-        user_obj = User(
-            result_data["id"],
-            result_data["first_name"],
-            result_data["last_name"],
-            result_data["email"],
-            result_data["title"],
-            result_data["job_title"],
+    @use_event_loop
+    def get_user_by_email(self, user_email: str) -> User:
+        url = (
+            self._base_url
+            + "/api/v1/users.json?"
+            + self._token
+            + "&filter="
+            + query.comparison("email", "=", "'" + user_email + "'")
         )
-        return user_obj
+
+        # Call URL
+        future = asyncio.ensure_future(self._request("GET", url))
+        response = self._event_loop.run_until_complete(future)
+
+        if response["status_code"] != 200:
+            raise HTTPError(f"Failed to get user by email: {user_email}", response)
+
+        result_data = response["json"]["data"][0]
+        return User.create_user_from_dict(result_data)
 
     def get_all_users(self):
-        # TODO
-        pass
+        raise Exception("Unimplemented")
 
 
 # user_id: str,

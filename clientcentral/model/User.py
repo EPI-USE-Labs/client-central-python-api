@@ -31,4 +31,16 @@ class User:
         self.first_name = split_name[0]
         self.last_name = split_name[1]
 
+    @classmethod
+    def create_user_from_dict(cls, data: dict):
+        user_obj = cls(
+            data["id"],
+            data["first_name"],
+            data["last_name"],
+            data["email"],
+            data["title"],
+            data["job_title"],
+        )
+        return user_obj
+
     name = property(get_name, set_name)

@@ -87,7 +87,7 @@ class Ticket(object):
         visible_to_customer: bool = False,
         session=None,
         run_async: bool = False,
-        account_vp: Optional[int] = 1
+        account_vp: Optional[int] = 1,
     ) -> None:
 
         self.description = description
@@ -250,7 +250,7 @@ class Ticket(object):
 
         response = await self._request("GET", url)
         if response["status_code"] != 200:
-            raise HTTPError(response["json"])
+            raise HTTPError("Failed to get ticket available buttons", response)
 
         result = response["json"]
 
@@ -529,7 +529,7 @@ class Ticket(object):
         response = await self._request("POST", url, json=params)
 
         if response["status_code"] != 200:
-            raise HTTPError(response["json"])
+            raise HTTPError("Failed to create ticket", response)
 
         self.ticket_id = str(response["json"]["data"]["id"])
         return await self._update()
@@ -628,7 +628,9 @@ class Ticket(object):
         if update:
             self.commit()
 
-    async def _commit(self, comment: Optional[str] = None, commit_visible_to_customer: bool = True):
+    async def _commit(
+        self, comment: Optional[str] = None, commit_visible_to_customer: bool = True
+    ):
         url = (
             self._base_url
             + "/api/v1/tickets/"
@@ -654,7 +656,10 @@ class Ticket(object):
                 "type_id": self.type.type_id,
                 "visible_to_customer": self.visible_to_customer,
             },
-            "ticket_event": {"comment": None, "visible_to_customer": commit_visible_to_customer},
+            "ticket_event": {
+                "comment": None,
+                "visible_to_customer": commit_visible_to_customer,
+            },
         }
 
         # for custom_field in self.custom_fields:
@@ -666,17 +671,21 @@ class Ticket(object):
         response = await self._request("PATCH", url, json=payload)
 
         if response["status_code"] != 200:
-            raise HTTPError(response["json"])
+            raise HTTPError("Failed to add user watcher by user ID", response)
 
         return await self._update()
 
-    def commit(self, comment: Optional[str] = None, commit_visible_to_customer: bool = True):
+    def commit(
+        self, comment: Optional[str] = None, commit_visible_to_customer: bool = True
+    ):
         """Commit the current state of the ticket to Client Central"""
 
         if self._event_loop is None:
             self._event_loop = self._get_event_loop()
 
-        future = asyncio.ensure_future(self._commit(comment, commit_visible_to_customer), loop=self._event_loop)
+        future = asyncio.ensure_future(
+            self._commit(comment, commit_visible_to_customer), loop=self._event_loop
+        )
 
         if self.run_async:
             return future
@@ -730,7 +739,7 @@ class Ticket(object):
         response = await self._request("GET", url + payload)
 
         if response["status_code"] != 200:
-            raise HTTPError(response["json"])
+            raise HTTPError(f"Failed to get ticket #{self.ticket_id}", response)
 
         return response
 
@@ -755,7 +764,7 @@ class Ticket(object):
         response = await self._request("PATCH", url, json=payload)
 
         if response["status_code"] != 200:
-            raise HTTPError(response["json"])
+            raise HTTPError(f"Failed to comment on ticket #{self.ticket_id}", response)
         return await self._update()
 
     def comment(self, description: str) -> None:
@@ -789,7 +798,9 @@ class Ticket(object):
 
                 response = await self._request("POST", url, json=params)
                 if response["status_code"] != 200:
-                    raise HTTPError(response["text"])
+                    raise HTTPError(
+                        f"Failed to press button on ticket #{self.ticket_id}", response
+                    )
                 await self._update()
                 break
         else:
@@ -849,7 +860,9 @@ class Ticket(object):
         return url
 
     def get_text_description(self):
-        soup = BeautifulSoup(str(self.description.replace("<br>", "\n")), features="html.parser")
+        soup = BeautifulSoup(
+            str(self.description.replace("<br>", "\n")), features="html.parser"
+        )
         return soup.get_text()
 
     def get_human_url(self):
