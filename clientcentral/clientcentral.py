@@ -16,6 +16,7 @@ import os
 import asyncio
 import aiohttp
 import ujson
+import re
 
 
 class ClientCentral:
@@ -42,16 +43,22 @@ class ClientCentral:
                 self.base_url = "https://clientcentral.io"
 
         # Get the token from the environment
-        try:
-            self.token = "token=" + str(os.environ["CC_TOKEN"])
-        except KeyError:
-            pass
+
+        p = re.compile(r'^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$')
+
+        raw_token = None
+
+        if os.environ.get("CC_TOKEN"):
+            raw_token = str(os.environ.get("CC_TOKEN"))
 
         if token:
-            self.token = "token=" + str(token)
+            raw_token = token
+            self.token = "token=" + raw_token
 
-        if not self.token:
-            raise NoTokenProvided()
+        if not raw_token or not len(raw_token) == 32 or not p.match(raw_token):
+            raise NoTokenProvided("Token invalid or not present")
+
+        self.token ="token=" + raw_token
 
         self.run_async = run_async
         self._event_loop = self._get_event_loop()
