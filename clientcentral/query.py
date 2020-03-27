@@ -60,6 +60,8 @@ class QueryTickets:
                     "json": await resp.json(),
                     "headers": resp.headers,
                     "status_code": resp.status,
+                    "method": resp.method,
+                    "url": resp.url,
                 }
 
         async with aiohttp.ClientSession(
@@ -73,6 +75,8 @@ class QueryTickets:
                     "json": await resp.json(),
                     "headers": resp.headers,
                     "status_code": resp.status,
+                    "method": resp.method,
+                    "url": resp.url,
                 }
 
     def filter_by(self, arg: str) -> "QueryTickets":

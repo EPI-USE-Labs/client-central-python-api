@@ -224,6 +224,8 @@ class Ticket(object):
                     "json": await resp.json(),
                     "headers": resp.headers,
                     "status_code": resp.status,
+                    "method": resp.method,
+                    "url": resp.url,
                 }
 
         async with aiohttp.ClientSession(
@@ -237,6 +239,8 @@ class Ticket(object):
                     "json": await resp.json(),
                     "headers": resp.headers,
                     "status_code": resp.status,
+                    "method": resp.method,
+                    "url": resp.url,
                 }
 
     async def _update_buttons(self):
