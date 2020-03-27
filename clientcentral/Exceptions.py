@@ -30,10 +30,10 @@ class HTTPError(Exception):
             + "\n"
             + self._new_line(
                 "Error returned from Client Central:",
-                json.dumps(self.payload["json"], sort_keys=True, indent=4),
+                json.dumps(self.payload.get("json"), sort_keys=True, indent=4),
             )
-            + self._new_line("URL called:", str(self.payload["url"]))
-            + self._new_line("HTTP Method:", str(self.payload["method"]))
+            + self._new_line("URL called:", str(self.payload.get("url")))
+            + self._new_line("HTTP Method:", str(self.payload.get("method")))
         )
 
 

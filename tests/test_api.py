@@ -462,6 +462,11 @@ def test_query_visible_to_customer_event():
 
     assert ticket.events[0].visible_to_customer is True
 
+def test_exception_with_unicode_and_missing_payload():
+    with pytest.raises(HTTPError) as excinfo:
+        raise HTTPError("UNICODE", {"json":"∀ 	∁ 	∂ 	∃ 	∄ 	∅ 	∆ 	∇ 	∈ 	∉ 	∊ 	∋ 	∌ 	∍ 	∎ 	∏", "a":"∀ 	∁ 	∂ 	∃ 	∄ 	∅ 	∆ 	∇ 	∈ 	∉ 	∊ 	∋ 	∌ 	∍ 	∎ 	∏", "method":"∀ 	∁ 	∂ 	∃ 	∄ 	∅ 	∆ 	∇ 	∈ 	∉ 	∊ 	∋ 	∌ 	∍ 	∎ 	∏"})
+    assert "URL called:" in str(excinfo.value) and "None" in str(excinfo.value)
+
 
 # def test_create_ticket_on_different_workspace():
 #     subj = "[Test-Ticket]"
