@@ -43,9 +43,6 @@ class ClientCentral:
                 self.base_url = "https://clientcentral.io"
 
         # Get the token from the environment
-
-        p = re.compile(r'^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$')
-
         raw_token = None
 
         if os.environ.get("CC_TOKEN"):
@@ -55,7 +52,7 @@ class ClientCentral:
             raw_token = token
             self.token = "token=" + raw_token
 
-        if not raw_token or not len(raw_token) == 32 or not p.match(raw_token):
+        if not raw_token or not len(raw_token) == 32:
             raise NoTokenProvided("Token invalid or not present")
 
         self.token ="token=" + raw_token
