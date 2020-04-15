@@ -1,6 +1,7 @@
 import pytest
 
 import asyncio
+import clientcentral.query as operators
 
 from clientcentral.clientcentral import ClientCentral
 from clientcentral.model.Status import Status
@@ -173,14 +174,29 @@ def test_set_priority():
 #     assert ticket.priority == 33
 
 
+def test_new_bug():
+    tickets = (
+        cc.query_tickets()
+        .filter_by(
+            operators.and_(
+                operators.statement("status.open"),
+                operators.comparison("workspace_id", "=", "87"),
+            )
+        )
+        .all()
+    )
+
 def test_grab():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
     ticket.press_button("Grab")
     assert ticket.assignee == "User:" + str(14012)  # Thomas Scholtz
     assert ticket.status.status_id == 2  # In progress
     assert ticket.status.name == "In progress"
-    assert ticket.change_events[0].changes[1].name == "status"
-    assert ticket.change_events[0].changes[1].to_value == str(2)
+    print(ticket.ticket_id)
+    print(ticket.change_events)
+    # print(ticket.change_events[0].changes)
+    assert ticket.change_events[1].changes[1].name == "status"
+    assert ticket.change_events[1].changes[1].to_value == str(2)
 
 
 def test_suggest_solution():

@@ -160,12 +160,16 @@ class QueryTickets:
                         + str(ticket_in_data["assignee"]["id"])
                     )
 
+                account_vp = None
+                if ticket_in_data["account"] and (ticket_in_data["account"] is not None):
+                    account_vp = ticket_in_data["account"]["id"]
+
                 ticket = Ticket(
                     base_url=self.base_url,
                     token=self.token,
                     ticket_id=str(ticket_in_data["id"]),
                     production=self.production,
-                    account_vp=ticket_in_data["account"]["id"],
+                    account_vp=account_vp,
                     workspace_id=ticket_in_data["workspace"]["id"],
                     project_id=ticket_in_data["project"]["id"],
                     status=Status(
