@@ -44,7 +44,7 @@ class Ticket(object):
 
     type: Optional[TicketType]
 
-    visible_to_customer: bool
+    internal: bool
 
     workspace_id: int
     project_id: int
@@ -84,7 +84,7 @@ class Ticket(object):
         priority: Optional[int] = None,
         assignee: Optional[str] = None,
         related_tickets: Optional[List[int]] = None,
-        visible_to_customer: bool = False,
+        internal: bool = False,
         session=None,
         run_async: bool = False,
         account_vp: Optional[int] = 1,
@@ -109,7 +109,7 @@ class Ticket(object):
 
         self.assignee = assignee
 
-        self.visible_to_customer = visible_to_customer
+        self.internal = internal
 
         self._production = production
         self._base_url = base_url
@@ -157,7 +157,7 @@ class Ticket(object):
         assignee: Optional[str] = None,
         related_tickets: Optional[List[int]] = None,
         account_vp: Optional[int] = 1,
-        visible_to_customer: bool = False,
+        internal: bool = False,
         session=None,
         run_async: bool = False,
     ):
@@ -181,7 +181,7 @@ class Ticket(object):
             priority=priority,
             assignee=assignee,
             related_tickets=related_tickets,
-            visible_to_customer=visible_to_customer,
+            internal=internal,
             session=session,
             run_async=run_async,
             account_vp=account_vp,
@@ -340,7 +340,7 @@ class Ticket(object):
         self.project_id = result["data"]["project"]["id"]
         self.workspace_id = result["data"]["workspace"]["id"]
 
-        self.visible_to_customer = result["data"]["visible_to_customer"]
+        self.internal = result["data"]["internal"]
 
         self.type = TicketType(
             type_id=result["data"]["type"]["id"], name=result["data"]["type"]["name"]
@@ -377,7 +377,7 @@ class Ticket(object):
             "user_watchers",
             "events",
             "email_watcher_emails",
-            "visible_to_customer",
+            "internal",
             "priority",
             "last_event",
             "account",
@@ -451,7 +451,7 @@ class Ticket(object):
                     created_by_user=user,
                     created_at=event_created_at,
                     changes=changes,
-                    visible_to_customer=event["visible_to_customer"],
+                    internal=event["internal"],
                     comment=str(event["comment"]),
                 )
                 self._change_events_attribute.append(change_event)
@@ -461,7 +461,7 @@ class Ticket(object):
                     comment_event = Comment(
                         created_by_user=user,
                         comment=event["comment"],
-                        visible_to_customer=event["visible_to_customer"],
+                        internal=event["internal"],
                         created_at=event_created_at,
                     )
                     self._comments_attribute.append(comment_event)
@@ -469,7 +469,7 @@ class Ticket(object):
                 comment_event = Comment(
                     created_by_user=user,
                     comment=event["comment"],
-                    visible_to_customer=event["visible_to_customer"],
+                    internal=event["internal"],
                     created_at=event_created_at,
                 )
                 self._comments_attribute.append(comment_event)
@@ -512,7 +512,7 @@ class Ticket(object):
                 "account_vp": self.account_vp,
                 "subject": str(self.subject),
                 "description": str(self.description),
-                "visible_to_customer": self.visible_to_customer,
+                "internal": self.internal,
                 "priority_id": self.priority,
                 "assignee_vp": self.assignee,
                 "user_watchers": [user.user_id for user in self.user_watchers],
@@ -633,7 +633,7 @@ class Ticket(object):
             self.commit()
 
     async def _commit(
-        self, comment: Optional[str] = None, commit_visible_to_customer: bool = True
+        self, comment: Optional[str] = None, commit_internal: bool = False
     ):
         url = (
             self._base_url
@@ -658,11 +658,11 @@ class Ticket(object):
                 "workspace_id": self.workspace_id,
                 "project_id": self.project_id,
                 "type_id": self.type.type_id,
-                "visible_to_customer": self.visible_to_customer,
+                "internal": self.internal,
             },
             "ticket_event": {
                 "comment": None,
-                "visible_to_customer": commit_visible_to_customer,
+                "internal": commit_internal,
             },
         }
 
@@ -680,7 +680,7 @@ class Ticket(object):
         return await self._update()
 
     def commit(
-        self, comment: Optional[str] = None, commit_visible_to_customer: bool = True
+        self, comment: Optional[str] = None, commit_internal: bool = False
     ):
         """Commit the current state of the ticket to Client Central"""
 
@@ -688,7 +688,7 @@ class Ticket(object):
             self._event_loop = self._get_event_loop()
 
         future = asyncio.ensure_future(
-            self._commit(comment, commit_visible_to_customer), loop=self._event_loop
+            self._commit(comment, commit_internal), loop=self._event_loop
         )
 
         if self.run_async:
@@ -733,7 +733,7 @@ class Ticket(object):
             "user_watchers.job_title",
             "events.event_changes.to_value",
             "events.event_changes.from_value",
-            "events.visible_to_customer",
+            "events.internal",
         ]
 
         payload = "&select="
@@ -760,7 +760,7 @@ class Ticket(object):
             "ticket": {
                 "workspace_id": self.workspace_id,
                 "project_id": self.project_id,
-                "visible_to_customer": self.visible_to_customer,
+                "internal": self.internal,
             },
             "ticket_event": {"comment": str(description)},
         }

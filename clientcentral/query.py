@@ -121,6 +121,8 @@ class QueryTickets:
 
         # response = requests.get(url + payload)
 
+        print(url + payload)
+
         # print(response.text)
         if response["status_code"] != 200:
             raise HTTPError("Failed to query all tickets", response)
@@ -188,7 +190,7 @@ class QueryTickets:
                     owner=owner,
                     creator=creator,
                     assignee=assignee,
-                    visible_to_customer=ticket_in_data["visible_to_customer"],
+                    internal=ticket_in_data["internal"],
                     ticket_type=TicketType(
                         type_id=ticket_in_data["type"]["id"],
                         name=ticket_in_data["type"]["name"],

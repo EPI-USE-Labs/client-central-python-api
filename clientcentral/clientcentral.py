@@ -117,7 +117,7 @@ class ClientCentral:
         workspace_id=None,
         assignee=None,
         related_tickets: Optional[List[int]] = None,
-        visible_to_customer: bool = True,
+        internal: bool = False,
     ):
 
         ticket_type = TicketType(type_id=type_id)
@@ -135,7 +135,7 @@ class ClientCentral:
             ticket_type=ticket_type,
             related_tickets=related_tickets,
             assignee=assignee,
-            visible_to_customer=visible_to_customer,
+            internal=internal,
             run_async=self.run_async,
         )
 
@@ -158,7 +158,7 @@ class ClientCentral:
         type_id: Optional[int] = None,
         assignee=None,
         related_tickets: Optional[List[int]] = None,
-        visible_to_customer: bool = True,
+        internal: bool = False,
     ):
 
         if self._event_loop is None:
@@ -176,7 +176,7 @@ class ClientCentral:
                 type_id=type_id,
                 assignee=assignee,
                 related_tickets=related_tickets,
-                visible_to_customer=visible_to_customer,
+                internal=internal,
             ),
             loop=self._event_loop,
         )

@@ -48,7 +48,7 @@ async def create_ticket():
     assert ticket.project_id == 8
     assert ticket.priority == 33
     assert ticket.workspace_id == 141
-    assert ticket.visible_to_customer == True
+    assert ticket.internal == False
 
     assert (await ticket.custom_fields)["ms_category"]["name"] == "Other"
     assert ticket._net_calls == 3
@@ -76,7 +76,7 @@ async def get_ticket_by_id():
     assert ticket.project_id == 8
     assert ticket.priority == 33
     assert ticket.workspace_id == 141
-    assert ticket.visible_to_customer == True
+    assert ticket.internal == False
 
     assert (await ticket.custom_fields)["ms_category"]["name"] == "Other"
     assert ticket._net_calls == 2
@@ -105,7 +105,7 @@ async def update_ticket():
     assert ticket.project_id == 8
     assert ticket.priority == 33
     assert ticket.workspace_id == 141
-    assert ticket.visible_to_customer == True
+    assert ticket.internal == False
     assert ticket.type.type_id == 8
     assert ticket.type.name == "Incident"
 
@@ -124,7 +124,7 @@ async def update_ticket():
 
     assert ticket.subject == "UPDATED SUBJECT"
     assert ticket.description == "UPDATED DESCRIPTION"
-    assert ticket.visible_to_customer == True  # This workspace does not have a customer
+    assert ticket.internal == False  # This workspace does not have a customer
     assert ticket.priority == 2
     assert ticket.assignee == "User:14012"
     assert ticket.type.type_id == 9
@@ -159,7 +159,7 @@ async def move_ticket_to_workspace():
     assert ticket.project_id == 8
     assert ticket.priority == 33
     assert ticket.workspace_id == 141
-    assert ticket.visible_to_customer == True
+    assert ticket.internal == False
 
     ticket.subject = "UPDATED SUBJECT"
     ticket.description = "UPDATED DESCRIPTION"
@@ -167,7 +167,7 @@ async def move_ticket_to_workspace():
     ticket.workspace_id = 53  # Dischem
     ticket.type = TicketType(9)
     ticket.assignee = "User:14012"
-    ticket.visible_to_customer = False
+    ticket.internal = True
     ticket.custom_fields_attributes = [
         {"id": 17, "values": 1},
         {"id": 75, "values": 360},
@@ -177,7 +177,7 @@ async def move_ticket_to_workspace():
 
     assert ticket.subject == "UPDATED SUBJECT"
     assert ticket.description == "UPDATED DESCRIPTION"
-    assert ticket.visible_to_customer == False
+    assert ticket.internal == True
     assert ticket.priority == 2
     assert ticket.workspace_id == 53
     assert ticket.assignee == "User:14012"

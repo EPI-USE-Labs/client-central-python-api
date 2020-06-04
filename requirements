@@ -1,5 +1,5 @@
 Chronyk
-aiohttp
+aiohttp[speedups]
 ujson
 pytest
 pytest-cov

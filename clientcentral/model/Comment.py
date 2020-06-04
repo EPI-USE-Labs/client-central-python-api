@@ -14,9 +14,9 @@ class Comment(TicketEvent):
         created_by_user: Optional[User],
         comment: str,
         created_at: str,
-        visible_to_customer: bool,
+        internal: bool,
     ):
-        super().__init__(created_by_user, created_at, visible_to_customer)
+        super().__init__(created_by_user, created_at, internal)
         self.comment = comment
 
     def get_comment_text(self):
