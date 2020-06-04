@@ -55,7 +55,7 @@ class ClientCentral:
         if not raw_token or not len(raw_token) == 32:
             raise NoTokenProvided("Token invalid or not present")
 
-        self.token ="token=" + raw_token
+        self.token = "token=" + raw_token
 
         self.run_async = run_async
         self._event_loop = self._get_event_loop()

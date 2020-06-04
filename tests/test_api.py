@@ -186,6 +186,7 @@ def test_new_bug():
         .all()
     )
 
+
 def test_grab():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
     ticket.press_button("Grab")
@@ -480,10 +481,32 @@ def test_query_internal_event():
 
     assert ticket.events[0].internal is True
 
+
 def test_exception_with_unicode_and_missing_payload():
     with pytest.raises(HTTPError) as excinfo:
-        raise HTTPError("UNICODE", {"json":"∀ 	∁ 	∂ 	∃ 	∄ 	∅ 	∆ 	∇ 	∈ 	∉ 	∊ 	∋ 	∌ 	∍ 	∎ 	∏", "a":"∀ 	∁ 	∂ 	∃ 	∄ 	∅ 	∆ 	∇ 	∈ 	∉ 	∊ 	∋ 	∌ 	∍ 	∎ 	∏", "method":"∀ 	∁ 	∂ 	∃ 	∄ 	∅ 	∆ 	∇ 	∈ 	∉ 	∊ 	∋ 	∌ 	∍ 	∎ 	∏"})
+        raise HTTPError(
+            "UNICODE",
+            {
+                "json": "∀ 	∁ 	∂ 	∃ 	∄ 	∅ 	∆ 	∇ 	∈ 	∉ 	∊ 	∋ 	∌ 	∍ 	∎ 	∏",
+                "a": "∀ 	∁ 	∂ 	∃ 	∄ 	∅ 	∆ 	∇ 	∈ 	∉ 	∊ 	∋ 	∌ 	∍ 	∎ 	∏",
+                "method": "∀ 	∁ 	∂ 	∃ 	∄ 	∅ 	∆ 	∇ 	∈ 	∉ 	∊ 	∋ 	∌ 	∍ 	∎ 	∏",
+            },
+        )
     assert "URL called:" in str(excinfo.value) and "None" in str(excinfo.value)
+
+
+# Hardcoded test since I am lazy
+def test_ticket_created_from_email():
+    # 90771
+    # Should not raise NoneType exception
+    ticket = cc.get_ticket_by_id(90771)
+
+    # Should not raise NoneType exception
+    tickets = (
+        cc.query_tickets()
+        .filter_by(operators.and_(operators.comparison("id", "=", "90771"),))
+        .all()
+    )
 
 
 # def test_create_ticket_on_different_workspace():

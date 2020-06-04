@@ -132,15 +132,19 @@ class QueryTickets:
         for page in range(1, (result["total_pages"] + 1)):
             for ticket_in_data in result["data"]:
                 # print(ticket_in_data)
-                creator = User(
-                    user_id=ticket_in_data["created_by_user"]["id"],
-                    first_name=ticket_in_data["created_by_user"]["first_name"],
-                    last_name=ticket_in_data["created_by_user"]["last_name"],
-                    job_title=ticket_in_data["created_by_user"]["job_title"],
-                    email=ticket_in_data["created_by_user"]["email"],
-                )
-                if ticket_in_data["created_by_user"]["title"]:
-                    creator.title = ticket_in_data["created_by_user"]["title"]["name"]
+                creator = None
+                if ticket_in_data["created_by_user"]:
+                    creator = User(
+                        user_id=ticket_in_data["created_by_user"]["id"],
+                        first_name=ticket_in_data["created_by_user"]["first_name"],
+                        last_name=ticket_in_data["created_by_user"]["last_name"],
+                        job_title=ticket_in_data["created_by_user"]["job_title"],
+                        email=ticket_in_data["created_by_user"]["email"],
+                    )
+                    if ticket_in_data["created_by_user"]["title"]:
+                        creator.title = ticket_in_data["created_by_user"]["title"][
+                            "name"
+                        ]
 
                 owner = None
                 if ticket_in_data["customer_user"]:
@@ -163,7 +167,9 @@ class QueryTickets:
                     )
 
                 account_vp = None
-                if ticket_in_data["account"] and (ticket_in_data["account"] is not None):
+                if ticket_in_data["account"] and (
+                    ticket_in_data["account"] is not None
+                ):
                     account_vp = ticket_in_data["account"]["id"]
 
                 ticket = Ticket(
@@ -257,7 +263,21 @@ def statement(left: str) -> str:
 
 
 def comparison(left: str, operator: str, right: str) -> str:
-    valid_operators = ["=", ">", "<", ">=", "<=", "<>", "CONTAINS", "NOT CONTAINS", "IN", "OR", "NOT"]
+    valid_operators = [
+        "=",
+        ">",
+        "<",
+        ">=",
+        "<=",
+        "<>",
+        "CONTAINS",
+        "NOT CONTAINS",
+        "IN",
+        "OR",
+        "NOT",
+    ]
     if operator not in valid_operators:
-        raise Exception("Invalid operator. Valid operators include: " + str(valid_operators))
+        raise Exception(
+            "Invalid operator. Valid operators include: " + str(valid_operators)
+        )
     return str(left) + "%20" + str(operator) + "%20" + str(right)

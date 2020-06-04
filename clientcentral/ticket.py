@@ -308,15 +308,18 @@ class Ticket(object):
 
         self.priority = result["data"]["priority"]["id"]
 
-        self.creator = User(
-            user_id=result["data"]["created_by_user"]["id"],
-            first_name=result["data"]["created_by_user"]["first_name"],
-            last_name=result["data"]["created_by_user"]["last_name"],
-            job_title=result["data"]["created_by_user"]["job_title"],
-            email=result["data"]["created_by_user"]["email"],
-        )
-        if result["data"]["created_by_user"]["title"]:
-            self.creator.title = result["data"]["created_by_user"]["title"]["name"]
+        self.creator = None
+        # If the ticket is created via email there will not be a creator
+        if result["data"]["created_by_user"]:
+            self.creator = User(
+                user_id=result["data"]["created_by_user"]["id"],
+                first_name=result["data"]["created_by_user"]["first_name"],
+                last_name=result["data"]["created_by_user"]["last_name"],
+                job_title=result["data"]["created_by_user"]["job_title"],
+                email=result["data"]["created_by_user"]["email"],
+            )
+            if result["data"]["created_by_user"]["title"]:
+                self.creator.title = result["data"]["created_by_user"]["title"]["name"]
 
         if result["data"]["customer_user"]:
             self.owner = User(
@@ -660,10 +663,7 @@ class Ticket(object):
                 "type_id": self.type.type_id,
                 "internal": self.internal,
             },
-            "ticket_event": {
-                "comment": None,
-                "internal": commit_internal,
-            },
+            "ticket_event": {"comment": None, "internal": commit_internal,},
         }
 
         # for custom_field in self.custom_fields:
@@ -679,9 +679,7 @@ class Ticket(object):
 
         return await self._update()
 
-    def commit(
-        self, comment: Optional[str] = None, commit_internal: bool = False
-    ):
+    def commit(self, comment: Optional[str] = None, commit_internal: bool = False):
         """Commit the current state of the ticket to Client Central"""
 
         if self._event_loop is None:

@@ -54,8 +54,8 @@ lint: ## check style with flake8
 	flake8 ./clientcentral
 
 format:
-	black ./clientcentral -t py39
-	black ./tests -t py39
+	black ./clientcentral -t py38
+	black ./tests -t py38
 
 test: ## run tests quickly with the default Python
 	pytest tests --maxfail=1
