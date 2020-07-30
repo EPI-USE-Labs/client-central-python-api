@@ -44,7 +44,7 @@ async def create_ticket():
     assert ticket.run_async == True
     assert ticket._net_calls == 3
     assert ticket.subject == subj
-    assert ticket.description == desc
+    assert ticket.description == "<div><h1>This is a test ticket. Please ignore</h1></div>"
     assert ticket.project_id == 8
     assert ticket.priority == 33
     assert ticket.workspace_id == 141
@@ -72,7 +72,7 @@ async def get_ticket_by_id():
     assert ticket._net_calls == 2
     assert ticket.run_async == True
     assert ticket.subject == subj
-    assert ticket.description == desc
+    assert ticket.description == "<div><h1>This is a test ticket. Please ignore</h1></div>"
     assert ticket.project_id == 8
     assert ticket.priority == 33
     assert ticket.workspace_id == 141
@@ -101,7 +101,7 @@ async def update_ticket():
     assert ticket._net_calls == 2
     assert ticket.run_async == True
     assert ticket.subject == subj
-    assert ticket.description == desc
+    assert ticket.description == "<div><h1>This is a test ticket. Please ignore</h1></div>"
     assert ticket.project_id == 8
     assert ticket.priority == 33
     assert ticket.workspace_id == 141
@@ -123,7 +123,7 @@ async def update_ticket():
     assert ticket._net_calls == 5  # Should be 4 as we dont need to update the buttons
 
     assert ticket.subject == "UPDATED SUBJECT"
-    assert ticket.description == "UPDATED DESCRIPTION"
+    assert ticket.description == "<div>UPDATED DESCRIPTION</div>"
     assert ticket.internal == False  # This workspace does not have a customer
     assert ticket.priority == 2
     assert ticket.assignee == "User:14012"
@@ -155,7 +155,7 @@ async def move_ticket_to_workspace():
     assert ticket.run_async == True
     assert ticket._net_calls == 3
     assert ticket.subject == subj
-    assert ticket.description == desc
+    assert ticket.description == "<div><h1>This is a test ticket. Please ignore</h1></div>"
     assert ticket.project_id == 8
     assert ticket.priority == 33
     assert ticket.workspace_id == 141
@@ -176,7 +176,7 @@ async def move_ticket_to_workspace():
     await ticket.commit()
 
     assert ticket.subject == "UPDATED SUBJECT"
-    assert ticket.description == "UPDATED DESCRIPTION"
+    assert ticket.description == "<div>UPDATED DESCRIPTION</div>"
     assert ticket.internal == True
     assert ticket.priority == 2
     assert ticket.workspace_id == 53

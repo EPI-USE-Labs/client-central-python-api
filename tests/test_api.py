@@ -52,7 +52,7 @@ def test_get_user_by_id():
 
 def test_create_ticket():
     subj = "[Test-Ticket]"
-    desc = "<h1>This is a test ticket. Please ignore</h1>"
+    desc = "<div><h1>This is a test ticket. Please ignore</h1><div>"
     # sid = "ZZZ"
 
     ticket = cc.create_ticket(
@@ -75,7 +75,7 @@ def test_create_ticket():
     assert ticket.workspace_id == 141
     assert ticket.project_id == 8
 
-    assert ticket.description == desc
+    assert desc in ticket.description
     assert ticket.subject == subj
     # assert ticket.sid == sid
     assert ticket.custom_fields["ms_category"]["id"] == 363
@@ -99,8 +99,9 @@ def test_update_ticket():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
     ticket.description = "<p>update desc 3</p>"
     ticket.commit()
-    assert ticket.get_text_description() == "update desc 3"
-    assert ticket.description == "<p>update desc 3</p>"
+    print(ticket.description)
+    assert ticket.get_text_description() == "\nupdate desc 3\n\n"
+    assert ticket.description == "<div><div><br>update desc 3<br><br></div></div>"
 
 
 def test_comment():
@@ -132,7 +133,7 @@ def test_comment():
     new_num_change_events = len(ticket.change_events)
 
     assert (old_num_comments + 1) == new_num_comments
-    assert ticket.comments[0].comment == "<p>Test comment via button</p>"
+    assert ticket.comments[0].comment == "<div><div><br>Test comment via button<br><br></div></div>"
 
     # nothing else should have changed unless someone edited the ticket.
     assert old_num_change_eventes == new_num_change_events
@@ -216,11 +217,11 @@ def test_comment_and_update():
     ticket.description = "<p>update desc 2</p>"
     ticket.commit("comment and update")
     ticket.refresh()
-    assert ticket.description == "<p>update desc 2</p>"
-    assert ticket.get_text_description() == "update desc 2"
+    assert ticket.description == "<div><div><br>update desc 2<br><br></div></div>"
+    assert ticket.get_text_description() == "\nupdate desc 2\n\n"
 
     last_comment = ticket.comments[0].comment
-    assert last_comment == "comment and update"
+    assert last_comment == "<div>comment and update</div>"
 
 
 def test_suggest_solution_then_grab():
@@ -361,7 +362,7 @@ def test_create_related_ticket():
     assert ticket.workspace_id == 141
     assert ticket.project_id == 8
 
-    assert ticket.description == desc
+    assert ticket.description == "<div><h1>This is a related test ticket. Please ignore</h1></div>"
     assert ticket.subject == subj
     # assert ticket.sid == sid
     assert ticket.custom_fields["ms_category"]["id"] == 363

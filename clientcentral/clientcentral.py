@@ -52,7 +52,7 @@ class ClientCentral:
             raw_token = token
             self.token = "token=" + raw_token
 
-        if not raw_token or not len(raw_token) == 32:
+        if not raw_token or not len(raw_token) >= 32:
             raise NoTokenProvided("Token invalid or not present")
 
         self.token = "token=" + raw_token
