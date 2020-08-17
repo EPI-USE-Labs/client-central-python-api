@@ -91,4 +91,4 @@ install: clean ## install the package to the active Python's site-packages
 	python3 setup.py install
 
 update:
-	pip-upgrader
+	pip-upgrade stable-requirements.txt --skip-package-installation
