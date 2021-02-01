@@ -38,7 +38,7 @@ class ClientCentral:
         self.base_url = base_url
 
         if not self.base_url:
-            self.base_url = "https://qa-cc.labs.epiuse.com"
+            self.base_url = "https://qa.clientcentral.io"
             if production:
                 self.base_url = "https://clientcentral.io"
 

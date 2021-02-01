@@ -4,3 +4,4 @@ ujson
 pytest
 pytest-cov
 beautifulsoup4
+pip-upgrader

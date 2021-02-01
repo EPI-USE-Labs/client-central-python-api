@@ -389,6 +389,21 @@ def test_create_related_ticket():
     ticket.status = Status("12")
     ticket.commit()
 
+    ticket.related_tickets.clear()
+    ticket.commit()
+
+    orig_ticket.refresh()
+    assert len(orig_ticket.related_tickets) == 0
+
+    ticket.related_tickets.append(pytest.ticket_id)
+    ticket.commit()
+
+    orig_ticket.refresh()
+    ticket.refresh()
+    assert len(orig_ticket.related_tickets) == 1
+    assert ticket.related_tickets[0] == int(orig_ticket.ticket_id)
+    assert orig_ticket.related_tickets[0] == int(ticket.ticket_id)
+
 
 def test_internal_event():
     subj = "[Test-Ticket]"

@@ -662,6 +662,7 @@ class Ticket(object):
                 "project_id": self.project_id,
                 "type_id": self.type.type_id,
                 "internal": self.internal,
+                "related_tickets": self._related_tickets_attribute
             },
             "ticket_event": {"comment": None, "internal": commit_internal,},
         }
