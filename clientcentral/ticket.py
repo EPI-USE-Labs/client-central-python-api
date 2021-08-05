@@ -14,6 +14,7 @@ from clientcentral.Exceptions import (
     ButtonNotAvailable,
     ButtonRequiresComment,
     HTTPError,
+    DateFormatInvalid
 )
 from clientcentral.model.Button import Button
 from clientcentral.model.Change import Change
@@ -332,12 +333,41 @@ class Ticket(object):
             if result["data"]["customer_user"]["title"]:
                 self.owner.title = result["data"]["customer_user"]["title"]["name"]
 
-        self.created_at = datetime.strptime(
-            result["data"]["created_at"], "%Y-%m-%dT%H:%M:%S.%f%z"
-        )
-        self.updated_at = datetime.strptime(
-            result["data"]["updated_at"], "%Y-%m-%dT%H:%M:%S.%f%z"
-        )
+        # Created at
+        try:
+            self.created_at = datetime.strptime(
+                result["data"]["created_at"], "%Y-%m-%dT%H:%M:%S.%f%z"
+            )
+        except ValueError:
+            pass
+
+        try:
+            self.created_at = datetime.strptime(
+                result["data"]["created_at"], "%Y-%m-%dT%H:%M:%S%z"
+            )
+        except ValueError:
+            pass
+
+        if self.created_at == None:
+            raise DateFormatInvalid("Failed to convert datetime: " + str(result["data"]["created_at"]))
+
+        # Updated at
+        try:
+            self.updated_at = datetime.strptime(
+                result["data"]["updated_at"], "%Y-%m-%dT%H:%M:%S.%f%z"
+            )
+        except ValueError:
+            pass
+
+        try:
+            self.updated_at = datetime.strptime(
+                result["data"]["updated_at"], "%Y-%m-%dT%H:%M:%S%z"
+            )
+        except ValueError:
+            pass
+
+        if self.updated_at == None:
+            raise DateFormatInvalid("Failed to convert datetime: " + str(result["data"]["updated_at"]))
 
         self.account_vp = result["data"]["account"]["id"]
         self.project_id = result["data"]["project"]["id"]
@@ -662,9 +692,12 @@ class Ticket(object):
                 "project_id": self.project_id,
                 "type_id": self.type.type_id,
                 "internal": self.internal,
-                "related_tickets": self._related_tickets_attribute
+                "related_tickets": self._related_tickets_attribute,
             },
-            "ticket_event": {"comment": None, "internal": commit_internal,},
+            "ticket_event": {
+                "comment": None,
+                "internal": commit_internal,
+            },
         }
 
         # for custom_field in self.custom_fields:
@@ -738,6 +771,8 @@ class Ticket(object):
         payload = "&select="
         payload += ",".join(selection)
         payload += ",*"
+
+        print(payload)
 
         response = await self._request("GET", url + payload)
 

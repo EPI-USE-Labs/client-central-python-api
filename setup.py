@@ -5,45 +5,49 @@
 
 from setuptools import setup, find_packages
 
-with open('README.md') as readme_file:
+with open("README.md") as readme_file:
     readme = readme_file.read()
 
 requirements = []
-with open('stable-requirements.txt') as f:
+with open("stable-requirements.txt") as f:
     requirements = f.read().splitlines()
 
-setup_requirements = ['pytest-runner', ]
+setup_requirements = [
+    "pytest-runner",
+]
 
-test_requirements = ['pytest', ]
+test_requirements = [
+    "pytest",
+]
 
 setup(
     author="Thomas Scholtz",
-    author_email='thomas@labs.epiuse.com',
+    author_email="thomas@labs.epiuse.com",
     classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
-        'Intended Audience :: Developers',
-        'Natural Language :: English',
-        'Programming Language :: Python :: 3.7',
+        "Development Status :: 2 - Pre-Alpha",
+        "Intended Audience :: Developers",
+        "Natural Language :: English",
+        "Programming Language :: Python :: 3.7",
     ],
     description="Client Central Python API.",
     entry_points={
-        'console_scripts': [
-            'test=test.cli:main',
+        "console_scripts": [
+            "test=test.cli:main",
         ],
     },
     install_requires=requirements,
     long_description=readme,
-    long_description_content_type='text/markdown',
+    long_description_content_type="text/markdown",
     include_package_data=True,
-    keywords=['ClientCentral', 'Client', 'EPI-USE Labs', 'EPI-USE', 'Client-Central'],
-    name='clientcentral',
+    keywords=["ClientCentral", "Client", "EPI-USE Labs", "EPI-USE", "Client-Central"],
+    name="clientcentral",
     packages=find_packages(),
     setup_requires=setup_requirements,
-    test_suite='tests',
+    test_suite="tests",
     tests_require=test_requirements,
-    url='https://github.com/EPI-USE-Labs/client-central-python-api',
-    version='10.0.4',
+    url="https://github.com/EPI-USE-Labs/client-central-python-api",
+    version="10.0.4",
     zip_safe=False,
-    data_files=[('.', [])],
-    python_requires='>=3.6'
+    data_files=[(".", [])],
+    python_requires=">=3.6",
 )

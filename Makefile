@@ -88,7 +88,7 @@ dist: clean ## builds source and wheel package
 	python3 setup.py bdist_wheel
 
 install: clean ## install the package to the active Python's site-packages
-	python3 setup.py install
+	python3 setup.py install --user
 
 update:
 	pip-upgrade stable-requirements.txt --skip-package-installation

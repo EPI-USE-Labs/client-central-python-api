@@ -44,7 +44,9 @@ async def create_ticket():
     assert ticket.run_async == True
     assert ticket._net_calls == 3
     assert ticket.subject == subj
-    assert ticket.description == "<div><h1>This is a test ticket. Please ignore</h1></div>"
+    assert (
+        ticket.description == "<div><h1>This is a test ticket. Please ignore</h1></div>"
+    )
     assert ticket.project_id == 8
     assert ticket.priority == 33
     assert ticket.workspace_id == 141
@@ -72,7 +74,9 @@ async def get_ticket_by_id():
     assert ticket._net_calls == 2
     assert ticket.run_async == True
     assert ticket.subject == subj
-    assert ticket.description == "<div><h1>This is a test ticket. Please ignore</h1></div>"
+    assert (
+        ticket.description == "<div><h1>This is a test ticket. Please ignore</h1></div>"
+    )
     assert ticket.project_id == 8
     assert ticket.priority == 33
     assert ticket.workspace_id == 141
@@ -101,7 +105,9 @@ async def update_ticket():
     assert ticket._net_calls == 2
     assert ticket.run_async == True
     assert ticket.subject == subj
-    assert ticket.description == "<div><h1>This is a test ticket. Please ignore</h1></div>"
+    assert (
+        ticket.description == "<div><h1>This is a test ticket. Please ignore</h1></div>"
+    )
     assert ticket.project_id == 8
     assert ticket.priority == 33
     assert ticket.workspace_id == 141
@@ -155,7 +161,9 @@ async def move_ticket_to_workspace():
     assert ticket.run_async == True
     assert ticket._net_calls == 3
     assert ticket.subject == subj
-    assert ticket.description == "<div><h1>This is a test ticket. Please ignore</h1></div>"
+    assert (
+        ticket.description == "<div><h1>This is a test ticket. Please ignore</h1></div>"
+    )
     assert ticket.project_id == 8
     assert ticket.priority == 33
     assert ticket.workspace_id == 141

@@ -172,6 +172,48 @@ class QueryTickets:
                 ):
                     account_vp = ticket_in_data["account"]["id"]
 
+                # Created at
+                try:
+                    ticket_created_at = datetime.strptime(
+                        ticket_in_data["created_at"], "%Y-%m-%dT%H:%M:%S.%f%z"
+                    )
+                except ValueError:
+                    pass
+
+                try:
+                    ticket_created_at = datetime.strptime(
+                        ticket_in_data["created_at"], "%Y-%m-%dT%H:%M:%S%z"
+                    )
+                except ValueError:
+                    pass
+
+                if ticket_created_at == None:
+                    raise DateFormatInvalid(
+                        "Failed to convert datetime: "
+                        + str(ticket_in_data["created_at"])
+                    )
+
+                # Updated at
+                try:
+                    ticket_updated_at = datetime.strptime(
+                        ticket_in_data["updated_at"], "%Y-%m-%dT%H:%M:%S.%f%z"
+                    )
+                except ValueError:
+                    pass
+
+                try:
+                    ticket_updated_at = datetime.strptime(
+                        ticket_in_data["updated_at"], "%Y-%m-%dT%H:%M:%S%z"
+                    )
+                except ValueError:
+                    pass
+
+                if ticket_updated_at == None:
+                    raise DateFormatInvalid(
+                        "Failed to convert datetime: "
+                        + str(ticket_in_data["updated_at"])
+                    )
+
                 ticket = Ticket(
                     base_url=self.base_url,
                     token=self.token,
@@ -185,12 +227,8 @@ class QueryTickets:
                         name=ticket_in_data["status"]["name"],
                         open=not ticket_in_data["status"]["closed"],
                     ),
-                    created_at=datetime.strptime(
-                        ticket_in_data["created_at"], "%Y-%m-%dT%H:%M:%S.%f%z"
-                    ),
-                    updated_at=datetime.strptime(
-                        ticket_in_data["updated_at"], "%Y-%m-%dT%H:%M:%S.%f%z"
-                    ),
+                    created_at=ticket_created_at,
+                    updated_at=ticket_updated_at,
                     description=ticket_in_data["description"],
                     subject=ticket_in_data["subject"],
                     owner=owner,

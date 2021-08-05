@@ -133,7 +133,10 @@ def test_comment():
     new_num_change_events = len(ticket.change_events)
 
     assert (old_num_comments + 1) == new_num_comments
-    assert ticket.comments[0].comment == "<div><div><br>Test comment via button<br><br></div></div>"
+    assert (
+        ticket.comments[0].comment
+        == "<div><div><br>Test comment via button<br><br></div></div>"
+    )
 
     # nothing else should have changed unless someone edited the ticket.
     assert old_num_change_eventes == new_num_change_events
@@ -362,7 +365,10 @@ def test_create_related_ticket():
     assert ticket.workspace_id == 141
     assert ticket.project_id == 8
 
-    assert ticket.description == "<div><h1>This is a related test ticket. Please ignore</h1></div>"
+    assert (
+        ticket.description
+        == "<div><h1>This is a related test ticket. Please ignore</h1></div>"
+    )
     assert ticket.subject == subj
     # assert ticket.sid == sid
     assert ticket.custom_fields["ms_category"]["id"] == 363
@@ -520,7 +526,11 @@ def test_ticket_created_from_email():
     # Should not raise NoneType exception
     tickets = (
         cc.query_tickets()
-        .filter_by(operators.and_(operators.comparison("id", "=", "90771"),))
+        .filter_by(
+            operators.and_(
+                operators.comparison("id", "=", "90771"),
+            )
+        )
         .all()
     )
 
