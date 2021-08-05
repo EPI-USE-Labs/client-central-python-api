@@ -772,8 +772,6 @@ class Ticket(object):
         payload += ",".join(selection)
         payload += ",*"
 
-        print(payload)
-
         response = await self._request("GET", url + payload)
 
         if response["status_code"] != 200:
