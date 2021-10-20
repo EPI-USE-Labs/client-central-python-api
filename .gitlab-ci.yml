@@ -30,7 +30,6 @@ release:
     - pip3 install twine --upgrade
     - pip3 install setuptools --upgrade
     - pip3 install wheel --upgrade
-    - echo "nameserver 192.168.5.11" > /etc/resolv.conf
     - mkdir ~/.ssh
     - ssh-keyscan -p 22 git.labs.epiuse.com > ~/.ssh/known_hosts
     - eval `ssh-agent -s`
