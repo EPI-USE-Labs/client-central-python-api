@@ -9,6 +9,7 @@ Development Lead
 
 Developers
 ----------
+* Monté Bouwer <monte@labs.epiuse.com>
 * Tihan Pelser <tihan@labs.epiuse.com>
 
 Contributors
