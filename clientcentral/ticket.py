@@ -666,7 +666,7 @@ class Ticket(object):
             self.commit()
 
     async def _commit(
-        self, comment: Optional[str] = None, commit_internal: bool = False
+        self, comment: Optional[str] = None, commit_internal: bool = False, disable_notifications:bool=False
     ):
         url = (
             self._base_url
@@ -697,6 +697,7 @@ class Ticket(object):
             "ticket_event": {
                 "comment": None,
                 "internal": commit_internal,
+                "disable_notifications":disable_notifications,
             },
         }
 
@@ -713,14 +714,14 @@ class Ticket(object):
 
         return await self._update()
 
-    def commit(self, comment: Optional[str] = None, commit_internal: bool = False):
+    def commit(self, comment: Optional[str] = None, commit_internal: bool = False, disable_notifications:bool=False):
         """Commit the current state of the ticket to Client Central"""
 
         if self._event_loop is None:
             self._event_loop = self._get_event_loop()
 
         future = asyncio.ensure_future(
-            self._commit(comment, commit_internal), loop=self._event_loop
+            self._commit(comment, commit_internal, disable_notifications), loop=self._event_loop
         )
 
         if self.run_async:
