@@ -33,7 +33,7 @@ class Roles:
     def _get_event_loop(self):
         """Retrieves the event loop or creates a new one."""
         try:
-            return asyncio.get_event_loop()
+            return asyncio.get_running_loop()
         except RuntimeError:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
@@ -89,8 +89,8 @@ class Roles:
     def get_all_roles(self):
         url = self._base_url + "/account/roles.json?" + self._token
 
-        if self._event_loop is None:
-            self._event_loop = self._get_event_loop()
+        # if self._event_loop is None:
+        #     self._event_loop = self._get_event_loop()
 
         self._roles = list()
 
@@ -98,8 +98,9 @@ class Roles:
         role_batch = None
         while role_batch is None or len(role_batch) > 0:
             # Call URL
-            future = asyncio.ensure_future(self._request("GET", url + "&page=" + str(page)))
-            response = self._get_event_loop().run_until_complete(future)
+            # future = asyncio.create_task(self._request("GET", url + "&page=" + str(page)))
+            # response = self._get_event_loop().run_until_complete(future)
+            response = asyncio.run(self._request("GET", url + "&page=" + str(page)))
 
             if response["status_code"] != 200:
                 raise HTTPError("Failed to get all roles", response)
@@ -121,6 +122,6 @@ class Roles:
                         users=role_users,
                     )
                 )
-            page = page+1
+            page = page + 1
 
         return self._roles

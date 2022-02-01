@@ -58,20 +58,22 @@ class ClientCentral:
         self.token = "token=" + raw_token
 
         self.run_async = run_async
+        # self._event_loop = None
+
         self._event_loop = self._get_event_loop()
-        future = asyncio.ensure_future(self._create_session(), loop=self._event_loop)
+        future = self._event_loop.create_task(self._create_session())
         self._event_loop.run_until_complete(future)
 
     async def _create_session(self):
         async with aiohttp.ClientSession(
-            loop=self._event_loop, json_serialize=ujson.dumps
+            loop=self._get_event_loop(), json_serialize=ujson.dumps
         ) as session:
             self.session = session
 
     def _get_event_loop(self):
         """Retrieves the event loop or creates a new one."""
         try:
-            return asyncio.get_event_loop()
+            return asyncio.get_running_loop()
         except RuntimeError:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
@@ -82,10 +84,7 @@ class ClientCentral:
         return q
 
     def get_ticket_by_id(self, ticket_id: str) -> Ticket:
-        if self._event_loop is None:
-            self._event_loop = self._get_event_loop()
-
-        future = asyncio.ensure_future(
+        future = self._event_loop.create_task(
             Ticket.factory_create(
                 session=self.session,
                 base_url=self.base_url,
@@ -96,7 +95,7 @@ class ClientCentral:
                 workspace_id=None,
                 run_async=self.run_async,
             ),
-            loop=self._event_loop,
+            # loop=self._get_event_loop(),
         )
 
         if self.run_async:
@@ -112,7 +111,7 @@ class ClientCentral:
         project_id,
         priority,
         type_id: int,
-        custom_fields_attributes: List[Dict[str, int]] = [],
+        custom_fields_attributes: List[Dict[str, int]] = None,
         account_vp: Optional[int] = 1,
         workspace_id=None,
         assignee=None,
@@ -152,7 +151,7 @@ class ClientCentral:
         description: str,
         project_id,
         priority,
-        custom_fields_attributes: List[Dict[str, int]] = [],
+        custom_fields_attributes: List[Dict[str, int]] = None,
         account_vp: Optional[int] = 1,
         workspace_id=None,
         type_id: Optional[int] = None,
@@ -161,10 +160,10 @@ class ClientCentral:
         internal: bool = False,
     ):
 
-        if self._event_loop is None:
-            self._event_loop = self._get_event_loop()
+        # if self._event_loop is None:
+        #     self._event_loop = self._get_event_loop()
 
-        future = asyncio.ensure_future(
+        future = self._event_loop.create_task(
             self._create_ticket(
                 account_vp=account_vp,
                 subject=subject,
@@ -178,7 +177,7 @@ class ClientCentral:
                 related_tickets=related_tickets,
                 internal=internal,
             ),
-            loop=self._event_loop,
+            # loop=self._get_event_loop(),
         )
         if self.run_async:
             return future

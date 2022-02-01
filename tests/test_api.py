@@ -101,13 +101,13 @@ def test_update_ticket():
     ticket.commit()
     print(ticket.description)
     assert ticket.get_text_description() == "\nupdate desc 3\n\n"
-    assert ticket.description == "<div><div><br>update desc 3<br><br></div></div>"
+    assert ticket.description == "<div><br>update desc 3<br><br></div>"
 
 
 def test_comment():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
     old_num_comments = len(ticket.comments)
-    old_num_change_eventes = len(ticket.change_events)
+    old_num_change_events = len(ticket.change_events)
 
     ticket.comment("<p>Test comment via button</p>")
 
@@ -134,12 +134,12 @@ def test_comment():
 
     assert (old_num_comments + 1) == new_num_comments
     assert (
-        ticket.comments[0].comment
-        == "<div><div><br>Test comment via button<br><br></div></div>"
+        ticket.comments[0].comment == "<div><br>Test comment via button<br><br></div>"
     )
 
     # nothing else should have changed unless someone edited the ticket.
-    assert old_num_change_eventes == new_num_change_events
+    # or if Client Central executes a workflow
+    assert old_num_change_events <= new_num_change_events
 
 
 def test_set_priority():
@@ -220,11 +220,11 @@ def test_comment_and_update():
     ticket.description = "<p>update desc 2</p>"
     ticket.commit("comment and update")
     ticket.refresh()
-    assert ticket.description == "<div><div><br>update desc 2<br><br></div></div>"
+    assert ticket.description == "<div><br>update desc 2<br><br></div>"
     assert ticket.get_text_description() == "\nupdate desc 2\n\n"
 
     last_comment = ticket.comments[0].comment
-    assert last_comment == "<div>comment and update</div>"
+    assert last_comment == "comment and update"
 
 
 def test_suggest_solution_then_grab():
@@ -365,10 +365,7 @@ def test_create_related_ticket():
     assert ticket.workspace_id == 141
     assert ticket.project_id == 8
 
-    assert (
-        ticket.description
-        == "<div><h1>This is a related test ticket. Please ignore</h1></div>"
-    )
+    assert ticket.description == "<h1>This is a related test ticket. Please ignore</h1>"
     assert ticket.subject == subj
     # assert ticket.sid == sid
     assert ticket.custom_fields["ms_category"]["id"] == 363
@@ -432,10 +429,17 @@ def test_internal_event():
         ],
     )
 
-    ticket.commit("not visible", True)
-    assert ticket.events[0].internal is True
-    ticket.commit("visible", False)
-    assert ticket.events[0].internal is False
+    ticket.commit("not visible", commit_internal=True)
+    # assert ticket.events[0].internal is True
+
+    ticket.commit("visible", commit_internal=False)
+    # assert ticket.events[0].internal is False
+
+    for event in ticket.events:
+        if "not visible" in event.comment:
+            assert event.internal is True
+        elif "visible" in event.comment:
+            assert event.internal is False
 
 
 def test_internal_event_ticket_not_visible():
@@ -495,13 +499,13 @@ def test_query_internal_event():
     assert ticket.type is not None
     assert ticket.workspace_id is not None
 
-    ticket.commit("not visible", False)
-
-    assert ticket.events[0].internal is False
-
-    ticket.commit("visible", True)
-
+    ticket.commit("not visible", commit_internal=True)
+    # ticket.refresh()
     assert ticket.events[0].internal is True
+
+    ticket.commit("visible", commit_internal=False)
+    # ticket.refresh()
+    assert ticket.events[0].internal is False
 
 
 def test_exception_with_unicode_and_missing_payload():
@@ -515,6 +519,89 @@ def test_exception_with_unicode_and_missing_payload():
             },
         )
     assert "URL called:" in str(excinfo.value) and "None" in str(excinfo.value)
+
+
+def test_ensure_multiple_tickets_dont_use_same_attributes():
+    subj = "[Test-Ticket]"
+    desc = "<div><h1>This is a test ticket. Please ignore</h1><div>"
+    # sid = "ZZZ"
+
+    ticket = cc.create_ticket(
+        subject=subj,
+        description=desc,
+        project_id=8,
+        workspace_id=141,
+        type_id=8,
+        priority=33,
+        custom_fields_attributes=[{"id": 17, "values": 0}, {"id": 75, "values": 363}],
+    )
+    ticket.refresh()
+
+    # 0 -> Security related
+    # 1 -> SAP SID
+    # 2 -> Category [363 -> Other]
+
+    assert ticket.run_async is False
+
+    assert ticket.workspace_id == 141
+    assert ticket.project_id == 8
+
+    assert desc in ticket.description
+    assert ticket.subject == subj
+    # assert ticket.sid == sid
+    assert ticket.custom_fields["ms_category"]["id"] == 363
+    assert ticket.owner.user_id == 14012  # Thomas Scholtz
+    assert ticket.creator.user_id == 14012  # Thomas Scholtz
+    assert ticket.status.status_id == 1  # New
+    assert ticket.status.name == "New"
+    assert ticket.status.open is True
+    assert ticket.status.closed is False
+    assert ticket.priority == 33  # Very low
+
+    # Change the category
+    ticket.custom_fields["ms_category"]["id"] = 364
+    ticket.commit()
+
+    ticket2 = cc.create_ticket(
+        subject=subj,
+        description=desc,
+        project_id=8,
+        workspace_id=141,
+        type_id=8,
+        priority=33,
+        custom_fields_attributes=[{"id": 75, "values": 361}],
+    )
+    # ticket2.refresh()
+
+    # 0 -> Security related
+    # 1 -> SAP SID
+    # 2 -> Category [363 -> Other]
+
+    assert ticket2.run_async is False
+
+    assert ticket2.workspace_id == 141
+    assert ticket2.project_id == 8
+
+    assert desc in ticket2.description
+    assert ticket2.subject == subj
+    # assert ticket.sid == sid
+    assert ticket2.custom_fields["ms_category"]["id"] == 361
+    assert ticket2.owner.user_id == 14012  # Thomas Scholtz
+    assert ticket2.creator.user_id == 14012  # Thomas Scholtz
+    assert ticket2.status.status_id == 1  # New
+    assert ticket2.status.name == "New"
+    assert ticket2.status.open is True
+    assert ticket2.status.closed is False
+    assert ticket2.priority == 33  # Very low
+
+    ticket1 = cc.get_ticket_by_id(ticket.ticket_id)
+    ticket1.custom_fields_attributes.append({"id": 75, "values": 363})
+    ticket1.commit()
+
+    ticket2 = cc.get_ticket_by_id(ticket2.ticket_id)
+    ticket2.custom_fields_attributes.append({"id": 17, "values": 0})
+    assert ticket2.custom_fields_attributes != ticket1.custom_fields_attributes
+    # ticket2.commit()
 
 
 # Hardcoded test since I am lazy

@@ -14,7 +14,7 @@ from clientcentral.Exceptions import (
     ButtonNotAvailable,
     ButtonRequiresComment,
     HTTPError,
-    DateFormatInvalid
+    DateFormatInvalid,
 )
 from clientcentral.model.Button import Button
 from clientcentral.model.Change import Change
@@ -29,41 +29,6 @@ HEADERS = {"Content-Type": "application/json", "Accept": "application/json"}
 
 
 class Ticket(object):
-    _production: bool = False
-
-    _base_url: str
-    _token: str
-
-    subject: Optional[str]
-    priority: Optional[int]
-    ticket_id: str
-
-    creator: Optional[User]
-    owner: Optional[User]
-
-    description: Optional[str]
-
-    type: Optional[TicketType]
-
-    internal: bool
-
-    workspace_id: int
-    project_id: int
-
-    created_at: Optional[datetime]
-    updated_at: Optional[datetime]
-
-    user_watchers: List[User]
-    # email_watchers = None
-
-    # Custom
-    custom_fields_attributes: List[Dict[str, int]]
-
-    status: Optional[Status]
-    assignee = None
-
-    button_ids = None
-
     def __init__(
         self,
         base_url: str,
@@ -72,7 +37,7 @@ class Ticket(object):
         production: bool,
         workspace_id: int,
         project_id: int,
-        custom_fields_attributes: List[Dict[str, int]] = [],
+        custom_fields_attributes: List[Dict[str, int]] = None,
         ticket_type: Optional[TicketType] = None,
         created_at: Optional[datetime] = None,
         updated_at: Optional[datetime] = None,
@@ -81,7 +46,7 @@ class Ticket(object):
         subject: Optional[str] = None,
         owner: Optional[User] = None,
         creator: Optional[User] = None,
-        user_watchers: List[User] = [],
+        user_watchers: List[User] = None,
         priority: Optional[int] = None,
         assignee: Optional[str] = None,
         related_tickets: Optional[List[int]] = None,
@@ -100,8 +65,10 @@ class Ticket(object):
         # self.events = []
         # self.change_events = []
         # self.comments = []
-        self.user_watchers = user_watchers
-        self.custom_fields_attributes = custom_fields_attributes
+        self.user_watchers = [] if user_watchers is None else user_watchers
+        self.custom_fields_attributes = (
+            [] if custom_fields_attributes is None else custom_fields_attributes
+        )
 
         self._related_tickets_attribute = related_tickets
 
@@ -144,7 +111,7 @@ class Ticket(object):
         production: bool,
         workspace_id: int,
         project_id: int,
-        custom_fields_attributes: List[Dict[str, int]] = [],
+        custom_fields_attributes: List[Dict[str, int]] = None,
         ticket_type: Optional[TicketType] = None,
         created_at: Optional[datetime] = None,
         updated_at: Optional[datetime] = None,
@@ -153,7 +120,7 @@ class Ticket(object):
         subject: Optional[str] = None,
         owner: Optional[User] = None,
         creator: Optional[User] = None,
-        user_watchers: List[User] = [],
+        user_watchers: List[User] = None,
         priority: Optional[int] = None,
         assignee: Optional[str] = None,
         related_tickets: Optional[List[int]] = None,
@@ -202,7 +169,7 @@ class Ticket(object):
         if self._event_loop is None:
             self._event_loop = self._event_loop()
 
-        future = asyncio.ensure_future(self._update(), loop=self._event_loop)
+        future = self._event_loop.create_task(self._update())
 
         if self.run_async:
             return future
@@ -281,9 +248,7 @@ class Ticket(object):
             if self._event_loop is None:
                 self._event_loop = self._get_event_loop()
 
-            future = asyncio.ensure_future(
-                self._update_buttons(), loop=self._event_loop
-            )
+            future = self._event_loop.create_task(self._update_buttons())
             self._event_loop.run_until_complete(future)
 
         return self._available_buttons_attribute
@@ -349,7 +314,9 @@ class Ticket(object):
             pass
 
         if self.created_at == None:
-            raise DateFormatInvalid("Failed to convert datetime: " + str(result["data"]["created_at"]))
+            raise DateFormatInvalid(
+                "Failed to convert datetime: " + str(result["data"]["created_at"])
+            )
 
         # Updated at
         try:
@@ -367,7 +334,9 @@ class Ticket(object):
             pass
 
         if self.updated_at == None:
-            raise DateFormatInvalid("Failed to convert datetime: " + str(result["data"]["updated_at"]))
+            raise DateFormatInvalid(
+                "Failed to convert datetime: " + str(result["data"]["updated_at"])
+            )
 
         self.account_vp = result["data"]["account"]["id"]
         self.project_id = result["data"]["project"]["id"]
@@ -585,7 +554,8 @@ class Ticket(object):
         if self._event_loop is None:
             self._event_loop = self._get_event_loop()
 
-        future = asyncio.ensure_future(self._comments(), loop=self._event_loop)
+        future = self._event_loop.create_task(self._comments())
+
         if self.run_async:
             return future
         return self._event_loop.run_until_complete(future)
@@ -600,7 +570,7 @@ class Ticket(object):
         if self._event_loop is None:
             self._event_loop = self._get_event_loop()
 
-        future = asyncio.ensure_future(self._change_events(), loop=self._event_loop)
+        future = self._event_loop.create_task(self._change_events())
 
         if self.run_async:
             return future
@@ -617,7 +587,7 @@ class Ticket(object):
         if self._event_loop is None:
             self._event_loop = self._get_event_loop()
 
-        future = asyncio.ensure_future(self._events(), loop=self._event_loop)
+        future = self._event_loop.create_task(self._events())
 
         if self.run_async:
             return future
@@ -634,7 +604,7 @@ class Ticket(object):
         if self._event_loop is None:
             self._event_loop = self._get_event_loop()
 
-        future = asyncio.ensure_future(self._custom_fields(), loop=self._event_loop)
+        future = self._event_loop.create_task(self._custom_fields())
 
         if self.run_async:
             return future
@@ -651,7 +621,7 @@ class Ticket(object):
         if self._event_loop is None:
             self._event_loop = self._get_event_loop()
 
-        future = asyncio.ensure_future(self._related_tickets(), loop=self._event_loop)
+        future = self._event_loop.create_task(self._related_tickets())
 
         if self.run_async:
             return future
@@ -666,7 +636,10 @@ class Ticket(object):
             self.commit()
 
     async def _commit(
-        self, comment: Optional[str] = None, commit_internal: bool = False, disable_notifications:bool=False
+        self,
+        comment: Optional[str] = None,
+        commit_internal: bool = False,
+        disable_notifications: bool = False,
     ):
         url = (
             self._base_url
@@ -697,7 +670,7 @@ class Ticket(object):
             "ticket_event": {
                 "comment": None,
                 "internal": commit_internal,
-                "disable_notifications":disable_notifications,
+                "disable_notifications": disable_notifications,
             },
         }
 
@@ -714,14 +687,19 @@ class Ticket(object):
 
         return await self._update()
 
-    def commit(self, comment: Optional[str] = None, commit_internal: bool = False, disable_notifications:bool=False):
+    def commit(
+        self,
+        comment: Optional[str] = None,
+        commit_internal: bool = False,
+        disable_notifications: bool = False,
+    ):
         """Commit the current state of the ticket to Client Central"""
 
         if self._event_loop is None:
             self._event_loop = self._get_event_loop()
 
-        future = asyncio.ensure_future(
-            self._commit(comment, commit_internal, disable_notifications), loop=self._event_loop
+        future = self._event_loop.create_task(
+            self._commit(comment, commit_internal, disable_notifications)
         )
 
         if self.run_async:
@@ -808,9 +786,7 @@ class Ticket(object):
         if self._event_loop is None:
             self._event_loop = self._get_event_loop()
 
-        future = asyncio.ensure_future(
-            self._comment(description), loop=self._event_loop
-        )
+        future = self._event_loop.create_task(self._comment(description))
 
         if self.run_async:
             return future
@@ -847,42 +823,13 @@ class Ticket(object):
         if self._event_loop is None:
             self._event_loop = self._get_event_loop()
 
-        future = asyncio.ensure_future(
-            self._press_button(button_name, comment), loop=self._event_loop
-        )
+        future = self._event_loop.create_task(self._press_button(button_name, comment))
 
         if self.run_async:
             return future
 
         result = self._event_loop.run_until_complete(future)
         return result
-
-    # def bump_priority_up(self):
-    #     changed = False
-    #     # Current priority + 1
-    #     if self.priority == 33:
-    #         self.priority = 4
-    #         changed = True
-    #     elif self.priority - 1 >= 1:
-    #         self.priority = self.priority - 1
-    #         changed = True
-    #
-    #     if changed:
-    #         self.commit()
-    #
-    # def bump_priority_down(self):
-    #     changed = False
-    #
-    #     # low priority
-    #     if self.priority + 1 <= 4:
-    #         self.priority = self.priority + 1
-    #         changed = True
-    #     elif self.priority == 4:
-    #         self.priority = 33
-    #         changed = True
-    #
-    #     if changed:
-    #         self.commit()
 
     def _build_url(self, button):
         url = (
@@ -910,9 +857,8 @@ class Ticket(object):
     def _get_event_loop(self):
         """Retrieves the event loop or creates a new one."""
         try:
-            return asyncio.get_event_loop()
+            return asyncio.get_running_loop()
         except RuntimeError:
-            # print("CREATED LOOP")
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             return loop

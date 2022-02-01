@@ -18,7 +18,7 @@ pip install --user --upgrade clientcentral==11.0.4
 ```
 
 # Requirements
-This library was built and tested on `Python 3.7.4` a minimal Python version of `Python 3.6.x` is required.
+This library was built and tested on `Python 3.10` a minimal Python version of `Python 3.7.x` is required.
 
 `Python 2` is not supported.
 

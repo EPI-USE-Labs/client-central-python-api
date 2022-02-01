@@ -38,7 +38,7 @@ class UsersClient:
     def _get_event_loop(self):
         """Retrieves the event loop or creates a new one."""
         try:
-            return asyncio.get_event_loop()
+            return asyncio.get_running_loop()
         except RuntimeError:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
@@ -83,7 +83,7 @@ class UsersClient:
         url = self._base_url + "/api/v1/users/" + str(user_id) + ".json?" + self._token
 
         # Call URL
-        future = asyncio.ensure_future(self._request("GET", url))
+        future = self._event_loop.create_task(self._request("GET", url))
         response = self._event_loop.run_until_complete(future)
 
         if response["status_code"] != 200:
@@ -103,7 +103,7 @@ class UsersClient:
         )
 
         # Call URL
-        future = asyncio.ensure_future(self._request("GET", url))
+        future = self._event_loop.create_task(self._request("GET", url))
         response = self._event_loop.run_until_complete(future)
 
         if response["status_code"] != 200:

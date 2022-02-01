@@ -39,7 +39,7 @@ class QueryTickets:
     def _get_event_loop(self):
         """Retrieves the event loop or creates a new one."""
         try:
-            return asyncio.get_event_loop()
+            return asyncio.get_running_loop()
         except RuntimeError:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
@@ -116,7 +116,7 @@ class QueryTickets:
         if self._event_loop is None:
             self._event_loop = self._get_event_loop()
 
-        future = asyncio.ensure_future(self._request("GET", url + payload))
+        future = self._event_loop.create_task(self._request("GET", url + payload))
         response = self._event_loop.run_until_complete(future)
 
         # response = requests.get(url + payload)
@@ -257,7 +257,7 @@ class QueryTickets:
 
             # print("PAGE: " + str(page + 1))
 
-            future = asyncio.ensure_future(
+            future = self._event_loop.create_task(
                 self._request("GET", url + "&page=" + str(page + 1) + payload)
             )
             response = self._event_loop.run_until_complete(future)

@@ -40,6 +40,7 @@ class HTTPError(Exception):
 class DateFormatInvalid(Exception):
     pass
 
+
 class ButtonNotAvailable(Exception):
     pass
 

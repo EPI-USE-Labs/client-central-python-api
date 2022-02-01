@@ -18,20 +18,17 @@ class TicketEvent:
         self.created_by_user = created_by_user
         # Created at
         try:
-            self.created_at = datetime.strptime(created_at, "%Y-%m-%dT%H:%M:%S.%f%z"
-            )
+            self.created_at = datetime.strptime(created_at, "%Y-%m-%dT%H:%M:%S.%f%z")
         except ValueError:
             pass
 
         try:
-            self.created_at = datetime.strptime(created_at, "%Y-%m-%dT%H:%M:%S%z"
-            )
+            self.created_at = datetime.strptime(created_at, "%Y-%m-%dT%H:%M:%S%z")
         except ValueError:
             pass
 
         if self.created_at == None:
             raise DateFormatInvalid(
-                "Failed to convert datetime: "
-                + str(ticket_in_data["created_at"])
+                "Failed to convert datetime: " + str(ticket_in_data["created_at"])
             )
         self.internal = internal

@@ -44,9 +44,7 @@ async def create_ticket():
     assert ticket.run_async == True
     assert ticket._net_calls == 3
     assert ticket.subject == subj
-    assert (
-        ticket.description == "<div><h1>This is a test ticket. Please ignore</h1></div>"
-    )
+    assert ticket.description == "<h1>This is a test ticket. Please ignore</h1>"
     assert ticket.project_id == 8
     assert ticket.priority == 33
     assert ticket.workspace_id == 141
@@ -63,8 +61,9 @@ async def create_ticket():
 
 
 def test_create_ticket():
-    future = asyncio.ensure_future(create_ticket())
-    result = _get_event_loop().run_until_complete(future)
+    loop = async_cc._event_loop
+    future = loop.create_task(create_ticket())
+    loop.run_until_complete(future)
 
 
 async def get_ticket_by_id():
@@ -74,9 +73,7 @@ async def get_ticket_by_id():
     assert ticket._net_calls == 2
     assert ticket.run_async == True
     assert ticket.subject == subj
-    assert (
-        ticket.description == "<div><h1>This is a test ticket. Please ignore</h1></div>"
-    )
+    assert ticket.description == "<h1>This is a test ticket. Please ignore</h1>"
     assert ticket.project_id == 8
     assert ticket.priority == 33
     assert ticket.workspace_id == 141
@@ -94,8 +91,9 @@ async def get_ticket_by_id():
 
 
 def test_get_ticket_by_id():
-    future = asyncio.ensure_future(get_ticket_by_id())
-    result = _get_event_loop().run_until_complete(future)
+    loop = async_cc._event_loop
+    future = loop.create_task(get_ticket_by_id())
+    loop.run_until_complete(future)
 
 
 async def update_ticket():
@@ -105,9 +103,7 @@ async def update_ticket():
     assert ticket._net_calls == 2
     assert ticket.run_async == True
     assert ticket.subject == subj
-    assert (
-        ticket.description == "<div><h1>This is a test ticket. Please ignore</h1></div>"
-    )
+    assert ticket.description == "<h1>This is a test ticket. Please ignore</h1>"
     assert ticket.project_id == 8
     assert ticket.priority == 33
     assert ticket.workspace_id == 141
@@ -129,7 +125,7 @@ async def update_ticket():
     assert ticket._net_calls == 5  # Should be 4 as we dont need to update the buttons
 
     assert ticket.subject == "UPDATED SUBJECT"
-    assert ticket.description == "<div>UPDATED DESCRIPTION</div>"
+    assert ticket.description == "UPDATED DESCRIPTION"
     assert ticket.internal == False  # This workspace does not have a customer
     assert ticket.priority == 2
     assert ticket.assignee == "User:14012"
@@ -139,8 +135,9 @@ async def update_ticket():
 
 
 def test_update_ticket_by_id():
-    future = asyncio.ensure_future(update_ticket())
-    result = _get_event_loop().run_until_complete(future)
+    loop = async_cc._event_loop
+    future = loop.create_task(update_ticket())
+    loop.run_until_complete(future)
 
 
 async def move_ticket_to_workspace():
@@ -161,9 +158,7 @@ async def move_ticket_to_workspace():
     assert ticket.run_async == True
     assert ticket._net_calls == 3
     assert ticket.subject == subj
-    assert (
-        ticket.description == "<div><h1>This is a test ticket. Please ignore</h1></div>"
-    )
+    assert ticket.description == "<h1>This is a test ticket. Please ignore</h1>"
     assert ticket.project_id == 8
     assert ticket.priority == 33
     assert ticket.workspace_id == 141
@@ -184,7 +179,7 @@ async def move_ticket_to_workspace():
     await ticket.commit()
 
     assert ticket.subject == "UPDATED SUBJECT"
-    assert ticket.description == "<div>UPDATED DESCRIPTION</div>"
+    assert ticket.description == "UPDATED DESCRIPTION"
     assert ticket.internal == True
     assert ticket.priority == 2
     assert ticket.workspace_id == 53
@@ -195,8 +190,9 @@ async def move_ticket_to_workspace():
 
 
 def test_move_ticket_to_workspace():
-    future = asyncio.ensure_future(move_ticket_to_workspace())
-    result = _get_event_loop().run_until_complete(future)
+    loop = async_cc._event_loop
+    future = loop.create_task(move_ticket_to_workspace())
+    loop.run_until_complete(future)
 
 
 def test_get_user_by_email():
