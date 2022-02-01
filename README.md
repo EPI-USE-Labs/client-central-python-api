@@ -98,7 +98,7 @@ for change_event in ticket.change_events:
 from clientcentral.clientcentral import ClientCentral
 import clientcentral.query as operators
 
-# Production 'false' will run on qa.cc
+# Production 'false' will run on qa.clientcentral.io
 cc = ClientCentral(production=True)
 
 # This will return a list of all tickets that are:
