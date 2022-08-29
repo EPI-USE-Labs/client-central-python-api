@@ -1,11 +1,4 @@
 class User:
-    user_id: str
-    title: str
-    job_title: str
-    first_name: str
-    last_name: str
-    email: str
-
     def __init__(
         self,
         user_id: str,
@@ -14,6 +7,7 @@ class User:
         email: str,
         title: str = None,
         job_title: str = None,
+        resource_owner_id: int = None,
     ):
         self.user_id = user_id
         self.first_name = first_name
@@ -22,6 +16,7 @@ class User:
 
         self.title = title
         self.job_title = job_title
+        self.resource_owner_id = resource_owner_id
 
     def get_name(self):
         return self.first_name + " " + self.last_name
@@ -40,6 +35,7 @@ class User:
             data["email"],
             data["title"],
             data["job_title"],
+            data["number"]
         )
         return user_obj
 

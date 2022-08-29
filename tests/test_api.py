@@ -370,6 +370,7 @@ def test_create_related_ticket():
     # assert ticket.sid == sid
     assert ticket.custom_fields["ms_category"]["id"] == 363
     assert ticket.owner.user_id == 14012  # Thomas Scholtz
+    assert ticket.owner.resource_owner_id == 13962 # Thomas Scholtz
     assert ticket.creator.user_id == 14012  # Thomas Scholtz
     assert ticket.status.status_id == 1  # New
     assert ticket.status.name == "New"
@@ -414,7 +415,6 @@ def test_internal_event():
     # sid = "ZZZ"
 
     ticket = cc.create_ticket(
-        account_vp=1631,
         subject=subj,
         description=desc,
         project_id=8,
@@ -449,7 +449,6 @@ def test_internal_event_ticket_not_visible():
 
     ticket = cc.create_ticket(
         assignee="User:14012",
-        account_vp=1631,
         subject=subj,
         description=desc,
         project_id=8,

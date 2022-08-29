@@ -294,6 +294,7 @@ class Ticket(object):
                 last_name=result["data"]["customer_user"]["last_name"],
                 job_title=result["data"]["customer_user"]["job_title"],
                 email=result["data"]["customer_user"]["email"],
+                resource_owner_id=result["data"]["customer_user"]["number"],
             )
             if result["data"]["customer_user"]["title"]:
                 self.owner.title = result["data"]["customer_user"]["title"]["name"]
