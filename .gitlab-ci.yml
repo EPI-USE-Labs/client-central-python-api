@@ -27,9 +27,9 @@ release:
     - pip3 install wheel --upgrade
     - pip3 install Commitizen --upgrade
   script:
-    - git remote set-url origin https://${CI_GIT_DEPLOY_USER}:${CI_GIT_DEPLOY_TOKEN}@git.labs.epiuse.com/atf/core/marvin.git
-    - git config --global user.email ${CI_EMAIL}
-    - git config --global user.name ${CI_USERNAME}
+    - git remote set-url origin https://${CI_GIT_DEPLOY_USER}:${CI_GIT_DEPLOY_TOKEN}@git.labs.epiuse.com/SWAT/clientcentral-api-python.git
+    - git config --global user.email ${GITLAB_USER_EMAIL}
+    - git config --global user.name ${GITLAB_USER_NAME}
     - git fetch
     - cz bump --yes --changelog --changelog-to-stdout
     - git push --follow-tags
