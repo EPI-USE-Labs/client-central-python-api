@@ -51,6 +51,8 @@ cc = ClientCentral(production=True)
 # Theses values can be found by following the following instructions: https://clientcentral.io/support/cc/kb/articles/1661-tickets-api-creating-tickets
 ticket = cc.create_ticket(subject="New awesome subject" ,
                           description="this is an awesome ticket",
+                          account_vp=1,
+                          customer_user_vp=1,
                           project_id=8,
                           workspace_id=16,
                           custom_fields_attributes=[{
