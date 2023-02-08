@@ -1,9 +1,5 @@
 default:
-  image: "nikolaik/python-nodejs:latest"
-
-before_script:
-  - apt-get update && apt-get upgrade -y && apt-get install -y git openssh-client
-  - pip3 install pip --upgrade 
+  image: "python:3.11-alpine"
 
 stages:
 - test
@@ -16,25 +12,25 @@ analysis:
   script:
     - bandit -r clientcentral/
 
-
 release:
   stage: release
   variables:
     TWINE_USERNAME: $PYPI_USER
     TWINE_PASSWORD: $PYPI_PASSWORD
   before_script:
+    - apk update && apk upgrade
+    - apk add git
     - python3 --version
-    - apt-get update && apt-get upgrade -y && apt-get install -y git openssh-client
     - pip3 install pip --upgrade 
     - pip3 install twine --upgrade
     - pip3 install setuptools --upgrade
     - pip3 install wheel --upgrade
     - pip3 install Commitizen --upgrade
-    - mkdir ~/.ssh
-    - ssh-keyscan -p 22 git.labs.epiuse.com > ~/.ssh/known_hosts
-    - eval `ssh-agent -s`
-    - ssh-add <(echo "$DEPLOY_KEY")
   script:
+    - git remote set-url origin https://${CI_GIT_DEPLOY_USER}:${CI_GIT_DEPLOY_TOKEN}@git.labs.epiuse.com/atf/core/marvin.git
+    - git config --global user.email ${CI_EMAIL}
+    - git config --global user.name ${CI_USERNAME}
+    - git fetch
     - cz bump --yes --changelog --changelog-to-stdout
     - git push --follow-tags
     - python3 setup.py sdist bdist_wheel

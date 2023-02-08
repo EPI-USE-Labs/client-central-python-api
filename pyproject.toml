@@ -7,4 +7,5 @@ version = "12.1.0"
 tag_format = "v$version"
 version_files = [
     "setup.py",
+    "Readme.md",
 ]
