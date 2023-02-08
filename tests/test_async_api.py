@@ -31,6 +31,8 @@ async def create_ticket():
     desc = "<h1>This is a test ticket. Please ignore</h1>"
 
     ticket = await async_cc.create_ticket(
+        account_vp=1,
+        customer_user_vp=1,
         subject=subj,
         description=desc,
         project_id=8,
@@ -145,10 +147,12 @@ async def move_ticket_to_workspace():
     desc = "<h1>This is a test ticket. Please ignore</h1>"
 
     ticket = await async_cc.create_ticket(
+        account_vp=1,
+        customer_user_vp=1,
         subject=subj,
         description=desc,
         project_id=8,
-        workspace_id=141,
+        workspace_id=25,
         # assignee="User:14012",
         priority=33,
         type_id=8,
@@ -161,13 +165,14 @@ async def move_ticket_to_workspace():
     assert ticket.description == "<h1>This is a test ticket. Please ignore</h1>"
     assert ticket.project_id == 8
     assert ticket.priority == 33
-    assert ticket.workspace_id == 141
+    assert ticket.workspace_id == 25
     assert ticket.internal == False
 
     ticket.subject = "UPDATED SUBJECT"
     ticket.description = "UPDATED DESCRIPTION"
     ticket.priority = 2
-    ticket.workspace_id = 53  # Dischem
+    ticket.workspace_id = 87
+    ticket.project_id = 175
     ticket.type = TicketType(9)
     ticket.assignee = "User:14012"
     ticket.internal = True
@@ -182,11 +187,11 @@ async def move_ticket_to_workspace():
     assert ticket.description == "UPDATED DESCRIPTION"
     assert ticket.internal == True
     assert ticket.priority == 2
-    assert ticket.workspace_id == 53
+    assert ticket.workspace_id == 87
     assert ticket.assignee == "User:14012"
     assert ticket.type.type_id == 9
     assert ticket.type.name == "Service request"
-    assert (await ticket.custom_fields)["ms_category"]["name"] == "Transports"
+    assert (await ticket.custom_fields)["ms_category"]["name"] == "Other"
 
 
 def test_move_ticket_to_workspace():

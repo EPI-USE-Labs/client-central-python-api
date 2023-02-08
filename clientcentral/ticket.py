@@ -33,11 +33,13 @@ class Ticket(object):
         self,
         base_url: str,
         token: str,
-        ticket_id: str,
+        ticket_id: Optional[str], # Only required when getting a ticket
         production: bool,
-        workspace_id: int,
-        project_id: int,
-        custom_fields_attributes: List[Dict[str, int]] = None,
+        workspace_id: Optional[int], # Only required for creating tickets
+        project_id: Optional[int], # Only required for creating tickets
+        account_vp: Optional[int], # Only required for creating tickets
+        customer_user_vp: Optional[int], # Only required for creating tickets
+        custom_fields_attributes: Optional[List[Dict[str, int]]] = None,
         ticket_type: Optional[TicketType] = None,
         created_at: Optional[datetime] = None,
         updated_at: Optional[datetime] = None,
@@ -46,14 +48,14 @@ class Ticket(object):
         subject: Optional[str] = None,
         owner: Optional[User] = None,
         creator: Optional[User] = None,
-        user_watchers: List[User] = None,
+        user_watchers: Optional[List[User]] = None,
+        # email_watchers: Optional[List[str]] = None,
         priority: Optional[int] = None,
         assignee: Optional[str] = None,
         related_tickets: Optional[List[int]] = None,
         internal: bool = False,
         session=None,
         run_async: bool = False,
-        account_vp: Optional[int] = 1,
     ) -> None:
 
         self.description = description
@@ -66,11 +68,13 @@ class Ticket(object):
         # self.change_events = []
         # self.comments = []
         self.user_watchers = [] if user_watchers is None else user_watchers
+        # self.email_watchers = [] if email_watchers is None else email_watchers
+
         self.custom_fields_attributes = (
             [] if custom_fields_attributes is None else custom_fields_attributes
         )
 
-        self._related_tickets_attribute = related_tickets
+        self._related_tickets_attribute = [] if related_tickets is None else related_tickets
 
         self.creator = creator
         self.owner = owner
@@ -94,6 +98,7 @@ class Ticket(object):
         self.priority = priority
 
         self.account_vp = account_vp
+        self.customer_user_vp = customer_user_vp
 
         self.run_async = run_async
         self.session = session
@@ -107,11 +112,13 @@ class Ticket(object):
         cls,
         base_url: str,
         token: str,
-        ticket_id: str,
+        ticket_id: Optional[str], # Optional because it's not required for create
         production: bool,
-        workspace_id: int,
-        project_id: int,
-        custom_fields_attributes: List[Dict[str, int]] = None,
+        workspace_id: Optional[int], # Optional because it's not required when getting a ticket
+        project_id: Optional[int], # Optional because it's not required when getting a ticket
+        account_vp: Optional[int], # Optional because it's not required when getting a ticket
+        customer_user_vp: Optional[int], # Optional because it's not required when getting a ticket
+        custom_fields_attributes: Optional[List[Dict[str, int]]] = None,
         ticket_type: Optional[TicketType] = None,
         created_at: Optional[datetime] = None,
         updated_at: Optional[datetime] = None,
@@ -120,11 +127,10 @@ class Ticket(object):
         subject: Optional[str] = None,
         owner: Optional[User] = None,
         creator: Optional[User] = None,
-        user_watchers: List[User] = None,
+        user_watchers: Optional[List[User]] = None,
         priority: Optional[int] = None,
         assignee: Optional[str] = None,
         related_tickets: Optional[List[int]] = None,
-        account_vp: Optional[int] = 1,
         internal: bool = False,
         session=None,
         run_async: bool = False,
@@ -153,6 +159,7 @@ class Ticket(object):
             session=session,
             run_async=run_async,
             account_vp=account_vp,
+            customer_user_vp=customer_user_vp,
         )
         self._event_loop = self._get_event_loop()
 
@@ -167,7 +174,7 @@ class Ticket(object):
     def refresh(self) -> "Ticket":
         """Refreshes the current ticket instance. Syncs all data from Client Central"""
         if self._event_loop is None:
-            self._event_loop = self._event_loop()
+            self._event_loop = self._get_event_loop()
 
         future = self._event_loop.create_task(self._update())
 
@@ -340,6 +347,8 @@ class Ticket(object):
             )
 
         self.account_vp = result["data"]["account"]["id"]
+        self.customer_user_vp = result["data"]["customer_user"]["id"]
+
         self.project_id = result["data"]["project"]["id"]
         self.workspace_id = result["data"]["workspace"]["id"]
 
@@ -356,12 +365,12 @@ class Ticket(object):
                 + str(result["data"]["assignee"]["id"])
             )
 
-        self._related_tickets_attribute: List[int] = list()
         try:
             result["data"]["related_tickets"]
             # self.related_tickets = []
+            self._related_tickets_attribute = []
             for related_ticket in result["data"]["related_tickets"]:
-                self._related_tickets_attribute.append(related_ticket["id"])
+                self._related_tickets_attribute.append(int(related_ticket["id"]))
         except KeyError:
             pass
 
@@ -629,6 +638,11 @@ class Ticket(object):
 
         return self._event_loop.run_until_complete(future)
 
+    # def add_email_watcher(self, email:str, update: bool = True) -> None:
+    #     self.email_watchers.append(email)
+    #     if update:
+    #         self.commit()
+
     def add_user_watcher_by_id(self, user_id: int, update: bool = True) -> None:
         self.user_watchers.append(
             User(user_id=user_id, first_name=None, last_name=None, email=None)
@@ -642,6 +656,15 @@ class Ticket(object):
         commit_internal: bool = False,
         disable_notifications: bool = False,
     ):
+        if self.ticket_id is None:
+            raise Exception("Ticket ID is not set")
+
+        if self.status is None:
+            raise Exception("Ticket Status is not set, this is prbably a bug.")
+
+        if self.type is None:
+            raise Exception("Ticket Type is not set, this is prbably a bug.")
+
         url = (
             self._base_url
             + "/api/v1/tickets/"
@@ -649,7 +672,7 @@ class Ticket(object):
             + ".json?"
             + self._token
         )
-
+       
         payload = {
             "ticket": {
                 "subject": str(self.subject),
@@ -666,7 +689,8 @@ class Ticket(object):
                 "project_id": self.project_id,
                 "type_id": self.type.type_id,
                 "internal": self.internal,
-                "related_tickets": self._related_tickets_attribute,
+                "related_tickets": [int(related_ticket_id) for related_ticket_id in self._related_tickets_attribute],
+                # "email_watchers": self.email_watchers,
             },
             "ticket_event": {
                 "comment": None,
@@ -709,6 +733,9 @@ class Ticket(object):
         return self._event_loop.run_until_complete(future)
 
     async def _get(self):
+        if self.ticket_id is None:
+            raise Exception("Ticket ID is not set, can not retrieve a ticket without an ID.")
+
         url = (
             self._base_url
             + "/api/v1/tickets/"
@@ -760,6 +787,9 @@ class Ticket(object):
         return response
 
     async def _comment(self, description: str) -> "Ticket":
+        if self.ticket_id is None:
+            raise Exception("Ticket ID is not set")
+
         url = (
             self._base_url
             + "/api/v1/tickets/"
@@ -795,7 +825,7 @@ class Ticket(object):
         result = self._event_loop.run_until_complete(future)
         return result
 
-    async def _press_button(self, button_name: str, comment: str = None):
+    async def _press_button(self, button_name: str, comment: Optional[str] = None):
         if not self.available_buttons or len(self.available_buttons) == 0:
             await self._update_buttons()
 
@@ -820,7 +850,7 @@ class Ticket(object):
         else:
             raise ButtonNotAvailable("This button is currently not active!")
 
-    def press_button(self, button_name: str, comment: str = None):
+    def press_button(self, button_name: str, comment: Optional[str] = None):
         if self._event_loop is None:
             self._event_loop = self._get_event_loop()
 

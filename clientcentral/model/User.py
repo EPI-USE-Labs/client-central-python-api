@@ -1,13 +1,15 @@
+from typing import Optional
+
 class User:
     def __init__(
         self,
-        user_id: str,
-        first_name: str,
-        last_name: str,
-        email: str,
-        title: str = None,
-        job_title: str = None,
-        resource_owner_id: int = None,
+        user_id: int,
+        first_name: Optional[str],
+        last_name: Optional[str],
+        email: Optional[str],
+        title: Optional[str] = None,
+        job_title: Optional[str] = None,
+        resource_owner_id: Optional[int] = None,
     ):
         self.user_id = user_id
         self.first_name = first_name

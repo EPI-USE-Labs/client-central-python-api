@@ -2,13 +2,9 @@ from datetime import datetime
 from typing import Optional
 
 from clientcentral.model.User import User
-
+from clientcentral.Exceptions import DateFormatInvalid
 
 class TicketEvent:
-    created_by_user: Optional[User] = None
-    created_at: datetime
-    internal: bool
-
     def __init__(
         self,
         created_by_user: Optional[User],
@@ -29,6 +25,6 @@ class TicketEvent:
 
         if self.created_at == None:
             raise DateFormatInvalid(
-                "Failed to convert datetime: " + str(ticket_in_data["created_at"])
+                "Failed to convert datetime: " + created_at
             )
         self.internal = internal

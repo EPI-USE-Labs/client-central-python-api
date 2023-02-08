@@ -58,6 +58,8 @@ def test_create_ticket():
     ticket = cc.create_ticket(
         subject=subj,
         description=desc,
+        account_vp=1,
+        customer_user_vp=1,
         project_id=8,
         workspace_id=141,
         type_id=8,
@@ -336,6 +338,11 @@ def test_add_user_watcher():
     ticket.refresh()
     assert len(ticket.user_watchers) == 1
 
+    # Test adding an email watcher
+    # ticket.add_user_watcher_by_email("test@example.com")
+    # ticket.refresh()
+    # assert ticket.user_watchers[1].email == "test@example.com"
+
 
 def test_assignee_user_by_id():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
@@ -353,12 +360,14 @@ def test_create_related_ticket():
     ticket = cc.create_ticket(
         subject=subj,
         description=desc,
+        account_vp=1,
+        customer_user_vp=1,
         project_id=8,
         type_id=8,
         workspace_id=141,
         priority=33,
         custom_fields_attributes=[{"id": 17, "values": 0}, {"id": 75, "values": 363}],
-        related_tickets=[pytest.ticket_id],
+        related_tickets=[int(pytest.ticket_id)],
     )
     ticket.refresh()
 
@@ -402,11 +411,15 @@ def test_create_related_ticket():
     ticket.related_tickets.append(pytest.ticket_id)
     ticket.commit()
 
+    # When adding a ticket as related and then commenting on the ticket, sometimes the related ticket is removed from the related_tickets list.
+    ticket.commit(comment="This is a comment")
+
     orig_ticket.refresh()
     ticket.refresh()
     assert len(orig_ticket.related_tickets) == 1
     assert ticket.related_tickets[0] == int(orig_ticket.ticket_id)
     assert orig_ticket.related_tickets[0] == int(ticket.ticket_id)
+
 
 
 def test_internal_event():
@@ -417,6 +430,8 @@ def test_internal_event():
     ticket = cc.create_ticket(
         subject=subj,
         description=desc,
+        account_vp=1,
+        customer_user_vp=1,
         project_id=8,
         type_id=8,
         workspace_id=141,
@@ -449,6 +464,8 @@ def test_internal_event_ticket_not_visible():
 
     ticket = cc.create_ticket(
         assignee="User:14012",
+        account_vp=1,
+        customer_user_vp=1,
         subject=subj,
         description=desc,
         project_id=8,
@@ -528,6 +545,8 @@ def test_ensure_multiple_tickets_dont_use_same_attributes():
     ticket = cc.create_ticket(
         subject=subj,
         description=desc,
+        account_vp=1,
+        customer_user_vp=1,
         project_id=8,
         workspace_id=141,
         type_id=8,
@@ -564,6 +583,8 @@ def test_ensure_multiple_tickets_dont_use_same_attributes():
     ticket2 = cc.create_ticket(
         subject=subj,
         description=desc,
+        account_vp=1,
+        customer_user_vp=1,
         project_id=8,
         workspace_id=141,
         type_id=8,

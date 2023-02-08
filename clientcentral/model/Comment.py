@@ -7,8 +7,6 @@ from bs4 import BeautifulSoup
 
 
 class Comment(TicketEvent):
-    comment: str
-
     def __init__(
         self,
         created_by_user: Optional[User],

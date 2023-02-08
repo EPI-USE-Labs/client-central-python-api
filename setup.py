@@ -23,7 +23,7 @@ setup(
         'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Developers',
         'Natural Language :: English',
-        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.9',
     ],
     description="Client Central Python API.",
     entry_points={
@@ -45,5 +45,5 @@ setup(
     version='12.0.1',
     zip_safe=False,
     data_files=[('.', [])],
-    python_requires='>=3.7'
+    python_requires='>=3.9'
 )

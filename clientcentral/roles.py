@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 
 import ujson
 import aiohttp
@@ -81,12 +81,14 @@ class Roles:
                 # Found role return user_ids
                 return role.users
 
-    def get_role_by_name(self, role_name: str) -> Role:
+    def get_role_by_name(self, role_name: str) -> Optional[Role]:
         for role in self.roles:
             if role.role_name == role_name:
                 return role
+        
+        return None
 
-    def get_all_roles(self):
+    def get_all_roles(self) -> List[Role]:
         url = self._base_url + "/account/roles.json?" + self._token
 
         # if self._event_loop is None:
@@ -95,7 +97,7 @@ class Roles:
         self._roles = list()
 
         page = 1
-        role_batch = None
+        role_batch: Optional[List[Dict[str, Any]]] = None
         while role_batch is None or len(role_batch) > 0:
             # Call URL
             # future = asyncio.create_task(self._request("GET", url + "&page=" + str(page)))
@@ -104,11 +106,15 @@ class Roles:
 
             if response["status_code"] != 200:
                 raise HTTPError("Failed to get all roles", response)
-            role_batch: List[Dict[str, str]] = response["json"]
+            
+            role_batch = response["json"]
+
+            if role_batch is None:
+                break
 
             for role in role_batch:
                 # Create new role object
-                role_users: List[User] = []
+                role_users: List[str] = []
 
                 for user in role["users"]:
                     role_users.append(user["id"])

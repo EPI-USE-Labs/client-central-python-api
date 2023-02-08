@@ -16,16 +16,9 @@ import os
 import asyncio
 import aiohttp
 import ujson
-import re
 
 
 class ClientCentral:
-    production: bool = False
-    base_url: str
-    token: Optional[str] = None
-
-    query = None
-
     def __init__(
         self,
         production: bool,
@@ -35,12 +28,13 @@ class ClientCentral:
     ) -> None:
         self.production = production
 
-        self.base_url = base_url
 
-        if not self.base_url:
+        if base_url is None:
             self.base_url = "https://qa.clientcentral.io"
             if production:
                 self.base_url = "https://clientcentral.io"
+        else:
+            self.base_url = base_url
 
         # Get the token from the environment
         raw_token = None
@@ -94,8 +88,9 @@ class ClientCentral:
                 project_id=None,
                 workspace_id=None,
                 run_async=self.run_async,
+                account_vp=None,
+                customer_user_vp=None,
             ),
-            # loop=self._get_event_loop(),
         )
 
         if self.run_async:
@@ -110,16 +105,20 @@ class ClientCentral:
         description: str,
         project_id,
         priority,
-        type_id: int,
-        custom_fields_attributes: List[Dict[str, int]] = None,
-        account_vp: Optional[int] = 1,
+        type_id: Optional[int],
+        account_vp: int,
+        customer_user_vp: int,
+        custom_fields_attributes: Optional[List[Dict[str, int]]] = None,
         workspace_id=None,
         assignee=None,
         related_tickets: Optional[List[int]] = None,
         internal: bool = False,
     ):
 
-        ticket_type = TicketType(type_id=type_id)
+        if type_id is None:
+            raise Exception("Ticket type ID is required when creating a ticket")
+        else:
+            ticket_type = TicketType(type_id=type_id)
 
         ticket = await Ticket.factory_create(
             session=self.session,
@@ -129,6 +128,7 @@ class ClientCentral:
             production=self.production,
             custom_fields_attributes=custom_fields_attributes,
             account_vp=account_vp,
+            customer_user_vp=customer_user_vp,
             workspace_id=workspace_id,
             project_id=project_id,
             ticket_type=ticket_type,
@@ -151,8 +151,9 @@ class ClientCentral:
         description: str,
         project_id,
         priority,
-        custom_fields_attributes: List[Dict[str, int]] = None,
-        account_vp: Optional[int] = 1,
+        account_vp: int,
+        customer_user_vp: int,
+        custom_fields_attributes: Optional[List[Dict[str, int]]] = None,
         workspace_id=None,
         type_id: Optional[int] = None,
         assignee=None,
@@ -166,6 +167,7 @@ class ClientCentral:
         future = self._event_loop.create_task(
             self._create_ticket(
                 account_vp=account_vp,
+                customer_user_vp=customer_user_vp,
                 subject=subject,
                 description=description,
                 project_id=project_id,

@@ -14,17 +14,12 @@ from clientcentral.model.TicketType import TicketType
 from clientcentral.model.User import User
 from clientcentral.ticket import Ticket
 
+from clientcentral.Exceptions import DateFormatInvalid
+
 HEADERS = {"Content-Type": "application/json", "Accept": "application/json"}
 
 
 class QueryTickets:
-    _query: str
-
-    base_url: str
-    token: str
-
-    production: bool = False
-
     def __init__(
         self, base_url: str, token: str, production: bool, session=None, event_loop=None
     ) -> None:
@@ -121,9 +116,6 @@ class QueryTickets:
 
         # response = requests.get(url + payload)
 
-        print(url + payload)
-
-        # print(response.text)
         if response["status_code"] != 200:
             raise HTTPError("Failed to query all tickets", response)
         result = response["json"]
@@ -171,6 +163,12 @@ class QueryTickets:
                     ticket_in_data["account"] is not None
                 ):
                     account_vp = ticket_in_data["account"]["id"]
+
+                customer_user_vp = None
+                if ticket_in_data["customer_user"] and (
+                    ticket_in_data["customer_user"] is not None
+                ):
+                    customer_user_vp = ticket_in_data["customer_user"]["id"]
 
                 # Created at
                 try:
@@ -220,6 +218,7 @@ class QueryTickets:
                     ticket_id=str(ticket_in_data["id"]),
                     production=self.production,
                     account_vp=account_vp,
+                    customer_user_vp=customer_user_vp,
                     workspace_id=ticket_in_data["workspace"]["id"],
                     project_id=ticket_in_data["project"]["id"],
                     status=Status(
