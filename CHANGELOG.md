@@ -1,3 +1,9 @@
+## v12.2.2 (2023-02-09)
+
+### Fix
+
+- **ticket**: Fix not commiting customer_vp, fix assignee being overwritten
+
 ## v12.2.1 (2023-02-08)
 
 ### Fix
