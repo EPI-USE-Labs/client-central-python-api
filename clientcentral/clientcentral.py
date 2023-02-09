@@ -28,7 +28,6 @@ class ClientCentral:
     ) -> None:
         self.production = production
 
-
         if base_url is None:
             self.base_url = "https://qa.clientcentral.io"
             if production:

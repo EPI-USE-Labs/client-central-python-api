@@ -123,7 +123,6 @@ class QueryTickets:
 
         for page in range(1, (result["total_pages"] + 1)):
             for ticket_in_data in result["data"]:
-                # print(ticket_in_data)
                 creator = None
                 if ticket_in_data["created_by_user"]:
                     creator = User(
@@ -250,8 +249,8 @@ class QueryTickets:
                     priority=ticket_in_data["priority"]["id"],
                     session=self.session,
                 )
-                if ticket_in_data["assignee"]:
-                    ticket.assignee = ticket_in_data["assignee"]["id"]
+                # if ticket_in_data["assignee"]:
+                #     ticket.assignee = ticket_in_data["assignee"]["id"]
                 tickets.append(ticket)
 
             # print("PAGE: " + str(page + 1))

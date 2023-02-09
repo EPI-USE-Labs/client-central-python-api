@@ -4,6 +4,7 @@ from typing import Optional
 from clientcentral.model.User import User
 from clientcentral.Exceptions import DateFormatInvalid
 
+
 class TicketEvent:
     def __init__(
         self,
@@ -24,7 +25,5 @@ class TicketEvent:
             pass
 
         if self.created_at == None:
-            raise DateFormatInvalid(
-                "Failed to convert datetime: " + created_at
-            )
+            raise DateFormatInvalid("Failed to convert datetime: " + created_at)
         self.internal = internal

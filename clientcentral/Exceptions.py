@@ -20,9 +20,10 @@ class HTTPError(Exception):
             + "\n"
         )
 
-    def __init__(self, message, payload=None):
+    def __init__(self, message, payload=None, token=None):
         self.message = message
         self.payload = payload
+        self.token = token
 
     def __str__(self):
         return (
@@ -32,7 +33,10 @@ class HTTPError(Exception):
                 "Error returned from Client Central:",
                 json.dumps(self.payload.get("json"), sort_keys=True, indent=4),
             )
-            + self._new_line("URL called:", str(self.payload.get("url")))
+            + self._new_line(
+                "URL called:",
+                str(self.payload.get("url")).replace(self.token, "token=******"),
+            )
             + self._new_line("HTTP Method:", str(self.payload.get("method")))
         )
 

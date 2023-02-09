@@ -59,7 +59,7 @@ def test_create_ticket():
         subject=subj,
         description=desc,
         account_vp=1,
-        customer_user_vp=1,
+        customer_user_vp=14012,
         project_id=8,
         workspace_id=141,
         type_id=8,
@@ -361,7 +361,7 @@ def test_create_related_ticket():
         subject=subj,
         description=desc,
         account_vp=1,
-        customer_user_vp=1,
+        customer_user_vp=14012,
         project_id=8,
         type_id=8,
         workspace_id=141,
@@ -431,7 +431,7 @@ def test_internal_event():
         subject=subj,
         description=desc,
         account_vp=1,
-        customer_user_vp=1,
+        customer_user_vp=14012,
         project_id=8,
         type_id=8,
         workspace_id=141,
@@ -465,7 +465,7 @@ def test_internal_event_ticket_not_visible():
     ticket = cc.create_ticket(
         assignee="User:14012",
         account_vp=1,
-        customer_user_vp=1,
+        customer_user_vp=14012,
         subject=subj,
         description=desc,
         project_id=8,
@@ -510,18 +510,24 @@ def test_query_internal_event():
         .all()[1]
     )
 
-    # assert ticket.assignee is not None
+    assert ticket.assignee is not None
     assert ticket.status is not None
     assert ticket.type is not None
     assert ticket.workspace_id is not None
+    
+    original_ticket_assignee = ticket.assignee
 
     ticket.commit("not visible", commit_internal=True)
     # ticket.refresh()
     assert ticket.events[0].internal is True
+    assert ticket.assignee is not None
+    assert ticket.assignee == original_ticket_assignee
 
     ticket.commit("visible", commit_internal=False)
     # ticket.refresh()
     assert ticket.events[0].internal is False
+    assert ticket.assignee is not None
+    assert ticket.assignee == original_ticket_assignee
 
 
 def test_exception_with_unicode_and_missing_payload():
@@ -533,6 +539,7 @@ def test_exception_with_unicode_and_missing_payload():
                 "a": "∀ 	∁ 	∂ 	∃ 	∄ 	∅ 	∆ 	∇ 	∈ 	∉ 	∊ 	∋ 	∌ 	∍ 	∎ 	∏",
                 "method": "∀ 	∁ 	∂ 	∃ 	∄ 	∅ 	∆ 	∇ 	∈ 	∉ 	∊ 	∋ 	∌ 	∍ 	∎ 	∏",
             },
+            token="MYSECRETTOKEN"
         )
     assert "URL called:" in str(excinfo.value) and "None" in str(excinfo.value)
 
@@ -546,7 +553,7 @@ def test_ensure_multiple_tickets_dont_use_same_attributes():
         subject=subj,
         description=desc,
         account_vp=1,
-        customer_user_vp=1,
+        customer_user_vp=14012,
         project_id=8,
         workspace_id=141,
         type_id=8,
@@ -584,7 +591,7 @@ def test_ensure_multiple_tickets_dont_use_same_attributes():
         subject=subj,
         description=desc,
         account_vp=1,
-        customer_user_vp=1,
+        customer_user_vp=14012,
         project_id=8,
         workspace_id=141,
         type_id=8,

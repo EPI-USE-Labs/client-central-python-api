@@ -33,12 +33,12 @@ class Ticket(object):
         self,
         base_url: str,
         token: str,
-        ticket_id: Optional[str], # Only required when getting a ticket
+        ticket_id: Optional[str],  # Only required when getting a ticket
         production: bool,
-        workspace_id: Optional[int], # Only required for creating tickets
-        project_id: Optional[int], # Only required for creating tickets
-        account_vp: Optional[int], # Only required for creating tickets
-        customer_user_vp: Optional[int], # Only required for creating tickets
+        workspace_id: Optional[int],  # Only required for creating tickets
+        project_id: Optional[int],  # Only required for creating tickets
+        account_vp: Optional[int],  # Only required for creating tickets
+        customer_user_vp: Optional[int],  # Only required for creating tickets
         custom_fields_attributes: Optional[List[Dict[str, int]]] = None,
         ticket_type: Optional[TicketType] = None,
         created_at: Optional[datetime] = None,
@@ -74,7 +74,9 @@ class Ticket(object):
             [] if custom_fields_attributes is None else custom_fields_attributes
         )
 
-        self._related_tickets_attribute = [] if related_tickets is None else related_tickets
+        self._related_tickets_attribute = (
+            [] if related_tickets is None else related_tickets
+        )
 
         self.creator = creator
         self.owner = owner
@@ -112,12 +114,20 @@ class Ticket(object):
         cls,
         base_url: str,
         token: str,
-        ticket_id: Optional[str], # Optional because it's not required for create
+        ticket_id: Optional[str],  # Optional because it's not required for create
         production: bool,
-        workspace_id: Optional[int], # Optional because it's not required when getting a ticket
-        project_id: Optional[int], # Optional because it's not required when getting a ticket
-        account_vp: Optional[int], # Optional because it's not required when getting a ticket
-        customer_user_vp: Optional[int], # Optional because it's not required when getting a ticket
+        workspace_id: Optional[
+            int
+        ],  # Optional because it's not required when getting a ticket
+        project_id: Optional[
+            int
+        ],  # Optional because it's not required when getting a ticket
+        account_vp: Optional[
+            int
+        ],  # Optional because it's not required when getting a ticket
+        customer_user_vp: Optional[
+            int
+        ],  # Optional because it's not required when getting a ticket
         custom_fields_attributes: Optional[List[Dict[str, int]]] = None,
         ticket_type: Optional[TicketType] = None,
         created_at: Optional[datetime] = None,
@@ -229,7 +239,9 @@ class Ticket(object):
 
         response = await self._request("GET", url)
         if response["status_code"] != 200:
-            raise HTTPError("Failed to get ticket available buttons", response)
+            raise HTTPError(
+                "Failed to get ticket available buttons", response, token=self._token
+            )
 
         result = response["json"]
 
@@ -522,6 +534,7 @@ class Ticket(object):
                 "type_id": self.type.type_id,
                 "workspace_id": self.workspace_id,
                 "account_vp": self.account_vp,
+                "customer_user_vp": self.customer_user_vp,
                 "subject": str(self.subject),
                 "description": str(self.description),
                 "internal": self.internal,
@@ -545,7 +558,7 @@ class Ticket(object):
         response = await self._request("POST", url, json=params)
 
         if response["status_code"] != 200:
-            raise HTTPError("Failed to create ticket", response)
+            raise HTTPError("Failed to create ticket", response, token=self._token)
 
         self.ticket_id = str(response["json"]["data"]["id"])
         return await self._update()
@@ -672,7 +685,7 @@ class Ticket(object):
             + ".json?"
             + self._token
         )
-       
+
         payload = {
             "ticket": {
                 "subject": str(self.subject),
@@ -684,12 +697,17 @@ class Ticket(object):
                     for key, value in enumerate(self.custom_fields_attributes)
                 },
                 "assignee_vp": str(self.assignee),
+                "customer_user_vp": self.customer_user_vp,
+                "account_vp": self.account_vp,
                 "status_id": self.status.status_id,
                 "workspace_id": self.workspace_id,
                 "project_id": self.project_id,
                 "type_id": self.type.type_id,
                 "internal": self.internal,
-                "related_tickets": [int(related_ticket_id) for related_ticket_id in self._related_tickets_attribute],
+                "related_tickets": [
+                    int(related_ticket_id)
+                    for related_ticket_id in self._related_tickets_attribute
+                ],
                 # "email_watchers": self.email_watchers,
             },
             "ticket_event": {
@@ -708,7 +726,9 @@ class Ticket(object):
         response = await self._request("PATCH", url, json=payload)
 
         if response["status_code"] != 200:
-            raise HTTPError("Failed to add user watcher by user ID", response)
+            raise HTTPError(
+                "Failed to add user watcher by user ID", response, token=self._token
+            )
 
         return await self._update()
 
@@ -734,7 +754,9 @@ class Ticket(object):
 
     async def _get(self):
         if self.ticket_id is None:
-            raise Exception("Ticket ID is not set, can not retrieve a ticket without an ID.")
+            raise Exception(
+                "Ticket ID is not set, can not retrieve a ticket without an ID."
+            )
 
         url = (
             self._base_url
@@ -773,6 +795,7 @@ class Ticket(object):
             "events.event_changes.to_value",
             "events.event_changes.from_value",
             "events.internal",
+            "assignee",
         ]
 
         payload = "&select="
@@ -782,7 +805,9 @@ class Ticket(object):
         response = await self._request("GET", url + payload)
 
         if response["status_code"] != 200:
-            raise HTTPError(f"Failed to get ticket #{self.ticket_id}", response)
+            raise HTTPError(
+                f"Failed to get ticket #{self.ticket_id}", response, token=self._token
+            )
 
         return response
 
@@ -810,7 +835,11 @@ class Ticket(object):
         response = await self._request("PATCH", url, json=payload)
 
         if response["status_code"] != 200:
-            raise HTTPError(f"Failed to comment on ticket #{self.ticket_id}", response)
+            raise HTTPError(
+                f"Failed to comment on ticket #{self.ticket_id}",
+                response,
+                token=self._token,
+            )
         return await self._update()
 
     def comment(self, description: str) -> None:
@@ -843,7 +872,9 @@ class Ticket(object):
                 response = await self._request("POST", url, json=params)
                 if response["status_code"] != 200:
                     raise HTTPError(
-                        f"Failed to press button on ticket #{self.ticket_id}", response
+                        f"Failed to press button on ticket #{self.ticket_id}",
+                        response,
+                        token=self._token,
                     )
                 await self._update()
                 break

@@ -85,7 +85,7 @@ class Roles:
         for role in self.roles:
             if role.role_name == role_name:
                 return role
-        
+
         return None
 
     def get_all_roles(self) -> List[Role]:
@@ -106,7 +106,7 @@ class Roles:
 
             if response["status_code"] != 200:
                 raise HTTPError("Failed to get all roles", response)
-            
+
             role_batch = response["json"]
 
             if role_batch is None:

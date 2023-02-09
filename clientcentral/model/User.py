@@ -1,5 +1,6 @@
 from typing import Optional
 
+
 class User:
     def __init__(
         self,
@@ -37,7 +38,7 @@ class User:
             data["email"],
             data["title"],
             data["job_title"],
-            data["number"]
+            data["number"],
         )
         return user_obj
 
