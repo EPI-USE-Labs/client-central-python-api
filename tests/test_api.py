@@ -339,9 +339,10 @@ def test_add_user_watcher():
     assert len(ticket.user_watchers) == 1
 
     # Test adding an email watcher
-    # ticket.add_user_watcher_by_email("test@example.com")
-    # ticket.refresh()
-    # assert ticket.user_watchers[1].email == "test@example.com"
+    ticket.add_user_watcher_by_email("test@example.com")
+    ticket.refresh()
+    print(ticket.email_watchers)
+    assert ticket.email_watchers[0] == "test@example.com"
 
 
 def test_assignee_user_by_id():

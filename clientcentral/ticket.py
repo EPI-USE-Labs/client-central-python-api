@@ -49,7 +49,7 @@ class Ticket(object):
         owner: Optional[User] = None,
         creator: Optional[User] = None,
         user_watchers: Optional[List[User]] = None,
-        # email_watchers: Optional[List[str]] = None,
+        email_watchers: Optional[List[str]] = None,
         priority: Optional[int] = None,
         assignee: Optional[str] = None,
         related_tickets: Optional[List[int]] = None,
@@ -68,7 +68,7 @@ class Ticket(object):
         # self.change_events = []
         # self.comments = []
         self.user_watchers = [] if user_watchers is None else user_watchers
-        # self.email_watchers = [] if email_watchers is None else email_watchers
+        self.email_watchers = [] if email_watchers is None else email_watchers
 
         self.custom_fields_attributes = (
             [] if custom_fields_attributes is None else custom_fields_attributes
@@ -138,6 +138,7 @@ class Ticket(object):
         owner: Optional[User] = None,
         creator: Optional[User] = None,
         user_watchers: Optional[List[User]] = None,
+        email_watchers: Optional[List[str]] = None,
         priority: Optional[int] = None,
         assignee: Optional[str] = None,
         related_tickets: Optional[List[int]] = None,
@@ -162,6 +163,7 @@ class Ticket(object):
             owner=owner,
             creator=creator,
             user_watchers=user_watchers,
+            email_watchers=email_watchers,
             priority=priority,
             assignee=assignee,
             related_tickets=related_tickets,
@@ -430,6 +432,9 @@ class Ticket(object):
                     user_watcher.title = user["title"]["name"]
                 self.user_watchers.append(user_watcher)
 
+        if result["data"]["email_watchers"]:
+            self.email_watchers = [email for email in result["data"]["email_watchers"]]
+
         if not hasattr(self, "_change_events_attribute"):
             setattr(self, "_change_events_attribute", List[ChangeEvent])
         self._change_events_attribute: List[ChangeEvent] = list()
@@ -513,7 +518,8 @@ class Ticket(object):
         if not self.user_watchers:
             self.user_watchers = []
 
-        # self.email_watchers = [email for email in result["data"]["email_watcher_emails"]]
+        if not self.email_watchers:
+            self.email_watchers = []
 
         # Update available buttons
         return self
@@ -544,12 +550,8 @@ class Ticket(object):
                 "custom_fields_attributes": {
                     str(key): value
                     for key, value in enumerate(self.custom_fields_attributes)
-                }
-                # Not supported yet
-                # "email_watcher_emails": self.email_watchers,
-                # 0 -> Security related
-                # 1 -> SAP SID
-                # 2 -> Category [363 -> Other]
+                },
+                "email_watcher_emails": self.email_watchers
             }
         }
 
@@ -651,10 +653,10 @@ class Ticket(object):
 
         return self._event_loop.run_until_complete(future)
 
-    # def add_email_watcher(self, email:str, update: bool = True) -> None:
-    #     self.email_watchers.append(email)
-    #     if update:
-    #         self.commit()
+    def add_user_watcher_by_email(self, email:str, update: bool = True) -> None:
+        self.email_watchers.append(email.strip())
+        if update:
+            self.commit()
 
     def add_user_watcher_by_id(self, user_id: int, update: bool = True) -> None:
         self.user_watchers.append(
@@ -708,7 +710,7 @@ class Ticket(object):
                     int(related_ticket_id)
                     for related_ticket_id in self._related_tickets_attribute
                 ],
-                # "email_watchers": self.email_watchers,
+                "email_watchers": self.email_watchers,
             },
             "ticket_event": {
                 "comment": None,
@@ -792,6 +794,7 @@ class Ticket(object):
             "user_watchers.last_name",
             "user_watchers.title",
             "user_watchers.job_title",
+            "email_watchers",
             "events.event_changes.to_value",
             "events.event_changes.from_value",
             "events.internal",
