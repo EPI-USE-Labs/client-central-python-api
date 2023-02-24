@@ -1,3 +1,9 @@
+## v12.3.0 (2023-02-24)
+
+### Feat
+
+- **ticket**: added add_user_watcher_by_email
+
 ## v12.2.2 (2023-02-09)
 
 ### Fix
