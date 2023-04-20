@@ -1,3 +1,9 @@
+## v12.3.1 (2023-04-20)
+
+### Fix
+
+- **ticket**: Allow customer_vp/owner to be None
+
 ## v12.3.0 (2023-02-24)
 
 ### Feat
