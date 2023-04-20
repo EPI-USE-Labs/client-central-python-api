@@ -361,7 +361,10 @@ class Ticket(object):
             )
 
         self.account_vp = result["data"]["account"]["id"]
-        self.customer_user_vp = result["data"]["customer_user"]["id"]
+        
+        # Customer user / Owner can be null
+        if result["data"]["customer_user"]:
+            self.customer_user_vp = result["data"]["customer_user"]["id"]
 
         self.project_id = result["data"]["project"]["id"]
         self.workspace_id = result["data"]["workspace"]["id"]
