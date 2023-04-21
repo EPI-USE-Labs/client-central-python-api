@@ -1,3 +1,9 @@
+## v12.4.0 (2023-04-21)
+
+### Feat
+
+- **users**: Lock and unlock user functionality
+
 ## v12.3.1 (2023-04-20)
 
 ### Fix
