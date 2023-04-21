@@ -11,6 +11,8 @@ class User:
         title: Optional[str] = None,
         job_title: Optional[str] = None,
         resource_owner_id: Optional[int] = None,
+        locked: Optional[bool] = None,
+        number: Optional[int] = None,
     ):
         self.user_id = user_id
         self.first_name = first_name
@@ -20,6 +22,8 @@ class User:
         self.title = title
         self.job_title = job_title
         self.resource_owner_id = resource_owner_id
+        self.locked = locked
+        self.number = number
 
     def get_name(self):
         return self.first_name + " " + self.last_name
@@ -39,6 +43,8 @@ class User:
             data["title"],
             data["job_title"],
             data["number"],
+            data["locked"],
+            data["number"]
         )
         return user_obj
 

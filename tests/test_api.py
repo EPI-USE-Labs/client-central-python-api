@@ -650,6 +650,24 @@ def test_ticket_created_from_email():
     )
 
 
+def test_lock_user():
+    # Lock luyando+test@labs.epiuse.com
+    um1 = cc.get_users_client()
+    um1.lock_user_by_email("glados@labs.epiuse.com")
+
+    # Check if user is locked
+    user = um1.get_user_by_email("glados@labs.epiuse.com")
+    assert user.locked is True
+
+    # Unlock user
+    um1.unlock_user_by_email("glados@labs.epiuse.com")
+
+    # Check if user is unlocked
+    user = um1.get_user_by_email("glados@labs.epiuse.com")
+
+    assert user.locked is False
+
+
 # def test_create_ticket_on_different_workspace():
 #     subj = "[Test-Ticket]"
 #     desc = "<h1>This is a test ticket. Please ignore</h1>"
