@@ -1,3 +1,9 @@
+## v12.4.1 (2023-11-16)
+
+### Fix
+
+- **Ticket**: Added status to ticket creation. Added payload for debugging when an exception is raised
+
 ## v12.4.0 (2023-04-21)
 
 ### Feat
