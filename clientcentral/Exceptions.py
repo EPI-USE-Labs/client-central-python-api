@@ -38,6 +38,11 @@ class HTTPError(Exception):
                 str(self.payload.get("url")).replace(self.token, "token=******"),
             )
             + self._new_line("HTTP Method:", str(self.payload.get("method")))
+            + self._new_line(
+                "HTTP Status Code:", str(self.payload.get("status_code"))
+            )
+            # If it is a POST request, then we want to show the payload (the payload is the result )
+            + self._new_line("HTTP Payload:", str(self.payload.get("request_payload")))
         )
 
 

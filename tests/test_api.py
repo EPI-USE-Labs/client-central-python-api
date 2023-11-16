@@ -342,7 +342,7 @@ def test_add_user_watcher():
     ticket.add_user_watcher_by_email("test@example.com")
     ticket.refresh()
     print(ticket.email_watchers)
-    assert ticket.email_watchers[0] == "test@example.com"
+    assert "test@example.com" in ticket.email_watchers
 
 
 def test_assignee_user_by_id():

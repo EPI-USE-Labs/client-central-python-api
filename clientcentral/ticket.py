@@ -228,6 +228,7 @@ class Ticket(object):
                     "status_code": resp.status,
                     "method": resp.method,
                     "url": resp.url,
+                    "request_payload": json,
                 }
 
     async def _update_buttons(self):

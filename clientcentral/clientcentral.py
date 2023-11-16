@@ -4,6 +4,7 @@
 from typing import Dict, List, Optional
 
 from clientcentral.model.TicketType import TicketType
+from clientcentral.model.Status import Status
 from clientcentral.query import QueryTickets
 from clientcentral.roles import Roles
 from clientcentral.users_client import UsersClient
@@ -109,7 +110,8 @@ class ClientCentral:
         customer_user_vp: int,
         custom_fields_attributes: Optional[List[Dict[str, int]]] = None,
         workspace_id=None,
-        assignee=None,
+        assignee: Optional[str] = None,
+        status: Optional[Status] = None,
         related_tickets: Optional[List[int]] = None,
         internal: bool = False,
     ):
@@ -135,6 +137,7 @@ class ClientCentral:
             assignee=assignee,
             internal=internal,
             run_async=self.run_async,
+            status=status,
         )
 
         ticket.subject = str(subject)
@@ -155,7 +158,8 @@ class ClientCentral:
         custom_fields_attributes: Optional[List[Dict[str, int]]] = None,
         workspace_id=None,
         type_id: Optional[int] = None,
-        assignee=None,
+        assignee: Optional[str] = None,
+        status: Optional[Status] = None,
         related_tickets: Optional[List[int]] = None,
         internal: bool = False,
     ):
@@ -177,6 +181,7 @@ class ClientCentral:
                 assignee=assignee,
                 related_tickets=related_tickets,
                 internal=internal,
+                status=status,
             ),
             # loop=self._get_event_loop(),
         )
