@@ -23,7 +23,7 @@ release:
     - python3 --version
     - pip3 install pip --upgrade 
     - pip3 install twine --upgrade
-    - pip3 install setuptools --upgrade
+    - pip3 install build --upgrade
     - pip3 install wheel --upgrade
     - pip3 install Commitizen --upgrade
   script:
@@ -33,5 +33,5 @@ release:
     - git fetch --tags
     - cz bump --yes --changelog --changelog-to-stdout
     - git push --follow-tags
-    - python3 setup.py sdist bdist_wheel
+    - python3 -m build
     - twine upload dist/*
