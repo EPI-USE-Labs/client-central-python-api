@@ -1,3 +1,26 @@
+[project]
+name = "clientcentral"
+version = "12.4.1"
+description = "Client Central Python API."
+authors = [{ name = "Thomas Scholtz", email = "thomas@labs.epiuse.com" }]
+readme = "README.md" 
+keywords = ["ClientCentral", "Client", "EPI-USE Labs", "EPI-USE", "Client-Central"]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Developers",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3.10",
+]
+license = { file = "LICENSE" }  
+dependencies = [
+    "beautifulsoup4>=4.12.2",
+    "aiohttp==3.8.6",
+    "ujson>=5.8.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/EPI-USE-Labs/client-central-python-api"
+
 [tool]
 [tool.commitizen]
 name = "cz_conventional_commits"
@@ -6,6 +29,6 @@ bump_message = "bump: release $current_version to $new_version [skip-ci]"
 version = "12.4.1"
 tag_format = "v$version"
 version_files = [
-    "setup.py",
     "README.md",
+    "pyproject.toml",
 ]
