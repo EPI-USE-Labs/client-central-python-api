@@ -229,6 +229,12 @@ async def async_query_tickets():
         .all()
     )
 
+    for ticket in tickets:
+        # Test if we can lazy load
+        all_custom_fields = await ticket.custom_fields
+        assert len(all_custom_fields) > 0
+        break
+
     assert len(tickets) > 0
 
 

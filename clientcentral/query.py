@@ -207,6 +207,7 @@ class QueryTickets:
                 ],
                 priority=ticket_in_data["priority"]["id"],
                 session=self.session,
+                run_async=self._run_async,
             )
             # if ticket_in_data["assignee"]:
             #     ticket.assignee = ticket_in_data["assignee"]["id"]
