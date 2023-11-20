@@ -1,3 +1,9 @@
+## v12.5.6 (2023-11-20)
+
+### Fix
+
+- **Query**: Fix query tickets not parsing along Async status
+
 ## v12.5.5 (2023-11-20)
 
 ### Fix
