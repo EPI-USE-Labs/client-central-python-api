@@ -10,6 +10,8 @@ from clientcentral.Exceptions import (
     ButtonRequiresComment,
     HTTPError,
 )
+import clientcentral.query as operators
+
 
 pytest.ticket_id = None
 
@@ -212,4 +214,23 @@ async def async_get_user_by_email():
 def test_get_user_by_email():
     loop = async_cc._event_loop
     future = loop.create_task(async_get_user_by_email())
+    loop.run_until_complete(future)
+
+async def async_query_tickets():
+    tickets = (
+        await async_cc.query_tickets()
+        .filter_by(
+            operators.and_(
+                operators.statement("status.open"),
+                operators.comparison("workspace_id", "=", "87"),
+            )
+        )
+        .all()
+    )
+    
+    assert len(tickets) > 0
+
+def test_query_tickets():
+    loop = async_cc._event_loop
+    future = loop.create_task(async_query_tickets())
     loop.run_until_complete(future)

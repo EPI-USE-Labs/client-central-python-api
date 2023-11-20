@@ -21,14 +21,15 @@ HEADERS = {"Content-Type": "application/json", "Accept": "application/json"}
 
 class QueryTickets:
     def __init__(
-        self, base_url: str, token: str, production: bool, session=None, event_loop=None
+        self, base_url: str, token: str, production: bool, session=None, run_async=False,
     ) -> None:
         self._query = ""
         self.base_url = base_url
         self.token = token
         self.production = production
-        self._event_loop = event_loop
+        self._event_loop = None
         self.session = session
+        self._run_async = run_async
         self._net_calls = 0
 
     def _get_event_loop(self):
@@ -79,6 +80,162 @@ class QueryTickets:
         # print(self._query)
         return self
 
+
+    def _process_ticket_page(self, result: dict) -> List[Ticket]:
+        tickets = []
+        for ticket_in_data in result["data"]:
+            creator = None
+            if ticket_in_data["created_by_user"]:
+                creator = User(
+                    user_id=ticket_in_data["created_by_user"]["id"],
+                    first_name=ticket_in_data["created_by_user"]["first_name"],
+                    last_name=ticket_in_data["created_by_user"]["last_name"],
+                    job_title=ticket_in_data["created_by_user"]["job_title"],
+                    email=ticket_in_data["created_by_user"]["email"],
+                )
+                if ticket_in_data["created_by_user"]["title"]:
+                    creator.title = ticket_in_data["created_by_user"]["title"][
+                        "name"
+                    ]
+
+            owner = None
+            if ticket_in_data["customer_user"]:
+                owner = User(
+                    user_id=ticket_in_data["customer_user"]["id"],
+                    first_name=ticket_in_data["customer_user"]["first_name"],
+                    last_name=ticket_in_data["customer_user"]["last_name"],
+                    job_title=ticket_in_data["customer_user"]["job_title"],
+                    email=ticket_in_data["customer_user"]["email"],
+                )
+                if ticket_in_data["customer_user"]["title"]:
+                    owner.title = ticket_in_data["customer_user"]["title"]["name"]
+
+            assignee = None
+            if ticket_in_data["assignee"]:
+                assignee = (
+                    ticket_in_data["assignee"]["_type"]
+                    + ":"
+                    + str(ticket_in_data["assignee"]["id"])
+                )
+
+            account_vp = None
+            if ticket_in_data["account"] and (
+                ticket_in_data["account"] is not None
+            ):
+                account_vp = ticket_in_data["account"]["id"]
+
+            customer_user_vp = None
+            if ticket_in_data["customer_user"] and (
+                ticket_in_data["customer_user"] is not None
+            ):
+                customer_user_vp = ticket_in_data["customer_user"]["id"]
+
+            # Created at
+            try:
+                ticket_created_at = datetime.strptime(
+                    ticket_in_data["created_at"], "%Y-%m-%dT%H:%M:%S.%f%z"
+                )
+            except ValueError:
+                pass
+
+            try:
+                ticket_created_at = datetime.strptime(
+                    ticket_in_data["created_at"], "%Y-%m-%dT%H:%M:%S%z"
+                )
+            except ValueError:
+                pass
+
+            if ticket_created_at == None:
+                raise DateFormatInvalid(
+                    "Failed to convert datetime: "
+                    + str(ticket_in_data["created_at"])
+                )
+
+            # Updated at
+            try:
+                ticket_updated_at = datetime.strptime(
+                    ticket_in_data["updated_at"], "%Y-%m-%dT%H:%M:%S.%f%z"
+                )
+            except ValueError:
+                pass
+
+            try:
+                ticket_updated_at = datetime.strptime(
+                    ticket_in_data["updated_at"], "%Y-%m-%dT%H:%M:%S%z"
+                )
+            except ValueError:
+                pass
+
+            if ticket_updated_at == None:
+                raise DateFormatInvalid(
+                    "Failed to convert datetime: "
+                    + str(ticket_in_data["updated_at"])
+                )
+
+            ticket = Ticket(
+                base_url=self.base_url,
+                token=self.token,
+                ticket_id=str(ticket_in_data["id"]),
+                production=self.production,
+                account_vp=account_vp,
+                customer_user_vp=customer_user_vp,
+                workspace_id=ticket_in_data["workspace"]["id"],
+                project_id=ticket_in_data["project"]["id"],
+                status=Status(
+                    status_id=ticket_in_data["status"]["id"],
+                    name=ticket_in_data["status"]["name"],
+                    open=not ticket_in_data["status"]["closed"],
+                ),
+                created_at=ticket_created_at,
+                updated_at=ticket_updated_at,
+                description=ticket_in_data["description"],
+                subject=ticket_in_data["subject"],
+                owner=owner,
+                creator=creator,
+                assignee=assignee,
+                internal=ticket_in_data["internal"],
+                ticket_type=TicketType(
+                    type_id=ticket_in_data["type"]["id"],
+                    name=ticket_in_data["type"]["name"],
+                ),
+                user_watchers=[
+                    User(
+                        user_id=user["id"],
+                        first_name=user["first_name"],
+                        last_name=user["first_name"],
+                        email=user["email"],
+                    )
+                    for user in ticket_in_data["user_watchers"]
+                ],
+                priority=ticket_in_data["priority"]["id"],
+                session=self.session,
+            )
+            # if ticket_in_data["assignee"]:
+            #     ticket.assignee = ticket_in_data["assignee"]["id"]
+            tickets.append(ticket)
+        return tickets
+
+    async def _async_all(self, url, payload) -> List[Ticket]:
+        tickets = []
+        response = await self._event_loop.create_task(self._request("GET", url + payload))
+
+        if response["status_code"] != 200:
+            raise HTTPError("Failed to query all tickets", response)
+        result = response["json"]
+
+        tickets += self._process_ticket_page(result)
+
+        for page in range(1, (result["total_pages"] + 1)):
+            tickets += self._process_ticket_page(result)
+            response = await self._event_loop.create_task(
+                self._request("GET", url + "&page=" + str(page + 1) + payload)
+            )
+            if response["status_code"] != 200:
+                raise HTTPError("Failed to query all tickets", response)
+            result = response["json"]
+        return tickets
+
+
     def all(self) -> List[Ticket]:
         url = self.base_url + "/api/v1/tickets.json?" + self.token
         payload = self._query
@@ -111,6 +268,9 @@ class QueryTickets:
         if self._event_loop is None:
             self._event_loop = self._get_event_loop()
 
+        if self._run_async:
+            return self._async_all(url, payload)
+
         future = self._event_loop.create_task(self._request("GET", url + payload))
         response = self._event_loop.run_until_complete(future)
 
@@ -122,138 +282,7 @@ class QueryTickets:
         tickets = []
 
         for page in range(1, (result["total_pages"] + 1)):
-            for ticket_in_data in result["data"]:
-                creator = None
-                if ticket_in_data["created_by_user"]:
-                    creator = User(
-                        user_id=ticket_in_data["created_by_user"]["id"],
-                        first_name=ticket_in_data["created_by_user"]["first_name"],
-                        last_name=ticket_in_data["created_by_user"]["last_name"],
-                        job_title=ticket_in_data["created_by_user"]["job_title"],
-                        email=ticket_in_data["created_by_user"]["email"],
-                    )
-                    if ticket_in_data["created_by_user"]["title"]:
-                        creator.title = ticket_in_data["created_by_user"]["title"][
-                            "name"
-                        ]
-
-                owner = None
-                if ticket_in_data["customer_user"]:
-                    owner = User(
-                        user_id=ticket_in_data["customer_user"]["id"],
-                        first_name=ticket_in_data["customer_user"]["first_name"],
-                        last_name=ticket_in_data["customer_user"]["last_name"],
-                        job_title=ticket_in_data["customer_user"]["job_title"],
-                        email=ticket_in_data["customer_user"]["email"],
-                    )
-                    if ticket_in_data["customer_user"]["title"]:
-                        owner.title = ticket_in_data["customer_user"]["title"]["name"]
-
-                assignee = None
-                if ticket_in_data["assignee"]:
-                    assignee = (
-                        ticket_in_data["assignee"]["_type"]
-                        + ":"
-                        + str(ticket_in_data["assignee"]["id"])
-                    )
-
-                account_vp = None
-                if ticket_in_data["account"] and (
-                    ticket_in_data["account"] is not None
-                ):
-                    account_vp = ticket_in_data["account"]["id"]
-
-                customer_user_vp = None
-                if ticket_in_data["customer_user"] and (
-                    ticket_in_data["customer_user"] is not None
-                ):
-                    customer_user_vp = ticket_in_data["customer_user"]["id"]
-
-                # Created at
-                try:
-                    ticket_created_at = datetime.strptime(
-                        ticket_in_data["created_at"], "%Y-%m-%dT%H:%M:%S.%f%z"
-                    )
-                except ValueError:
-                    pass
-
-                try:
-                    ticket_created_at = datetime.strptime(
-                        ticket_in_data["created_at"], "%Y-%m-%dT%H:%M:%S%z"
-                    )
-                except ValueError:
-                    pass
-
-                if ticket_created_at == None:
-                    raise DateFormatInvalid(
-                        "Failed to convert datetime: "
-                        + str(ticket_in_data["created_at"])
-                    )
-
-                # Updated at
-                try:
-                    ticket_updated_at = datetime.strptime(
-                        ticket_in_data["updated_at"], "%Y-%m-%dT%H:%M:%S.%f%z"
-                    )
-                except ValueError:
-                    pass
-
-                try:
-                    ticket_updated_at = datetime.strptime(
-                        ticket_in_data["updated_at"], "%Y-%m-%dT%H:%M:%S%z"
-                    )
-                except ValueError:
-                    pass
-
-                if ticket_updated_at == None:
-                    raise DateFormatInvalid(
-                        "Failed to convert datetime: "
-                        + str(ticket_in_data["updated_at"])
-                    )
-
-                ticket = Ticket(
-                    base_url=self.base_url,
-                    token=self.token,
-                    ticket_id=str(ticket_in_data["id"]),
-                    production=self.production,
-                    account_vp=account_vp,
-                    customer_user_vp=customer_user_vp,
-                    workspace_id=ticket_in_data["workspace"]["id"],
-                    project_id=ticket_in_data["project"]["id"],
-                    status=Status(
-                        status_id=ticket_in_data["status"]["id"],
-                        name=ticket_in_data["status"]["name"],
-                        open=not ticket_in_data["status"]["closed"],
-                    ),
-                    created_at=ticket_created_at,
-                    updated_at=ticket_updated_at,
-                    description=ticket_in_data["description"],
-                    subject=ticket_in_data["subject"],
-                    owner=owner,
-                    creator=creator,
-                    assignee=assignee,
-                    internal=ticket_in_data["internal"],
-                    ticket_type=TicketType(
-                        type_id=ticket_in_data["type"]["id"],
-                        name=ticket_in_data["type"]["name"],
-                    ),
-                    user_watchers=[
-                        User(
-                            user_id=user["id"],
-                            first_name=user["first_name"],
-                            last_name=user["first_name"],
-                            email=user["email"],
-                        )
-                        for user in ticket_in_data["user_watchers"]
-                    ],
-                    priority=ticket_in_data["priority"]["id"],
-                    session=self.session,
-                )
-                # if ticket_in_data["assignee"]:
-                #     ticket.assignee = ticket_in_data["assignee"]["id"]
-                tickets.append(ticket)
-
-            # print("PAGE: " + str(page + 1))
+            tickets += self._process_ticket_page(result)
 
             future = self._event_loop.create_task(
                 self._request("GET", url + "&page=" + str(page + 1) + payload)

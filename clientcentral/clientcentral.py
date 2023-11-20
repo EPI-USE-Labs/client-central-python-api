@@ -76,7 +76,7 @@ class ClientCentral:
             return loop
 
     def query_tickets(self) -> QueryTickets:
-        q = QueryTickets(self.base_url, self.token, self.production, self.session)
+        q = QueryTickets(self.base_url, self.token, self.production, self.session, self.run_async)
         return q
 
 
