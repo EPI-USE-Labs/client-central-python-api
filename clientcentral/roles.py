@@ -22,6 +22,7 @@ class Roles:
         production: bool,
         session: Optional[aiohttp.ClientSession] = None,
         event_loop: Optional[asyncio.AbstractEventLoop] = None,
+        run_async: bool = False,
     ) -> None:
         self._base_url = base_url
         self._token = token
@@ -29,6 +30,7 @@ class Roles:
         self._net_calls = 0
         self.session = session
         self._event_loop = event_loop
+        self._run_async = run_async
 
     def _get_event_loop(self):
         """Retrieves the event loop or creates a new one."""

@@ -26,7 +26,7 @@ def use_event_loop(f):
 
 class UsersClient:
     def __init__(
-        self, base_url: str, token: str, production: bool, session=None, event_loop=None
+        self, base_url: str, token: str, production: bool, session=None, event_loop=None, run_async=False,
     ) -> None:
         self._base_url = base_url
         self._token = token
@@ -34,6 +34,7 @@ class UsersClient:
         self.session = session
         self._event_loop = event_loop
         self._net_calls = 0
+        self._run_async = run_async
 
     def _get_event_loop(self):
         """Retrieves the event loop or creates a new one."""
@@ -92,7 +93,16 @@ class UsersClient:
         result_data = response["json"]["data"]
         return User.create_user_from_dict(result_data)
 
-    @use_event_loop
+    async def _async_get_user_by_email(self, url: str, user_email: str) -> User:
+        # Call URL
+        response = await self._request("GET", url)
+
+        if response["status_code"] != 200:
+            raise HTTPError(f"Failed to get user by email: {user_email}", response)
+
+        result_data = response["json"]["data"][0]
+        return User.create_user_from_dict(result_data)
+
     def get_user_by_email(self, user_email: str) -> User:
         url = (
             self._base_url
@@ -101,6 +111,9 @@ class UsersClient:
             + "&filter="
             + query.comparison("email", "=", "'" + user_email + "'")
         )
+
+        if self._run_async:
+            return self._async_get_user_by_email(url, user_email)
 
         # Call URL
         future = self._event_loop.create_task(self._request("GET", url))

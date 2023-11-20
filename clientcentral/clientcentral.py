@@ -53,16 +53,18 @@ class ClientCentral:
 
         self.run_async = run_async
         # self._event_loop = None
-
+        
         self._event_loop = self._get_event_loop()
-        future = self._event_loop.create_task(self._create_session())
-        self._event_loop.run_until_complete(future)
+        
+        self.session = None
 
-    async def _create_session(self):
-        async with aiohttp.ClientSession(
-            loop=self._get_event_loop(), json_serialize=ujson.dumps
-        ) as session:
-            self.session = session
+    async def start_session(self):
+        if self.session is None or self.session.closed:
+            self.session = aiohttp.ClientSession()
+
+    async def close_session(self):
+        if self.session and not self.session.closed:
+            await self.session.close()
 
     def _get_event_loop(self):
         """Retrieves the event loop or creates a new one."""
@@ -77,26 +79,55 @@ class ClientCentral:
         q = QueryTickets(self.base_url, self.token, self.production, self.session)
         return q
 
+
+    async def _get_ticket_by_id_async(self, ticket_id: str) -> Ticket:
+        if self.session is None:
+            await self.start_session()
+        
+        try:
+            ticket = await Ticket.factory_create(
+                    session=self.session,
+                    base_url=self.base_url,
+                    token=self.token,
+                    ticket_id=str(ticket_id),
+                    production=self.production,
+                    project_id=None,
+                    workspace_id=None,
+                    run_async=self.run_async,
+                    account_vp=None,
+                    customer_user_vp=None,
+                )
+        finally:
+            await self.close_session()
+    
+        return ticket
+
     def get_ticket_by_id(self, ticket_id: str) -> Ticket:
-        future = self._event_loop.create_task(
-            Ticket.factory_create(
-                session=self.session,
-                base_url=self.base_url,
-                token=self.token,
-                ticket_id=str(ticket_id),
-                production=self.production,
-                project_id=None,
-                workspace_id=None,
-                run_async=self.run_async,
-                account_vp=None,
-                customer_user_vp=None,
-            ),
-        )
-
         if self.run_async:
-            return future
+            return self._get_ticket_by_id_async(ticket_id)
 
-        result = self._event_loop.run_until_complete(future)
+        if self.session is None:
+            self._event_loop.run_until_complete(self.start_session())
+
+        try:
+            future = self._event_loop.create_task(
+                Ticket.factory_create(
+                    session=self.session,
+                    base_url=self.base_url,
+                    token=self.token,
+                    ticket_id=str(ticket_id),
+                    production=self.production,
+                    project_id=None,
+                    workspace_id=None,
+                    run_async=self.run_async,
+                    account_vp=None,
+                    customer_user_vp=None,
+                ),
+            )
+            result = self._event_loop.run_until_complete(future)
+        finally:
+            self._event_loop.run_until_complete(self.close_session())
+
         return result
 
     async def _create_ticket(
@@ -194,7 +225,7 @@ class ClientCentral:
     def get_users_client(self) -> UsersClient:
         if not hasattr(self, "_users_client"):
             self._users_client = UsersClient(
-                self.base_url, self.token, self.production, self.session
+                self.base_url, self.token, self.production, self.session, self._event_loop, self.run_async
             )
         return self._users_client
 

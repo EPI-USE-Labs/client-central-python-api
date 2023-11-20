@@ -982,7 +982,7 @@ class Ticket(object):
         if len(attachments) == 0:
             raise Exception("No attachments provided")
 
-        payload = {
+        payload: Dict[str, Any] = {
             # "ticket[workspace_id]": self.workspace_id,
             # "ticket[project_id]": self.project_id,
             "ticket_event[visible_to_customer]": "true"

@@ -200,10 +200,16 @@ def test_move_ticket_to_workspace():
     loop.run_until_complete(future)
 
 
-def test_get_user_by_email():
+async def async_get_user_by_email():
     users_client = async_cc.get_users_client()
-    user = users_client.get_user_by_email("thomas@labs.epiuse.com")
+    user = await users_client.get_user_by_email("thomas@labs.epiuse.com")
 
     assert user.email == "thomas@labs.epiuse.com"
     assert user.first_name == "Thomas"
     assert user.last_name == "Scholtz"
+
+
+def test_get_user_by_email():
+    loop = async_cc._event_loop
+    future = loop.create_task(async_get_user_by_email())
+    loop.run_until_complete(future)
