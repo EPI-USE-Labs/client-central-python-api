@@ -1,3 +1,9 @@
+## v12.5.5 (2023-11-20)
+
+### Fix
+
+- **Users**: Fix async get_user_by_email
+
 ## v12.5.4 (2023-11-20)
 
 ### Fix
