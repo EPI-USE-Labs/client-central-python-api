@@ -1,3 +1,9 @@
+## v12.5.1 (2023-11-20)
+
+### Fix
+
+- **Ticket**: Fix async session creation for Tickets
+
 ## v12.5.0 (2023-11-20)
 
 ### Feat
