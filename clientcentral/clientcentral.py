@@ -238,8 +238,8 @@ class ClientCentral:
     def get_roles_manager(self) -> Roles:
         # Call roles API
         # Going to change in next CC prod.
-        if not hasattr(self, "_roles"):
-            self._roles = Roles(
+        if not hasattr(self, "_roles_manager"):
+            self._roles_manager = Roles(
                 self.base_url, self.token, self.production, self.session, self.run_async
             )
-        return self._roles
+        return self._roles_manager

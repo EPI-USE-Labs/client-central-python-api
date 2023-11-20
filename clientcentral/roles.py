@@ -76,11 +76,33 @@ class Roles:
             self.get_all_roles()
         return self._roles
 
+    async def _async_get_all_users_in_role(self, role_name):
+        all_roles = await self._async_get_all_roles(
+            self._base_url + "/account/roles.json?" + self._token
+        )
+
+        for role in all_roles:
+            if role.role_name == role_name:
+                # Found role return user_ids
+                return role.users
+
     def get_all_users_in_role(self, role_name):
+        if self._run_async:
+            return self._async_get_all_users_in_role(role_name)
+
         for role in self.roles:
             if role.role_name == role_name:
                 # Found role return user_ids
                 return role.users
+
+    async def _async_get_role_by_name(self, role_name: str) -> Optional[Role]:
+        # We need to get all roles as there is not an actual API yet.
+        for role in await self._async_get_all_roles(
+            self._base_url + "/account/roles.json?" + self._token
+        ):
+            if role.role_name == role_name:
+                return role
+        return None
 
     def get_role_by_name(self, role_name: str) -> Optional[Role]:
         # We need to get all roles as there is not an actual API yet.
