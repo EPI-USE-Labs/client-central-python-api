@@ -2,14 +2,16 @@
 # -*- coding: utf-8 -*-
 
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from bs4 import BeautifulSoup
 import ujson
 
 # import requests
 import aiohttp
+from aiohttp import FormData
 import asyncio
+from pathlib import Path
 from clientcentral.Exceptions import (
     ButtonNotAvailable,
     ButtonRequiresComment,
@@ -24,6 +26,7 @@ from clientcentral.model.Status import Status
 from clientcentral.model.TicketEvent import TicketEvent
 from clientcentral.model.TicketType import TicketType
 from clientcentral.model.User import User
+from clientcentral.model.Attachment import Attachment
 
 HEADERS = {"Content-Type": "application/json", "Accept": "application/json"}
 
@@ -56,6 +59,7 @@ class Ticket(object):
         internal: bool = False,
         session=None,
         run_async: bool = False,
+        attachments: Optional[List[Attachment]] = None,
     ) -> None:
 
         self.description = description
@@ -101,6 +105,8 @@ class Ticket(object):
 
         self.account_vp = account_vp
         self.customer_user_vp = customer_user_vp
+
+        self._attachments_attribute = [] if attachments is None else attachments
 
         self.run_async = run_async
         self.session = session
@@ -196,6 +202,16 @@ class Ticket(object):
         result = self._event_loop.run_until_complete(future)
         return result
 
+    def _flatten_dict(self, d, parent_key=""):
+        items = []
+        for k, v in d.items():
+            new_key = f"{parent_key}[{k}]" if parent_key else k
+            if isinstance(v, dict):
+                items.extend(self._flatten_dict(v, new_key).items())
+            else:
+                items.append((new_key, v))
+        return dict(items)
+
     async def _request(self, http_verb, url, json=None, headers=None):
         """Submit the HTTP request with the running session or a new session."""
         self._net_calls += 1
@@ -213,11 +229,10 @@ class Ticket(object):
                     "status_code": resp.status,
                     "method": resp.method,
                     "url": resp.url,
+                    "request_payload": json,
                 }
 
-        async with aiohttp.ClientSession(
-            loop=self._event_loop, json_serialize=ujson.dumps
-        ) as session:
+        async with aiohttp.ClientSession(loop=self._event_loop) as session:
             self.session = session
             async with self.session.request(
                 http_verb, url, headers=headers, json=json
@@ -362,7 +377,7 @@ class Ticket(object):
             )
 
         self.account_vp = result["data"]["account"]["id"]
-        
+
         # Customer user / Owner can be null
         if result["data"]["customer_user"]:
             self.customer_user_vp = result["data"]["customer_user"]["id"]
@@ -525,6 +540,28 @@ class Ticket(object):
         if not self.email_watchers:
             self.email_watchers = []
 
+        # Attachments
+        if not hasattr(self, "_attachments_attribute"):
+            setattr(self, "_attachments_attribute", List[Attachment])
+
+        self._attachments_attribute: List[Attachment] = list()
+
+        # "attachments":[{"id":1084347,"_type":"TicketAttachment"}]
+        if "attachments" in result["data"]:
+            for attachment in result["data"]["attachments"]:
+                self._attachments_attribute.append(
+                    Attachment(
+                        id=attachment["id"],
+                        event=attachment["event"],
+                        original_filename=attachment["original_filename"],
+                        created_at=attachment["created_at"],
+                        updated_at=attachment["updated_at"],
+                        inline=attachment["inline"],
+                        content_type=attachment["content_type"],
+                        link=attachment["link"],
+                    )
+                )
+
         # Update available buttons
         return self
 
@@ -555,7 +592,7 @@ class Ticket(object):
                     str(key): value
                     for key, value in enumerate(self.custom_fields_attributes)
                 },
-                "email_watcher_emails": self.email_watchers
+                "email_watcher_emails": self.email_watchers,
             }
         }
 
@@ -657,7 +694,7 @@ class Ticket(object):
 
         return self._event_loop.run_until_complete(future)
 
-    def add_user_watcher_by_email(self, email:str, update: bool = True) -> None:
+    def add_user_watcher_by_email(self, email: str, update: bool = True) -> None:
         self.email_watchers.append(email.strip())
         if update:
             self.commit()
@@ -803,6 +840,7 @@ class Ticket(object):
             "events.event_changes.from_value",
             "events.internal",
             "assignee",
+            "attachments.*",
         ]
 
         payload = "&select="
@@ -931,3 +969,110 @@ class Ticket(object):
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             return loop
+
+    async def _comment_and_attach(
+        self,
+        comment: str,
+        attachments: List[Tuple[str, Path]],
+        visible_to_customer: bool = True,
+    ):
+        if self.ticket_id is None:
+            raise Exception("Ticket ID is not set")
+
+        if len(attachments) == 0:
+            raise Exception("No attachments provided")
+
+        payload = {
+            # "ticket[workspace_id]": self.workspace_id,
+            # "ticket[project_id]": self.project_id,
+            "ticket_event[visible_to_customer]": "true"
+            if visible_to_customer
+            else "false",
+            "ticket_event[comment]": str(comment),
+        }
+
+        form_payload = FormData()
+        for key, val in payload.items():
+            form_payload.add_field(key, val)
+
+        for index, attachment in enumerate(attachments):
+            # Read the file
+            with open(attachment[1], "rb") as f:
+                file_data = f.read()
+                payload[f"ticket_event[attachments_attributes][{str(index)}][file]"] = (
+                    attachment[0],
+                    file_data,
+                )
+                form_payload.add_field(
+                    f"ticket_event[attachments_attributes][{str(index)}][file]",
+                    file_data,
+                    filename=attachment[0],
+                )
+
+        url = (
+            self._base_url
+            + "/api/v1/tickets/"
+            + self.ticket_id
+            + ".json?"
+            + self._token
+        )
+
+        # We cant use JSON here because we need to send a multipart form data request.
+        async with aiohttp.ClientSession(loop=self._get_event_loop()) as session:
+            async with session.patch(url, data=form_payload) as resp:
+                response = {
+                    "json": await resp.json(),
+                    "headers": resp.headers,
+                    "status_code": resp.status,
+                    "method": resp.method,
+                    "url": resp.url,
+                    "request_payload": payload,
+                }
+
+        if response["status_code"] != 200:
+            raise HTTPError(
+                f"Failed to comment on ticket #{self.ticket_id}",
+                response,
+                token=self._token,
+            )
+        return await self._update()
+
+    def comment_and_attach(
+        self,
+        comment: str,
+        attachments: List[Tuple[str, Path]],
+        visible_to_customer: bool = True,
+    ) -> "Ticket":
+        """
+        This method is used to add a comment and attach files to a ticket.
+
+        Args:
+            comment (str): The comment to be added to the ticket.
+            attachments (List[Tuple[str, Path]]): A list of tuples where each tuple contains a string and a Path object.
+            The string is the name of the attachment and the Path object is the path to the file to be attached.
+
+        Returns:
+            Ticket: The updated ticket object.
+
+        Raises:
+            HTTPError: If the request to update the ticket fails, an HTTPError is raised with details of the failure.
+        """
+        if self._event_loop is None:
+            self._event_loop = self._get_event_loop()
+
+        future = self._event_loop.create_task(
+            self._comment_and_attach(comment, attachments, visible_to_customer)
+        )
+
+        if self.run_async:
+            return future
+
+        result = self._event_loop.run_until_complete(future)
+        return result
+
+    @property
+    def attachments(self):
+        if not hasattr(self, "_attachments_attribute"):
+            setattr(self, "_attachments_attribute", List[Attachment])
+
+        return self._attachments_attribute

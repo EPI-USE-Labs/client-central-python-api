@@ -115,11 +115,16 @@ class UsersClient:
     def get_all_users(self):
         raise Exception("Unimplemented")
 
-
     def lock_user_by_email(self, user_email: str):
         # /api/v1/users/:id/lock
         user = self.get_user_by_email(user_email)
-        url = self._base_url + "/api/v1/users/" + str(user.number) + "/lock?" + self._token
+        url = (
+            self._base_url
+            + "/api/v1/users/"
+            + str(user.number)
+            + "/lock?"
+            + self._token
+        )
 
         # Call URL
         future = self._event_loop.create_task(self._request("PUT", url))
@@ -131,7 +136,13 @@ class UsersClient:
     def unlock_user_by_email(self, user_email: str):
         # /api/v1/users/:id/unlock
         user = self.get_user_by_email(user_email)
-        url = self._base_url + "/api/v1/users/" + str(user.number) + "/unlock?" + self._token
+        url = (
+            self._base_url
+            + "/api/v1/users/"
+            + str(user.number)
+            + "/unlock?"
+            + self._token
+        )
 
         # Call URL
         future = self._event_loop.create_task(self._request("PUT", url))
@@ -139,6 +150,7 @@ class UsersClient:
 
         if response["status_code"] != 200:
             raise HTTPError(f"Failed to unlock user by email: {user_email}", response)
+
 
 # user_id: str,
 # first_name: str,

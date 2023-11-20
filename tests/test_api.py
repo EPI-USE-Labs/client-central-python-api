@@ -92,6 +92,23 @@ def test_create_ticket():
     pytest.ticket_id = ticket.ticket_id
 
 
+def test_attach_and_comment():
+    # Create a dummy file
+    with open("/tmp/test.txt", "w") as f:
+        f.write("test")
+
+    ticket = cc.get_ticket_by_id(pytest.ticket_id)
+    ticket.comment_and_attach("test comment", [("test.txt", "/tmp/test.txt")])
+
+    # Check if the file was attached
+    ticket.refresh()
+    assert len(ticket.attachments) == 1
+    for attachment in ticket.attachments:
+        print(attachment)
+
+    assert ticket.attachments[0].original_filename == "test.txt"
+
+
 def test_human_url():
     ticket = cc.get_ticket_by_id(pytest.ticket_id)
     assert str(ticket.ticket_id) in ticket.get_human_url()
@@ -380,7 +397,7 @@ def test_create_related_ticket():
     # assert ticket.sid == sid
     assert ticket.custom_fields["ms_category"]["id"] == 363
     assert ticket.owner.user_id == 14012  # Thomas Scholtz
-    assert ticket.owner.resource_owner_id == 13962 # Thomas Scholtz
+    assert ticket.owner.resource_owner_id == 13962  # Thomas Scholtz
     assert ticket.creator.user_id == 14012  # Thomas Scholtz
     assert ticket.status.status_id == 1  # New
     assert ticket.status.name == "New"
@@ -420,7 +437,6 @@ def test_create_related_ticket():
     assert len(orig_ticket.related_tickets) == 1
     assert ticket.related_tickets[0] == int(orig_ticket.ticket_id)
     assert orig_ticket.related_tickets[0] == int(ticket.ticket_id)
-
 
 
 def test_internal_event():
@@ -515,7 +531,7 @@ def test_query_internal_event():
     assert ticket.status is not None
     assert ticket.type is not None
     assert ticket.workspace_id is not None
-    
+
     original_ticket_assignee = ticket.assignee
 
     ticket.commit("not visible", commit_internal=True)
@@ -540,7 +556,7 @@ def test_exception_with_unicode_and_missing_payload():
                 "a": "∀ 	∁ 	∂ 	∃ 	∄ 	∅ 	∆ 	∇ 	∈ 	∉ 	∊ 	∋ 	∌ 	∍ 	∎ 	∏",
                 "method": "∀ 	∁ 	∂ 	∃ 	∄ 	∅ 	∆ 	∇ 	∈ 	∉ 	∊ 	∋ 	∌ 	∍ 	∎ 	∏",
             },
-            token="MYSECRETTOKEN"
+            token="MYSECRETTOKEN",
         )
     assert "URL called:" in str(excinfo.value) and "None" in str(excinfo.value)
 
@@ -628,6 +644,7 @@ def test_ensure_multiple_tickets_dont_use_same_attributes():
 
     ticket2 = cc.get_ticket_by_id(ticket2.ticket_id)
     ticket2.custom_fields_attributes.append({"id": 17, "values": 0})
+    ticket2.commit()
     assert ticket2.custom_fields_attributes != ticket1.custom_fields_attributes
     # ticket2.commit()
 

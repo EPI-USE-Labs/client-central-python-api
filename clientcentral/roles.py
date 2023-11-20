@@ -82,10 +82,10 @@ class Roles:
                 return role.users
 
     def get_role_by_name(self, role_name: str) -> Optional[Role]:
+        # We need to get all roles as there is not an actual API yet.
         for role in self.roles:
             if role.role_name == role_name:
                 return role
-
         return None
 
     def get_all_roles(self) -> List[Role]:

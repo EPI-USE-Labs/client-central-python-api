@@ -44,7 +44,7 @@ class User:
             data["job_title"],
             data["number"],
             data["locked"],
-            data["number"]
+            data["number"],
         )
         return user_obj
 
