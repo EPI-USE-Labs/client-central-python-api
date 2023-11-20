@@ -216,6 +216,7 @@ def test_get_user_by_email():
     future = loop.create_task(async_get_user_by_email())
     loop.run_until_complete(future)
 
+
 async def async_query_tickets():
     tickets = (
         await async_cc.query_tickets()
@@ -227,10 +228,22 @@ async def async_query_tickets():
         )
         .all()
     )
-    
+
     assert len(tickets) > 0
+
 
 def test_query_tickets():
     loop = async_cc._event_loop
     future = loop.create_task(async_query_tickets())
+    loop.run_until_complete(future)
+
+
+async def async_get_all_roles():
+    roles = await async_cc.get_roles_manager().get_all_roles()
+    assert len(roles) > 0
+
+
+def test_get_all_roles():
+    loop = async_cc._event_loop
+    future = loop.create_task(async_get_all_roles())
     loop.run_until_complete(future)

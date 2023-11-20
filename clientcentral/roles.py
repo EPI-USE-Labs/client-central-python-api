@@ -21,7 +21,6 @@ class Roles:
         token: str,
         production: bool,
         session: Optional[aiohttp.ClientSession] = None,
-        event_loop: Optional[asyncio.AbstractEventLoop] = None,
         run_async: bool = False,
     ) -> None:
         self._base_url = base_url
@@ -29,7 +28,7 @@ class Roles:
         self.production = production
         self._net_calls = 0
         self.session = session
-        self._event_loop = event_loop
+        self._event_loop = None
         self._run_async = run_async
 
     def _get_event_loop(self):
@@ -90,11 +89,55 @@ class Roles:
                 return role
         return None
 
+    def _process_role_page(self, role_batch: List[Dict[str, Any]]):
+        roles = list()
+
+        for role in role_batch:
+            # Create new role object
+            role_users: List[str] = []
+
+            for user in role["users"]:
+                role_users.append(user["id"])
+
+            self._roles.append(
+                Role(
+                    role_id=role["id"],
+                    role_name=role["name"],
+                    account_id=role["account_id"],
+                    default=role["default"],
+                    users=role_users,
+                )
+            )
+        return roles
+
+    async def _async_get_all_roles(self, url) -> List[Role]:
+        self._roles = list()
+
+        page = 1
+        role_batch: Optional[List[Dict[str, Any]]] = None
+
+        while role_batch is None or len(role_batch) > 0:
+            # Call URL
+            response = await self._request("GET", url + "&page=" + str(page))
+
+            if response["status_code"] != 200:
+                raise HTTPError("Failed to get all roles", response)
+
+            role_batch = response["json"]
+
+            if role_batch is None:
+                break
+
+            self._roles += self._process_role_page(role_batch)
+            page = page + 1
+
+        return self._roles
+
     def get_all_roles(self) -> List[Role]:
         url = self._base_url + "/account/roles.json?" + self._token
 
-        # if self._event_loop is None:
-        #     self._event_loop = self._get_event_loop()
+        if self._run_async:
+            return self._async_get_all_roles(url)
 
         self._roles = list()
 
@@ -102,8 +145,6 @@ class Roles:
         role_batch: Optional[List[Dict[str, Any]]] = None
         while role_batch is None or len(role_batch) > 0:
             # Call URL
-            # future = asyncio.create_task(self._request("GET", url + "&page=" + str(page)))
-            # response = self._get_event_loop().run_until_complete(future)
             response = asyncio.run(self._request("GET", url + "&page=" + str(page)))
 
             if response["status_code"] != 200:
@@ -114,22 +155,7 @@ class Roles:
             if role_batch is None:
                 break
 
-            for role in role_batch:
-                # Create new role object
-                role_users: List[str] = []
-
-                for user in role["users"]:
-                    role_users.append(user["id"])
-
-                self._roles.append(
-                    Role(
-                        role_id=role["id"],
-                        role_name=role["name"],
-                        account_id=role["account_id"],
-                        default=role["default"],
-                        users=role_users,
-                    )
-                )
+            self._roles += self._process_role_page(role_batch)
             page = page + 1
 
         return self._roles

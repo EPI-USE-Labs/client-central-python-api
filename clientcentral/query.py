@@ -21,7 +21,12 @@ HEADERS = {"Content-Type": "application/json", "Accept": "application/json"}
 
 class QueryTickets:
     def __init__(
-        self, base_url: str, token: str, production: bool, session=None, run_async=False,
+        self,
+        base_url: str,
+        token: str,
+        production: bool,
+        session=None,
+        run_async=False,
     ) -> None:
         self._query = ""
         self.base_url = base_url
@@ -80,7 +85,6 @@ class QueryTickets:
         # print(self._query)
         return self
 
-
     def _process_ticket_page(self, result: dict) -> List[Ticket]:
         tickets = []
         for ticket_in_data in result["data"]:
@@ -94,9 +98,7 @@ class QueryTickets:
                     email=ticket_in_data["created_by_user"]["email"],
                 )
                 if ticket_in_data["created_by_user"]["title"]:
-                    creator.title = ticket_in_data["created_by_user"]["title"][
-                        "name"
-                    ]
+                    creator.title = ticket_in_data["created_by_user"]["title"]["name"]
 
             owner = None
             if ticket_in_data["customer_user"]:
@@ -119,9 +121,7 @@ class QueryTickets:
                 )
 
             account_vp = None
-            if ticket_in_data["account"] and (
-                ticket_in_data["account"] is not None
-            ):
+            if ticket_in_data["account"] and (ticket_in_data["account"] is not None):
                 account_vp = ticket_in_data["account"]["id"]
 
             customer_user_vp = None
@@ -147,8 +147,7 @@ class QueryTickets:
 
             if ticket_created_at == None:
                 raise DateFormatInvalid(
-                    "Failed to convert datetime: "
-                    + str(ticket_in_data["created_at"])
+                    "Failed to convert datetime: " + str(ticket_in_data["created_at"])
                 )
 
             # Updated at
@@ -168,8 +167,7 @@ class QueryTickets:
 
             if ticket_updated_at == None:
                 raise DateFormatInvalid(
-                    "Failed to convert datetime: "
-                    + str(ticket_in_data["updated_at"])
+                    "Failed to convert datetime: " + str(ticket_in_data["updated_at"])
                 )
 
             ticket = Ticket(
@@ -217,7 +215,9 @@ class QueryTickets:
 
     async def _async_all(self, url, payload) -> List[Ticket]:
         tickets = []
-        response = await self._event_loop.create_task(self._request("GET", url + payload))
+        response = await self._event_loop.create_task(
+            self._request("GET", url + payload)
+        )
 
         if response["status_code"] != 200:
             raise HTTPError("Failed to query all tickets", response)
@@ -234,7 +234,6 @@ class QueryTickets:
                 raise HTTPError("Failed to query all tickets", response)
             result = response["json"]
         return tickets
-
 
     def all(self) -> List[Ticket]:
         url = self.base_url + "/api/v1/tickets.json?" + self.token

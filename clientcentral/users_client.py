@@ -26,7 +26,13 @@ def use_event_loop(f):
 
 class UsersClient:
     def __init__(
-        self, base_url: str, token: str, production: bool, session=None, event_loop=None, run_async=False,
+        self,
+        base_url: str,
+        token: str,
+        production: bool,
+        session=None,
+        event_loop=None,
+        run_async=False,
     ) -> None:
         self._base_url = base_url
         self._token = token

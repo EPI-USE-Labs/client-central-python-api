@@ -53,9 +53,9 @@ class ClientCentral:
 
         self.run_async = run_async
         # self._event_loop = None
-        
+
         self._event_loop = self._get_event_loop()
-        
+
         self.session = None
 
     async def start_session(self):
@@ -76,30 +76,31 @@ class ClientCentral:
             return loop
 
     def query_tickets(self) -> QueryTickets:
-        q = QueryTickets(self.base_url, self.token, self.production, self.session, self.run_async)
+        q = QueryTickets(
+            self.base_url, self.token, self.production, self.session, self.run_async
+        )
         return q
-
 
     async def _get_ticket_by_id_async(self, ticket_id: str) -> Ticket:
         if self.session is None:
             await self.start_session()
-        
+
         try:
             ticket = await Ticket.factory_create(
-                    session=self.session,
-                    base_url=self.base_url,
-                    token=self.token,
-                    ticket_id=str(ticket_id),
-                    production=self.production,
-                    project_id=None,
-                    workspace_id=None,
-                    run_async=self.run_async,
-                    account_vp=None,
-                    customer_user_vp=None,
-                )
+                session=self.session,
+                base_url=self.base_url,
+                token=self.token,
+                ticket_id=str(ticket_id),
+                production=self.production,
+                project_id=None,
+                workspace_id=None,
+                run_async=self.run_async,
+                account_vp=None,
+                customer_user_vp=None,
+            )
         finally:
             await self.close_session()
-    
+
         return ticket
 
     def get_ticket_by_id(self, ticket_id: str) -> Ticket:
@@ -225,7 +226,12 @@ class ClientCentral:
     def get_users_client(self) -> UsersClient:
         if not hasattr(self, "_users_client"):
             self._users_client = UsersClient(
-                self.base_url, self.token, self.production, self.session, self._event_loop, self.run_async
+                self.base_url,
+                self.token,
+                self.production,
+                self.session,
+                self._event_loop,
+                self.run_async,
             )
         return self._users_client
 
@@ -234,6 +240,6 @@ class ClientCentral:
         # Going to change in next CC prod.
         if not hasattr(self, "_roles"):
             self._roles = Roles(
-                self.base_url, self.token, self.production, self.session
+                self.base_url, self.token, self.production, self.session, self.run_async
             )
         return self._roles
