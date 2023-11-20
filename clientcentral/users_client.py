@@ -14,16 +14,6 @@ from clientcentral.model.User import User
 HEADERS = {"Content-Type": "application/json", "Accept": "application/json"}
 
 
-def use_event_loop(f):
-    def new_f(*args):
-        if args[0]._event_loop is None:
-            args[0]._event_loop = args[0]._get_event_loop()
-        result = f(*args)
-        return result
-
-    return new_f
-
-
 class UsersClient:
     def __init__(
         self,
@@ -85,9 +75,21 @@ class UsersClient:
                     "url": resp.url,
                 }
 
-    @use_event_loop
+    async def _async_get_user_by_id(self, url: str, user_id: int) -> User:
+        # Call URL
+        response = await self._request("GET", url)
+
+        if response["status_code"] != 200:
+            raise HTTPError(f"Failed to get user by id: {user_id}", response)
+
+        result_data = response["json"]["data"]
+        return User.create_user_from_dict(result_data)
+
     def get_user_by_id(self, user_id: int) -> User:
         url = self._base_url + "/api/v1/users/" + str(user_id) + ".json?" + self._token
+
+        if self._run_async:
+            return self._async_get_user_by_id(url, user_id)
 
         # Call URL
         future = self._event_loop.create_task(self._request("GET", url))
