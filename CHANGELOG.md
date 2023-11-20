@@ -1,3 +1,9 @@
+## v12.5.0 (2023-11-20)
+
+### Feat
+
+- **Ticket**: Added attachment API
+
 ## v12.4.2 (2023-11-16)
 
 ### Fix
