@@ -1,3 +1,9 @@
+## v12.5.7 (2024-02-29)
+
+### Fix
+
+- **dependancies**: Updates aiohttp, ujson and beautifulsoup
+
 ## v12.5.6 (2023-11-20)
 
 ### Fix
