@@ -44,6 +44,7 @@ release:
     - git config --global user.email ${GITLAB_USER_EMAIL}
     - git config --global user.name ${GITLAB_USER_NAME}
     - git fetch --tags
+    - git tag
     - cz bump --yes --changelog --changelog-to-stdout
     - git push --follow-tags
     - python -m build
