@@ -73,4 +73,4 @@ deploy:
     - master
   script:
     - twine check dist/*
-    - twine upload -u $PYPI_USERNAME -p $PYPI_PASSWORD dist/*
+    - twine upload --non-interactive -u "__token__" -p "$PYPI_API_TOKEN" dist/*
