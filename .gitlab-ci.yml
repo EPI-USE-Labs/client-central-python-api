@@ -52,6 +52,7 @@ bump_version:
     - git remote set-url origin git@git.labs.epiuse.com:SWAT/clientcentral-api-python.git
     - git fetch --tags
     - git checkout master  # Ensure we're on the master branch
+    - git reset --hard origin/master # Ensure the local branch matches the remote
     - git pull origin master  # Ensure the local branch is up-to-date
     - git tag
     - cz bump --yes --changelog --changelog-to-stdout
