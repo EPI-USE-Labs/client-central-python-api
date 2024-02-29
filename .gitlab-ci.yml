@@ -48,6 +48,7 @@ release:
     - ssh-add <(echo "$DEPLOY_PRIVATE_KEY")
     - mkdir -p ~/.ssh
     - 'echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+    - git remote set-url origin git@git.labs.epiuse.com:SWAT/clientcentral-api-python.git
     - git config --global user.email ${GITLAB_USER_EMAIL}
     - git config --global user.name ${GITLAB_USER_NAME}
     - git fetch --tags
