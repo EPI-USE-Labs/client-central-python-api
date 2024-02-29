@@ -1,5 +1,16 @@
 default:
-  image: "python:3.11-alpine"
+  image: "python:3.12-alpine"
+  cache:                      # Pip's cache doesn't store the python packages
+    paths:                    # https://pip.pypa.io/en/stable/topics/caching/
+      - .cache/pip
+  before_script:
+    - python -V               # Print out python version for debugging
+    - pip install virtualenv
+    - virtualenv venv
+    - source venv/bin/activate
+
+variables:  # Change pip's cache directory to be inside the project directory since we can only cache local items.
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
 
 stages:
 - test
@@ -14,6 +25,8 @@ analysis:
 
 release:
   stage: release
+  only:
+    - master
   variables:
     TWINE_USERNAME: $PYPI_USER
     TWINE_PASSWORD: $PYPI_PASSWORD
@@ -33,5 +46,5 @@ release:
     - git fetch --tags
     - cz bump --yes --changelog --changelog-to-stdout
     - git push --follow-tags
-    - python3 -m build
+    - python -m build
     - twine upload dist/*

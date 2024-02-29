@@ -985,9 +985,9 @@ class Ticket(object):
         payload: Dict[str, Any] = {
             # "ticket[workspace_id]": self.workspace_id,
             # "ticket[project_id]": self.project_id,
-            "ticket_event[visible_to_customer]": "true"
-            if visible_to_customer
-            else "false",
+            "ticket_event[visible_to_customer]": (
+                "true" if visible_to_customer else "false"
+            ),
             "ticket_event[comment]": str(comment),
         }
 

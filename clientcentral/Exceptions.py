@@ -1,5 +1,6 @@
 import json
 import sys
+import re
 
 
 def eprint(*args, **kwargs):
@@ -25,23 +26,21 @@ class HTTPError(Exception):
         self.payload = payload
         self.token = token
 
-    def __str__(self):
-        return (
-            str(self.message)
-            + "\n"
-            + self._new_line(
-                "Error returned from Client Central:",
-                json.dumps(self.payload.get("json"), sort_keys=True, indent=4),
-            )
-            + self._new_line(
-                "URL called:",
-                str(self.payload.get("url")).replace(self.token, "token=******"),
-            )
-            + self._new_line("HTTP Method:", str(self.payload.get("method")))
-            + self._new_line("HTTP Status Code:", str(self.payload.get("status_code")))
-            # If it is a POST request, then we want to show the payload (the payload is the result )
-            + self._new_line("HTTP Payload:", str(self.payload.get("request_payload")))
+
+def __str__(self):
+    # Filter the URL to remove sensitive tokens
+    pattern = r"token=\d+-[A-Za-z\d\-]+"
+    filtered_url = re.sub(pattern, "token=[FILTERED]", str(self.payload.get("url")))
+    return (
+        str(self.message)
+        + "\n"
+        + self._new_line(
+            "Error returned from Client Central:",
+            json.dumps(self.payload.get("json"), sort_keys=True, indent=4),
         )
+        + self._new_line("URL called:", str(filtered_url))
+        + self._new_line("HTTP Method:", str(self.payload.get("method")))
+    )
 
 
 class DateFormatInvalid(Exception):
