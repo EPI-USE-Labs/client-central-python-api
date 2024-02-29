@@ -43,7 +43,11 @@ release:
     - pip3 install wheel --upgrade
     - pip3 install Commitizen --upgrade
   script:
-    - git remote set-url origin https://${CI_GIT_DEPLOY_USER}:${CI_GIT_DEPLOY_TOKEN}@git.labs.epiuse.com/SWAT/clientcentral-api-python.git
+    - 'which ssh-agent || ( apk update && apk add openssh-client )'
+    - eval $(ssh-agent -s)
+    - ssh-add <(echo "$DEPLOY_PRIVATE_KEY")
+    - mkdir -p ~/.ssh
+    - 'echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
     - git config --global user.email ${GITLAB_USER_EMAIL}
     - git config --global user.name ${GITLAB_USER_NAME}
     - git fetch --tags
@@ -51,6 +55,6 @@ release:
     - git pull origin master  # Ensure the local branch is up-to-date
     - git tag
     - cz bump --yes --changelog --changelog-to-stdout
-    - git push origin HEAD:master --tags  # Explicitly push to the master branch and include tags
+    - git push origin master --follow-tags
     - python -m build
     - twine upload dist/*
