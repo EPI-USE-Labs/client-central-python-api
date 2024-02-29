@@ -1,3 +1,9 @@
+stages:
+  - test
+  - bump_version
+  - build
+  - deploy
+
 default:
   image: "python:3.12-alpine"
   cache:
@@ -7,17 +13,24 @@ default:
       - venv/  # Cache the virtual environment to reuse installed packages
 
 before_script:
+  - apk update && apk upgrade
+  - apk add git openssh-client
   - python -V  # Print out python version for debugging
   - pip install virtualenv
   - virtualenv venv
   - source venv/bin/activate
+  - 'which ssh-agent || apk add openssh-client'
+  - git config --global user.email ${GITLAB_USER_EMAIL}
+  - git config --global user.name ${GITLAB_USER_NAME}
+  - python3 --version
+  - pip3 install pip --upgrade 
+  - pip3 install twine --upgrade
+  - pip3 install build --upgrade
+  - pip3 install wheel --upgrade
+  - pip3 install Commitizen --upgrade
 
 variables:  # Change pip's cache directory to be inside the project directory since we can only cache local items.
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
-
-stages:
-- test
-- release
 
 analysis:
   stage: test
@@ -26,36 +39,33 @@ analysis:
   script:
     - bandit -r clientcentral/
 
-release:
-  stage: release
+
+bump_version:
+  stage: bump_version
   only:
     - master
-  variables:
-    TWINE_USERNAME: $PYPI_USER
-    TWINE_PASSWORD: $PYPI_PASSWORD
-  before_script:
-    - apk update && apk upgrade
-    - apk add git
-    - python3 --version
-    - pip3 install pip --upgrade 
-    - pip3 install twine --upgrade
-    - pip3 install build --upgrade
-    - pip3 install wheel --upgrade
-    - pip3 install Commitizen --upgrade
   script:
-    - 'which ssh-agent || ( apk update && apk add openssh-client )'
     - eval $(ssh-agent -s)
     - ssh-add <(echo "$DEPLOY_PRIVATE_KEY")
     - mkdir -p ~/.ssh
     - 'echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
     - git remote set-url origin git@git.labs.epiuse.com:SWAT/clientcentral-api-python.git
-    - git config --global user.email ${GITLAB_USER_EMAIL}
-    - git config --global user.name ${GITLAB_USER_NAME}
     - git fetch --tags
     - git checkout master  # Ensure we're on the master branch
     - git pull origin master  # Ensure the local branch is up-to-date
     - git tag
     - cz bump --yes --changelog --changelog-to-stdout
     - git push origin master --follow-tags
+
+build:
+  stage: build
+  script:
     - python -m build
-    - twine upload dist/*
+
+deploy:
+  stage: deploy
+  only:
+    - master
+  script:
+    - twine check dist/*
+    - twine upload -u $PYPI_USERNAME -p $PYPI_PASSWORD dist/*
