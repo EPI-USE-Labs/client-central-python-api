@@ -56,7 +56,11 @@ bump_version:
     - git pull origin master  # Ensure the local branch is up-to-date
     - git tag
     - cz bump --yes --changelog --changelog-to-stdout
-    - git push origin master --follow-tags
+    - git push origin master:$CI_COMMIT_REF_NAME
+    - TAG=$(head -n 1 VERSION) # get the new software version and save into artifacts
+    - echo "#!/bin/sh" >> variables
+    - echo "export TAG='$TAG'" >> variables
+    - git push origin $TAG
 
 build:
   stage: build
