@@ -1,13 +1,16 @@
 default:
   image: "python:3.12-alpine"
-  cache:                      # Pip's cache doesn't store the python packages
-    paths:                    # https://pip.pypa.io/en/stable/topics/caching/
+  cache:
+    key: "$CI_COMMIT_REF_SLUG"  # This makes the cache branch-specific
+    paths:
       - .cache/pip
-  before_script:
-    - python -V               # Print out python version for debugging
-    - pip install virtualenv
-    - virtualenv venv
-    - source venv/bin/activate
+      - venv/  # Cache the virtual environment to reuse installed packages
+
+before_script:
+  - python -V  # Print out python version for debugging
+  - pip install virtualenv
+  - virtualenv venv
+  - source venv/bin/activate
 
 variables:  # Change pip's cache directory to be inside the project directory since we can only cache local items.
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
@@ -44,8 +47,10 @@ release:
     - git config --global user.email ${GITLAB_USER_EMAIL}
     - git config --global user.name ${GITLAB_USER_NAME}
     - git fetch --tags
+    - git checkout master  # Ensure we're on the master branch
+    - git pull origin master  # Ensure the local branch is up-to-date
     - git tag
     - cz bump --yes --changelog --changelog-to-stdout
-    - git push --follow-tags
+    - git push origin HEAD:master --tags  # Explicitly push to the master branch and include tags
     - python -m build
     - twine upload dist/*
