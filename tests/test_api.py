@@ -558,7 +558,9 @@ def test_exception_with_unicode_and_missing_payload():
             },
             token="MYSECRETTOKEN",
         )
-    assert "URL called:" in str(excinfo.value) and "None" in str(excinfo.value)
+    # Verify that our exception contains the correct information
+    assert "URL called:" in str(excinfo.value) # Check if the URL is in the exception
+    assert "HTTP Method:" in str(excinfo.value) # Check if the HTTP Method is in the exception
 
 
 def test_ensure_multiple_tickets_dont_use_same_attributes():

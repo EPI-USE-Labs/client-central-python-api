@@ -27,20 +27,20 @@ class HTTPError(Exception):
         self.token = token
 
 
-def __str__(self):
-    # Filter the URL to remove sensitive tokens
-    pattern = r"token=\d+-[A-Za-z\d\-]+"
-    filtered_url = re.sub(pattern, "token=[FILTERED]", str(self.payload.get("url")))
-    return (
-        str(self.message)
-        + "\n"
-        + self._new_line(
-            "Error returned from Client Central:",
-            json.dumps(self.payload.get("json"), sort_keys=True, indent=4),
+    def __str__(self):
+        # Filter the URL to remove sensitive tokens
+        pattern = r"token=\d+-[A-Za-z\d\-]+"
+        filtered_url = re.sub(pattern, "token=[FILTERED]", str(self.payload.get("url")))
+        return (
+            str(self.message)
+            + "\n"
+            + self._new_line(
+                "Error returned from Client Central:",
+                json.dumps(self.payload.get("json"), sort_keys=True, indent=4),
+            )
+            + self._new_line("URL called:", str(filtered_url))
+            + self._new_line("HTTP Method:", str(self.payload.get("method")))
         )
-        + self._new_line("URL called:", str(filtered_url))
-        + self._new_line("HTTP Method:", str(self.payload.get("method")))
-    )
 
 
 class DateFormatInvalid(Exception):
