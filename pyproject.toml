@@ -6,10 +6,10 @@ authors = [{ name = "Thomas Scholtz", email = "thomas@labs.epiuse.com" }]
 readme = "README.md" 
 keywords = ["ClientCentral", "Client", "EPI-USE Labs", "EPI-USE", "Client-Central"]
 classifiers = [
-    "Development Status :: 2 - Pre-Alpha",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "Natural Language :: English",
-    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
 ]
 license = { file = "LICENSE" }  
 dependencies = [
