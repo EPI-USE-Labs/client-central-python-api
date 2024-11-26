@@ -64,7 +64,7 @@ bump_version:
     - git push origin master
     - git push origin $TAG
     # Optionally, print the new tag for debugging/logging
-    - echo "New version: $TAG"
+    #- echo "New version: $TAG"
 
 build:
   stage: build
