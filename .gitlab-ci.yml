@@ -39,11 +39,12 @@ analysis:
   script:
     - bandit -r clientcentral/
 
-
 bump_version:
   stage: bump_version
   only:
     - master
+  variables:
+    GIT_SSH_COMMAND: 'ssh -o StrictHostKeyChecking=no'
   script:
     - eval $(ssh-agent -s)
     - ssh-add <(echo "$DEPLOY_PRIVATE_KEY")
@@ -55,12 +56,15 @@ bump_version:
     - git reset --hard origin/master # Ensure the local branch matches the remote
     - git pull origin master  # Ensure the local branch is up-to-date
     - git tag
+    # Run the bump and generate changelog
     - cz bump --yes --changelog --changelog-to-stdout
-    - git push origin master:$CI_COMMIT_REF_NAME
-    - TAG=$(head -n 1 VERSION) # get the new software version and save into artifacts
-    - echo "#!/bin/sh" >> variables
-    - echo "export TAG='$TAG'" >> variables
+    # Extract the version from the new tag created by cz
+    - TAG=$(git describe --tags --abbrev=0)
+    # Push changes and the new tag
+    - git push origin master
     - git push origin $TAG
+    # Optionally, print the new tag for debugging/logging
+    - echo "New version: $TAG"
 
 build:
   stage: build
