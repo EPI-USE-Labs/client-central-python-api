@@ -1,6 +1,6 @@
 [project]
 name = "clientcentral"
-version = "12.5.9"
+version = "12.5.10"
 description = "Client Central Python API."
 authors = [{ name = "Thomas Scholtz", email = "thomas@labs.epiuse.com" }]
 readme = "README.md"
@@ -27,7 +27,7 @@ Homepage = "https://github.com/EPI-USE-Labs/client-central-python-api"
 name = "cz_conventional_commits"
 update_changelog_on_bump = true
 bump_message = "bump: release $current_version to $new_version [skip-ci]"
-version = "12.5.9"
+version = "12.5.10"
 tag_format = "v$version"
 version_files = [
     "README.md",

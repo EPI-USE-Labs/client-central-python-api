@@ -1,3 +1,9 @@
+## v12.5.10 (2025-12-19)
+
+### Fix
+
+- **async**: prevent session closure during concurrent requests
+
 ## v12.5.9 (2024-11-26)
 
 ## v12.5.8 (2024-11-19)
