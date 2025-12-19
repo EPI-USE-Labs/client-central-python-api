@@ -82,24 +82,21 @@ class ClientCentral:
         return q
 
     async def _get_ticket_by_id_async(self, ticket_id: str) -> Ticket:
-        if self.session is None:
+        if self.session is None or self.session.closed:
             await self.start_session()
 
-        try:
-            ticket = await Ticket.factory_create(
-                session=self.session,
-                base_url=self.base_url,
-                token=self.token,
-                ticket_id=str(ticket_id),
-                production=self.production,
-                project_id=None,
-                workspace_id=None,
-                run_async=self.run_async,
-                account_vp=None,
-                customer_user_vp=None,
-            )
-        finally:
-            await self.close_session()
+        ticket = await Ticket.factory_create(
+            session=self.session,
+            base_url=self.base_url,
+            token=self.token,
+            ticket_id=str(ticket_id),
+            production=self.production,
+            project_id=None,
+            workspace_id=None,
+            run_async=self.run_async,
+            account_vp=None,
+            customer_user_vp=None,
+        )
 
         return ticket
 
