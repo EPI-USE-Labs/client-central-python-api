@@ -5,7 +5,7 @@ stages:
   - deploy
 
 default:
-  image: "python:3.12-alpine"
+  image: "python:3.13-alpine"
   cache:
     key: "$CI_COMMIT_REF_SLUG"  # This makes the cache branch-specific
     paths:
